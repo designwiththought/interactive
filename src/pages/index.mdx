@@ -1,0 +1,37 @@
+import Hero from '../components/Hero.mjs';
+import PersonaPicker from '../components/PersonaPicker.mjs';
+import SimulatorGrid from '../components/SimulatorGrid.mjs';
+
+export const title = "Feel what your users feel";
+export const description = "Interactive simulations that let people experience accessibility barriers firsthand, with persona-tailored guidance.";
+
+<Hero />
+
+<section className="section">
+  <div className="container">
+    <PersonaPicker />
+  </div>
+</section>
+
+<SimulatorGrid />
+
+<section className="section">
+  <div className="container stack-lg" style={{ maxWidth: 'var(--reading-max)' }}>
+    <div>
+      <p className="eyebrow">How it works</p>
+      <h2 className="section-title">Three moves per scenario</h2>
+    </div>
+
+    <ol className="stack">
+      <li><strong>Set the scene.</strong> Each scenario opens with a real-world context — not a checklist. Your job is to get something done, not to pass a test.</li>
+      <li><strong>Feel the friction.</strong> The interface fights back in small, realistic ways. Note what you reach for, and where you give up.</li>
+      <li><strong>Debrief for your role.</strong> We hand you guidance shaped for a designer, developer, PM, researcher, or content designer — whichever you picked.</li>
+    </ol>
+
+    <p className="muted">
+      A reminder: simulations are blunt instruments. They show the shape of a barrier, not the
+      full weight of living with one. Use them as a doorway, not a destination — and when you can,
+      invite disabled users into your process.
+    </p>
+  </div>
+</section>

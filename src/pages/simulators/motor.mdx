@@ -1,0 +1,38 @@
+import MotorHero from '../../components/MotorHero.mjs';
+import MotorSimulator from '../../components/MotorSimulator.mjs';
+import MotorDebrief from '../../components/MotorDebrief.mjs';
+
+export const title = "Motor & motion";
+export const description = "Experience what it's like to complete everyday tasks with tremors or on a bumpy ride. Built for designers, developers, PMs, researchers, and content designers.";
+export const bodyClass = "page-motor";
+
+<MotorHero />
+
+<section className="section">
+  <div className="container stack-lg">
+    <div style={{ maxWidth: 'var(--reading-max)' }}>
+      <p className="eyebrow">The setup</p>
+      <h2 className="section-title">A normal day, just a little harder.</h2>
+
+      You're trying to finish three tasks: accept a terms update, fix a typo on your profile,
+      and confirm a small payment. You've done versions of these a hundred times.
+
+      Today your hands are shaking — maybe you're on a bouncy bus, maybe you live with essential
+      tremor, maybe it's cold. Pick a mode and intensity to match, then press **Start simulation**.
+    </div>
+
+    <MotorSimulator />
+
+    <MotorDebrief />
+
+    <div style={{ maxWidth: 'var(--reading-max)' }}>
+      <p className="eyebrow">A note on simulation</p>
+
+      Shaking a screen for a few minutes is not the same as living with a motor disability.
+      The goal here is to lower your threshold for noticing motor friction in your own work — not
+      to claim expertise on someone else's life. When you can, bring disabled users into your process.
+    </div>
+  </div>
+</section>
+
+<script src="/client/motor.js" defer></script>

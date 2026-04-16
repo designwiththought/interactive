@@ -1,0 +1,204 @@
+/* =========================================================================
+   Design Tokens
+   Core variable system for the Accessibility Experience Lab.
+   Colors use OKLCH for perceptual uniformity and predictable contrast.
+   Type, spacing, and layout use rem so they respect user font-size settings.
+   ========================================================================= */
+
+:root {
+  /* ---------- Color primitives (OKLCH) ------------------------------------
+     OKLCH(lightness chroma hue):
+     - lightness 0–1 (perceptual L*)
+     - chroma   0–0.37 (saturation)
+     - hue      0–360 (degrees)
+     Same lightness across hues = similar perceived brightness. */
+
+  --hue-brand: 265;      /* violet */
+  --hue-accent: 200;     /* cyan   */
+  --hue-warn: 75;        /* amber  */
+  --hue-danger: 27;      /* red-orange */
+  --hue-success: 155;    /* green  */
+  --hue-neutral: 265;    /* tinted gray aligned with brand */
+
+  /* Neutral ramp — low chroma, wide lightness range. */
+  --neutral-0:   oklch(0.99 0.003 var(--hue-neutral));
+  --neutral-50:  oklch(0.97 0.006 var(--hue-neutral));
+  --neutral-100: oklch(0.94 0.008 var(--hue-neutral));
+  --neutral-200: oklch(0.88 0.010 var(--hue-neutral));
+  --neutral-300: oklch(0.80 0.012 var(--hue-neutral));
+  --neutral-400: oklch(0.68 0.014 var(--hue-neutral));
+  --neutral-500: oklch(0.55 0.016 var(--hue-neutral));
+  --neutral-600: oklch(0.44 0.018 var(--hue-neutral));
+  --neutral-700: oklch(0.34 0.020 var(--hue-neutral));
+  --neutral-800: oklch(0.24 0.022 var(--hue-neutral));
+  --neutral-900: oklch(0.16 0.024 var(--hue-neutral));
+  --neutral-1000: oklch(0.10 0.020 var(--hue-neutral));
+
+  /* Brand ramp */
+  --brand-200: oklch(0.88 0.06 var(--hue-brand));
+  --brand-400: oklch(0.72 0.14 var(--hue-brand));
+  --brand-500: oklch(0.62 0.20 var(--hue-brand));
+  --brand-600: oklch(0.52 0.22 var(--hue-brand));
+  --brand-700: oklch(0.42 0.18 var(--hue-brand));
+
+  /* Accent ramp */
+  --accent-300: oklch(0.85 0.10 var(--hue-accent));
+  --accent-500: oklch(0.68 0.14 var(--hue-accent));
+  --accent-700: oklch(0.48 0.12 var(--hue-accent));
+
+  /* Status */
+  --success-500: oklch(0.65 0.15 var(--hue-success));
+  --warn-500:    oklch(0.78 0.15 var(--hue-warn));
+  --danger-500:  oklch(0.62 0.20 var(--hue-danger));
+
+  /* ---------- Semantic color tokens (light theme) ------------------------ */
+  --color-bg:            var(--neutral-0);
+  --color-bg-raised:     var(--neutral-50);
+  --color-surface:       #fff;
+  --color-surface-alt:   var(--neutral-100);
+  --color-border:        var(--neutral-200);
+  --color-border-strong: var(--neutral-400);
+
+  --color-text:          var(--neutral-900);
+  --color-text-muted:    var(--neutral-600);
+  --color-text-subtle:   var(--neutral-500);
+  --color-text-inverse:  var(--neutral-0);
+
+  --color-primary:       var(--brand-600);
+  --color-primary-hover: var(--brand-700);
+  --color-primary-soft:  oklch(0.96 0.03 var(--hue-brand));
+
+  --color-accent:        var(--accent-700);
+  --color-focus-ring:    oklch(0.62 0.22 var(--hue-brand) / 0.45);
+
+  --color-success:       var(--success-500);
+  --color-warn:          var(--warn-500);
+  --color-danger:        var(--danger-500);
+
+  /* ---------- Typography (rem-based) ------------------------------------- */
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+               "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo,
+               Consolas, monospace;
+
+  /* Type scale (~1.2 ratio), anchored at 1rem = user's base size. */
+  --fs-xs:   0.75rem;   /* 12 */
+  --fs-sm:   0.875rem;  /* 14 */
+  --fs-base: 1rem;      /* 16 */
+  --fs-md:   1.125rem;  /* 18 */
+  --fs-lg:   1.375rem;  /* 22 */
+  --fs-xl:   1.75rem;   /* 28 */
+  --fs-2xl:  2.25rem;   /* 36 */
+  --fs-3xl:  3rem;      /* 48 */
+
+  --lh-tight: 1.15;
+  --lh-snug:  1.3;
+  --lh-base:  1.55;
+  --lh-loose: 1.75;
+
+  --fw-regular:  400;
+  --fw-medium:   500;
+  --fw-semibold: 600;
+  --fw-bold:     700;
+
+  --tracking-tight:  -0.01em;
+  --tracking-normal: 0;
+  --tracking-wide:   0.04em;
+
+  /* ---------- Spacing scale (rem) ---------------------------------------- */
+  --space-0: 0;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4rem;
+  --space-9: 6rem;
+
+  /* ---------- Layout ------------------------------------------------------ */
+  --content-max: 72rem;    /* 1152px */
+  --reading-max: 42rem;    /* comfortable line length */
+
+  --radius-xs: 0.25rem;
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-pill: 999px;
+
+  /* Elevation via soft, layered shadows. */
+  --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.06),
+               0 1px 3px oklch(0 0 0 / 0.04);
+  --shadow-md: 0 2px 4px oklch(0 0 0 / 0.06),
+               0 6px 16px oklch(0 0 0 / 0.08);
+  --shadow-lg: 0 8px 20px oklch(0 0 0 / 0.10),
+               0 18px 40px oklch(0 0 0 / 0.12);
+
+  /* ---------- Motion ------------------------------------------------------ */
+  --ease-standard:   cubic-bezier(0.2, 0, 0, 1);
+  --ease-emphasized: cubic-bezier(0.3, 0, 0.1, 1);
+  --dur-fast: 120ms;
+  --dur-base: 220ms;
+  --dur-slow: 380ms;
+
+  /* ---------- Target sizes (WCAG 2.5.5 / 2.5.8) -------------------------- */
+  --target-min:   2.75rem;  /* 44px — AAA minimum */
+  --target-comfy: 3rem;     /* 48px — recommended comfortable size */
+
+  /* ---------- Focus ring -------------------------------------------------- */
+  --focus-ring-width: 3px;
+  --focus-ring-offset: 2px;
+}
+
+/* -------------------------------------------------------------------------
+   Dark theme — triggered by user preference OR data-theme="dark".
+   OKLCH keeps perceptual contrast stable when we invert lightness.
+   ------------------------------------------------------------------------- */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --color-bg:            var(--neutral-1000);
+    --color-bg-raised:     var(--neutral-900);
+    --color-surface:       var(--neutral-800);
+    --color-surface-alt:   var(--neutral-700);
+    --color-border:        var(--neutral-700);
+    --color-border-strong: var(--neutral-500);
+
+    --color-text:          var(--neutral-50);
+    --color-text-muted:    var(--neutral-300);
+    --color-text-subtle:   var(--neutral-400);
+
+    --color-primary:       var(--brand-400);
+    --color-primary-hover: var(--brand-500);
+    --color-primary-soft:  oklch(0.28 0.06 var(--hue-brand));
+
+    --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.4);
+    --shadow-md: 0 4px 14px oklch(0 0 0 / 0.45);
+    --shadow-lg: 0 10px 32px oklch(0 0 0 / 0.55);
+  }
+}
+
+[data-theme="dark"] {
+  --color-bg:            var(--neutral-1000);
+  --color-bg-raised:     var(--neutral-900);
+  --color-surface:       var(--neutral-800);
+  --color-surface-alt:   var(--neutral-700);
+  --color-border:        var(--neutral-700);
+  --color-border-strong: var(--neutral-500);
+  --color-text:          var(--neutral-50);
+  --color-text-muted:    var(--neutral-300);
+  --color-text-subtle:   var(--neutral-400);
+  --color-primary:       var(--brand-400);
+  --color-primary-hover: var(--brand-500);
+  --color-primary-soft:  oklch(0.28 0.06 var(--hue-brand));
+}
+
+/* Respect reduced-motion system preference. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-fast: 0ms;
+    --dur-base: 0ms;
+    --dur-slow: 0ms;
+  }
+}

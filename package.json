@@ -1,0 +1,22 @@
+{
+  "name": "accessibility-lab",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Interactive experiences that let people feel common accessibility barriers firsthand.",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "dev": "node scripts/dev.mjs",
+    "serve": "node scripts/serve.mjs",
+    "clean": "node -e \"fs.rmSync('dist',{recursive:true,force:true});fs.rmSync('.build',{recursive:true,force:true})\""
+  },
+  "dependencies": {
+    "@mdx-js/mdx": "^3.1.0",
+    "htm": "^3.1.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
