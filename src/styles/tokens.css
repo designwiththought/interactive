@@ -13,12 +13,12 @@
      - hue      0–360 (degrees)
      Same lightness across hues = similar perceived brightness. */
 
-  --hue-brand: 28;       /* warm terracotta / clay */
-  --hue-accent: 52;      /* honey / amber gold */
-  --hue-warn: 75;        /* amber */
+  --hue-brand: 78;       /* marigold — a touch warmer than pure yellow */
+  --hue-accent: 35;      /* burnt orange / terracotta for contrast */
+  --hue-warn: 70;        /* deeper amber */
   --hue-danger: 18;      /* red-clay */
   --hue-success: 140;    /* warm olive-green */
-  --hue-neutral: 55;     /* warm sand undertone */
+  --hue-neutral: 75;     /* warm cream undertone */
 
   /* Neutral ramp — low chroma, wide lightness range.
      Chroma is a touch higher than usual so the warmth reads on surfaces. */
@@ -35,17 +35,22 @@
   --neutral-900: oklch(0.175 0.024 var(--hue-neutral));
   --neutral-1000: oklch(0.110 0.020 var(--hue-neutral));
 
-  /* Brand ramp — terracotta / warm clay */
-  --brand-200: oklch(0.90 0.050 var(--hue-brand));
-  --brand-400: oklch(0.76 0.130 var(--hue-brand));
-  --brand-500: oklch(0.66 0.170 var(--hue-brand));
-  --brand-600: oklch(0.57 0.165 var(--hue-brand));
-  --brand-700: oklch(0.45 0.140 var(--hue-brand));
+  /* Brand ramp — sunflower / marigold.
+     High chroma and lightness give it the same graphic punch as the reference. */
+  --brand-200: oklch(0.95 0.080 var(--hue-brand));
+  --brand-400: oklch(0.88 0.160 var(--hue-brand));
+  --brand-500: oklch(0.83 0.185 var(--hue-brand));
+  --brand-600: oklch(0.75 0.175 var(--hue-brand));
+  --brand-700: oklch(0.60 0.140 var(--hue-brand));
 
-  /* Accent ramp — honey / amber */
-  --accent-300: oklch(0.88 0.090 var(--hue-accent));
-  --accent-500: oklch(0.76 0.140 var(--hue-accent));
-  --accent-700: oklch(0.55 0.120 var(--hue-accent));
+  /* Accent ramp — burnt orange / terracotta */
+  --accent-300: oklch(0.86 0.080 var(--hue-accent));
+  --accent-500: oklch(0.68 0.150 var(--hue-accent));
+  --accent-700: oklch(0.50 0.130 var(--hue-accent));
+
+  /* "Ink" — the deep near-black used for text and primary CTAs. */
+  --ink:        oklch(0.185 0.020 60);
+  --ink-soft:   oklch(0.285 0.020 60);
 
   /* Status */
   --success-500: oklch(0.60 0.110 var(--hue-success));
@@ -53,32 +58,37 @@
   --danger-500:  oklch(0.60 0.180 var(--hue-danger));
 
   /* ---------- Semantic color tokens (light theme) ------------------------ */
-  --color-bg:            oklch(0.975 0.022 68);  /* warm cream */
-  --color-bg-raised:     oklch(0.990 0.015 68);  /* near-paper */
-  --color-surface:       oklch(0.995 0.008 60);  /* soft ivory card */
-  --color-surface-alt:   var(--neutral-100);
-  --color-border:        oklch(0.895 0.025 55);
-  --color-border-strong: oklch(0.740 0.035 50);
+  --color-bg:            oklch(0.955 0.022 80);  /* bone / cream */
+  --color-bg-raised:     oklch(0.975 0.018 80);  /* near-paper */
+  --color-surface:       oklch(0.990 0.010 80);  /* ivory card */
+  --color-surface-alt:   oklch(0.935 0.028 80);
+  --color-border:        oklch(0.880 0.018 70);
+  --color-border-strong: oklch(0.720 0.028 65);
 
-  --color-text:          oklch(0.220 0.035 45);  /* warm near-black */
-  --color-text-muted:    oklch(0.470 0.035 45);
-  --color-text-subtle:   oklch(0.600 0.030 50);
-  --color-text-inverse:  var(--neutral-0);
+  --color-text:          var(--ink);
+  --color-text-muted:    oklch(0.440 0.030 55);
+  --color-text-subtle:   oklch(0.580 0.028 60);
+  --color-text-inverse:  oklch(0.980 0.008 80);
 
-  --color-primary:       var(--brand-600);
-  --color-primary-hover: var(--brand-700);
-  --color-primary-soft:  oklch(0.955 0.040 var(--hue-brand));
+  /* The reference uses yellow as a canvas color, and black as the action color.
+     We mirror that: "primary" (the surface we want to draw attention to) is the
+     warm yellow; the default CTA fill is the ink so it pops off the yellow/cream. */
+  --color-primary:       oklch(0.85 0.185 var(--hue-brand));
+  --color-primary-hover: oklch(0.80 0.185 var(--hue-brand));
+  --color-primary-soft:  oklch(0.96 0.070 var(--hue-brand));
+  --color-on-primary:    var(--ink);
 
   --color-accent:        var(--accent-700);
-  --color-focus-ring:    oklch(0.66 0.170 var(--hue-brand) / 0.55);
+  --color-focus-ring:    oklch(0.75 0.200 var(--hue-brand) / 0.9);
 
   --color-success:       var(--success-500);
   --color-warn:          var(--warn-500);
   --color-danger:        var(--danger-500);
 
   /* ---------- Typography (rem-based) ------------------------------------- */
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
-               "Helvetica Neue", Arial, sans-serif;
+  --font-sans: "Space Grotesk", ui-sans-serif, system-ui, -apple-system,
+               "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-display: "Space Grotesk", var(--font-sans);
   --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo,
                Consolas, monospace;
 
@@ -152,6 +162,23 @@
   /* ---------- Focus ring -------------------------------------------------- */
   --focus-ring-width: 3px;
   --focus-ring-offset: 2px;
+
+  /* ---------- Decorative topographic pattern ----------------------------
+     A very subtle SVG of wavy contour lines. Layered on the page background
+     it gives the same paper-map feel as the reference without adding any
+     runtime cost. */
+  --topo-pattern: url("data:image/svg+xml;utf8,\
+<svg xmlns='http://www.w3.org/2000/svg' width='600' height='600' viewBox='0 0 600 600'>\
+<g fill='none' stroke='%23b9a98d' stroke-width='1' stroke-opacity='0.28'>\
+<path d='M-20 90 C 80 60, 180 120, 280 90 S 480 60, 620 90'/>\
+<path d='M-20 150 C 100 120, 200 180, 320 150 S 520 120, 620 150'/>\
+<path d='M-20 220 C 80 190, 200 250, 300 220 S 500 190, 620 220'/>\
+<path d='M-20 300 C 120 270, 240 330, 360 300 S 540 270, 620 300'/>\
+<path d='M-20 380 C 60 350, 180 410, 300 380 S 520 350, 620 380'/>\
+<path d='M-20 460 C 100 430, 220 490, 340 460 S 540 430, 620 460'/>\
+<path d='M-20 540 C 80 510, 200 570, 320 540 S 520 510, 620 540'/>\
+</g>\
+</svg>");
 }
 
 /* -------------------------------------------------------------------------

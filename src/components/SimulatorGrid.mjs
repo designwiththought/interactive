@@ -12,14 +12,14 @@ function Card({ sim }) {
       <h3>${sim.title}</h3>
       <p>${sim.blurb}</p>
       <span className="card-cta">
-        ${isSoon ? 'Coming soon' : 'Start simulation →'}
+        ${isSoon ? 'Coming soon' : html`Start simulation <span className="arrow" aria-hidden="true">→</span>`}
       </span>
     </>
   `;
   if (isSoon) {
     return html`<div className="card card-soon" aria-disabled="true">${inner}</div>`;
   }
-  return html`<a className="card card-link" href=${sim.href}>${inner}</a>`;
+  return html`<a className="card card-link card-feature" href=${sim.href}>${inner}</a>`;
 }
 
 export default function SimulatorGrid() {

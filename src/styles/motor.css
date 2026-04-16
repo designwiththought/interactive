@@ -1,4 +1,4 @@
-/* Motor simulator — scoped styles */
+/* Motor simulator — scoped styles, bold editorial look. */
 
 .sim-shell {
   --sim-tx: 0px;
@@ -19,19 +19,25 @@
   align-self: start;
   padding: var(--space-5);
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
+  border: 1.5px solid var(--ink);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 4px 0 var(--ink);
 }
-.sim-controls h3 { font-size: var(--fs-md); margin-bottom: var(--space-4); }
+.sim-controls h3 {
+  font-size: var(--fs-md);
+  font-weight: var(--fw-bold);
+  margin-bottom: var(--space-4);
+}
 
-.control-group { margin-bottom: var(--space-5); }
+.control-group { margin-bottom: var(--space-5); border: 0; padding: 0; }
 .control-group legend {
   font-size: var(--fs-sm);
-  font-weight: var(--fw-semibold);
-  color: var(--color-text);
+  font-weight: var(--fw-bold);
+  color: var(--ink);
   margin-bottom: var(--space-2);
   padding: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 .control-group-hint {
   font-size: var(--fs-sm);
@@ -45,25 +51,25 @@
   grid-auto-columns: 1fr;
   gap: var(--space-1);
   padding: var(--space-1);
-  background: var(--color-surface-alt);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
+  background: var(--color-bg-raised);
+  border: 1.5px solid var(--ink);
+  border-radius: var(--radius-pill);
 }
 .segmented button {
   font: inherit;
+  font-family: var(--font-display);
+  font-weight: var(--fw-semibold);
   min-height: var(--target-min);
   padding: var(--space-2);
   background: transparent;
   border: 0;
-  border-radius: calc(var(--radius-sm) - 2px);
+  border-radius: var(--radius-pill);
   cursor: pointer;
   color: var(--color-text-muted);
-  font-weight: var(--fw-medium);
 }
 .segmented button[aria-pressed="true"] {
-  background: var(--color-surface);
-  color: var(--color-text);
-  box-shadow: var(--shadow-sm);
+  background: var(--ink);
+  color: var(--color-bg);
 }
 
 .toggle-row {
@@ -75,55 +81,28 @@
 }
 .toggle-row + .toggle-row { border-top: 1px solid var(--color-border); }
 .toggle-row-label { display: block; }
-.toggle-row-name { font-weight: var(--fw-medium); }
+.toggle-row-name { font-weight: var(--fw-bold); }
 .toggle-row-hint { display: block; font-size: var(--fs-sm); color: var(--color-text-muted); }
-
-.toggle {
-  appearance: none;
-  width: 2.75rem; height: 1.5rem;
-  background: var(--color-border);
-  border-radius: var(--radius-pill);
-  position: relative;
-  cursor: pointer;
-  transition: background var(--dur-fast) var(--ease-standard);
-  flex-shrink: 0;
-  border: 0;
-}
-.toggle::after {
-  content: "";
-  position: absolute;
-  inset: 2px auto 2px 2px;
-  width: 1.125rem;
-  background: #fff;
-  border-radius: 50%;
-  box-shadow: var(--shadow-sm);
-  transition: transform var(--dur-fast) var(--ease-standard);
-}
-.toggle:checked { background: var(--color-primary); }
-.toggle:checked::after { transform: translateX(1.25rem); }
 
 /* ---- Stage ------------------------------------------------------------- */
 .sim-stage {
   position: relative;
   padding: var(--space-6);
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
+  border: 1.5px solid var(--ink);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 4px 0 var(--ink);
   overflow: hidden;
 }
 
-/* Tremor/bump transform is applied here.
-   We only transform the task surface so the surrounding chrome (controls,
-   header) stay stable — the idea is to feel how input targets move under
-   you, not to disorient. */
+/* Tremor/bump transform applies only to the surface so the chrome stays stable. */
 .sim-surface {
   position: relative;
   min-height: 24rem;
   padding: var(--space-6);
   background: var(--color-bg-raised);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border: 1.5px solid var(--ink);
+  border-radius: var(--radius-lg);
   transform: translate3d(var(--sim-tx), var(--sim-ty), 0) rotate(var(--sim-rot));
   will-change: transform;
 }
@@ -138,26 +117,30 @@
   gap: var(--space-3) var(--space-5);
   margin-bottom: var(--space-5);
   padding: var(--space-3) var(--space-4);
-  background: var(--color-surface-alt);
-  border-radius: var(--radius-sm);
+  background: var(--color-primary);
+  border: 1.5px solid var(--ink);
+  border-radius: var(--radius-pill);
   font-size: var(--fs-sm);
 }
 .sim-meter dt {
-  color: var(--color-text-subtle);
-  letter-spacing: var(--tracking-wide);
+  color: var(--ink);
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
 }
 .sim-meter dd {
   margin: 0;
-  font-weight: var(--fw-semibold);
+  font-family: var(--font-display);
+  font-weight: var(--fw-bold);
   font-variant-numeric: tabular-nums;
+  color: var(--ink);
 }
 
 .task-progress {
   display: flex;
   gap: var(--space-1);
-  margin-bottom: var(--space-4);
+  margin-bottom: var(--space-5);
 }
 .task-progress-step {
   flex: 1;
@@ -165,25 +148,26 @@
   background: var(--color-border);
   border-radius: var(--radius-pill);
 }
-.task-progress-step[data-status="done"]   { background: var(--color-success); }
+.task-progress-step[data-status="done"]   { background: var(--ink); }
 .task-progress-step[data-status="active"] { background: var(--color-primary); }
 
-.task-card {
-  display: none;
-}
+.task-card { display: none; }
 .task-card[data-active="true"] { display: block; }
 
-.task-card h4 { font-size: var(--fs-lg); margin-bottom: var(--space-2); }
+.task-card h4 {
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
+  margin-bottom: var(--space-2);
+}
 .task-card .task-hint { color: var(--color-text-muted); margin-bottom: var(--space-5); }
 
-/* Task 1 — dense cluster of buttons */
 .task-button-row {
   display: flex;
   gap: var(--space-2);
   flex-wrap: wrap;
 }
 .task-button-row .btn { min-width: 6rem; }
-.task-tiny { padding: var(--space-1) var(--space-3); min-height: 2rem; font-size: var(--fs-sm); }
+.task-tiny { padding: var(--space-1) var(--space-4); min-height: 2.25rem; font-size: var(--fs-sm); }
 
 /* Task 2 — form */
 .task-form {
@@ -191,17 +175,21 @@
   gap: var(--space-4);
   max-width: 28rem;
 }
-.task-form label { display: block; font-weight: var(--fw-medium); margin-bottom: var(--space-1); }
+.task-form label {
+  display: block;
+  font-weight: var(--fw-bold);
+  margin-bottom: var(--space-1);
+}
 .task-form input[type="text"],
 .task-form input[type="email"] {
   width: 100%;
   min-height: var(--target-min);
-  padding: var(--space-2) var(--space-3);
+  padding: var(--space-2) var(--space-4);
   font: inherit;
   background: var(--color-surface);
   color: var(--color-text);
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--ink);
+  border-radius: var(--radius-pill);
 }
 
 /* Task 3 — tiny checkbox grid */
@@ -216,16 +204,16 @@
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  padding: var(--space-2) var(--space-3);
+  padding: var(--space-2) var(--space-4);
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--ink);
+  border-radius: var(--radius-pill);
 }
 .task-checklist input[type="checkbox"] {
-  width: 1rem;
-  height: 1rem;
+  width: 1.125rem;
+  height: 1.125rem;
   flex-shrink: 0;
-  accent-color: var(--color-primary);
+  accent-color: var(--ink);
 }
 
 /* Done state */
@@ -246,7 +234,9 @@
 .sim-done-stat strong {
   display: block;
   font-size: var(--fs-2xl);
-  color: var(--color-primary);
+  font-family: var(--font-display);
+  font-weight: var(--fw-bold);
+  color: var(--ink);
 }
 .sim-done-stat span {
   font-size: var(--fs-sm);
@@ -256,10 +246,10 @@
 /* ---- Miss marker ------------------------------------------------------- */
 .miss-marker {
   position: fixed;
-  width: 1.25rem;
-  height: 1.25rem;
-  margin: -0.625rem 0 0 -0.625rem;
-  border: 2px solid var(--color-danger);
+  width: 1.5rem;
+  height: 1.5rem;
+  margin: -0.75rem 0 0 -0.75rem;
+  border: 2.5px solid var(--color-danger);
   border-radius: 50%;
   pointer-events: none;
   animation: miss-pulse 620ms var(--ease-emphasized) forwards;
@@ -267,21 +257,22 @@
 }
 @keyframes miss-pulse {
   from { transform: scale(0.6); opacity: 1; }
-  to   { transform: scale(1.8); opacity: 0; }
+  to   { transform: scale(2); opacity: 0; }
 }
 
 /* ---- Debrief ----------------------------------------------------------- */
 .debrief {
   padding: var(--space-6);
-  background: var(--color-bg-raised);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  border: 1.5px solid var(--ink);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 4px 0 var(--ink);
 }
 .debrief-variant { display: none; }
 .debrief-variant[data-active="true"] { display: block; }
 
 .debrief h3 { margin-bottom: var(--space-2); }
-.debrief .eyebrow { margin-bottom: var(--space-1); }
+.debrief h4 { font-weight: var(--fw-bold); }
 
 .debrief-list {
   list-style: none;
@@ -292,17 +283,17 @@
 }
 .debrief-list li {
   padding: var(--space-4);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  background: var(--color-bg-raised);
+  border: 1.5px solid var(--ink);
+  border-radius: var(--radius-lg);
 }
-.debrief-list li strong { display: block; margin-bottom: var(--space-1); }
+.debrief-list li strong {
+  display: block;
+  margin-bottom: var(--space-1);
+  font-family: var(--font-display);
+  font-weight: var(--fw-bold);
+}
 
-/* ---- Reduced motion --------------------------------------------------- */
 @media (prefers-reduced-motion: reduce) {
-  .sim-surface {
-    /* Keep tremor/bump effects when user has opted in via controls, but
-       disable the animation smoothing we'd otherwise layer on top. */
-    transition: none;
-  }
+  .sim-surface { transition: none; }
 }

@@ -15,6 +15,12 @@ export default function Base({ title, description, bodyClass, children }) {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title>${fullTitle}</title>
         ${description && html`<meta name="description" content=${description} />`}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap"
+        />
         <link rel="stylesheet" href="/styles/tokens.css" />
         <link rel="stylesheet" href="/styles/base.css" />
         <link rel="stylesheet" href="/styles/components.css" />
