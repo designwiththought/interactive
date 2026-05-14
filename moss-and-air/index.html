@@ -82,9 +82,8 @@
         z-index: 2;
         pointer-events: none;
         background:
-          linear-gradient(to right, rgba(12, 15, 8, 0.85) 0, rgba(12, 15, 8, 0) 200px),
-          linear-gradient(to left, rgba(12, 15, 8, 0.85) 0, rgba(12, 15, 8, 0) 200px),
-          linear-gradient(to bottom, rgba(12, 15, 8, 0.5) 0, rgba(12, 15, 8, 0) 240px);
+          linear-gradient(to bottom, rgba(12, 15, 8, 0.45) 0, rgba(12, 15, 8, 0) 200px),
+          linear-gradient(to top, rgba(12, 15, 8, 0.35) 0, rgba(12, 15, 8, 0) 180px);
       }
 
       .motes {
@@ -383,155 +382,304 @@
       preserveAspectRatio="xMinYMid slice"
     >
       <defs>
-        <linearGradient id="bark-l" x1="0" x2="1" y1="0" y2="0">
-          <stop offset="0%" stop-color="#120804" />
-          <stop offset="22%" stop-color="#2a1410" />
-          <stop offset="50%" stop-color="#4d2618" />
-          <stop offset="78%" stop-color="#6b3520" />
-          <stop offset="100%" stop-color="#3a1d12" />
+        <linearGradient id="trunk-wash-l" x1="0" x2="1" y1="0" y2="0">
+          <stop offset="0%" stop-color="#3a1d12" stop-opacity="0.55" />
+          <stop offset="35%" stop-color="#6b3520" stop-opacity="0.7" />
+          <stop offset="70%" stop-color="#8b4a2a" stop-opacity="0.6" />
+          <stop offset="100%" stop-color="#4a2818" stop-opacity="0.45" />
         </linearGradient>
-        <linearGradient id="bark-sheen-l" x1="0" x2="1" y1="0" y2="0">
-          <stop offset="0%" stop-color="#8d5535" stop-opacity="0" />
-          <stop offset="62%" stop-color="#8d5535" stop-opacity="0" />
-          <stop offset="85%" stop-color="#a8674a" stop-opacity="0.35" />
-          <stop offset="100%" stop-color="#5a2d1c" stop-opacity="0" />
-        </linearGradient>
-        <linearGradient id="bark-mid-l" x1="0" x2="1" y1="0" y2="0">
-          <stop offset="0%" stop-color="#0e0604" />
-          <stop offset="55%" stop-color="#2c1610" />
-          <stop offset="100%" stop-color="#1a0d08" />
-        </linearGradient>
-        <linearGradient id="bark-far-l" x1="0" x2="1" y1="0" y2="0">
-          <stop offset="0%" stop-color="#0c0908" />
-          <stop offset="100%" stop-color="#1a1410" />
-        </linearGradient>
-        <radialGradient id="foliage-l" cx="50%" cy="40%" r="60%">
-          <stop offset="0%" stop-color="#4a6a44" />
-          <stop offset="60%" stop-color="#2f4a2c" />
-          <stop offset="100%" stop-color="#1a2a18" />
+        <radialGradient id="foliage-wash-l" cx="50%" cy="45%" r="55%">
+          <stop offset="0%" stop-color="#5a7a4a" stop-opacity="0.55" />
+          <stop offset="100%" stop-color="#2a3a22" stop-opacity="0.1" />
         </radialGradient>
+        <filter id="wash-soft-l" x="-5%" y="-5%" width="110%" height="110%">
+          <feGaussianBlur stdDeviation="0.7" />
+        </filter>
       </defs>
 
-      <!-- distant tree (way back, hazy) -->
-      <g opacity="0.35">
-        <path
-          d="M 0 1200 C 2 1100, 0 900, 4 700 C 6 450, 10 200, 12 0 L 26 0 C 28 250, 32 500, 34 750 C 36 950, 38 1100, 40 1200 Z"
-          fill="url(#bark-far-l)"
-        />
-      </g>
-
-      <!-- mid tree -->
-      <g opacity="0.7">
-        <path
-          d="M 6 1200 C 10 1100, 8 850, 14 600 C 18 350, 22 150, 28 0 L 68 0 C 72 170, 76 380, 80 640 C 82 880, 84 1060, 86 1200 Z"
-          fill="url(#bark-mid-l)"
-        />
-        <g stroke="#0a0504" stroke-width="0.5" opacity="0.7" fill="none">
-          <path d="M 34 0 C 36 240, 35 520, 40 780 C 43 1000, 41 1120, 45 1200" />
-          <path d="M 50 0 C 52 230, 51 500, 56 760 C 59 980, 57 1110, 61 1200" />
-          <path d="M 66 0 C 68 240, 67 510, 72 780 C 75 1000, 73 1120, 77 1200" />
+      <!-- ============ DISTANT TREES (pines behind) ============ -->
+      <g opacity="0.55">
+        <!-- distant pine 1 -->
+        <g transform="translate(2 540)">
+          <path
+            d="M 8 0 L 4 22 L 9 20 L 3 44 L 11 41 L 2 70 L 13 66 L 1 100 L 14 95 L 4 120 L 12 118 L 8 120 Z"
+            fill="#3a4a2e" fill-opacity="0.35"
+          />
+          <path d="M 8 120 L 8 160" stroke="#2a3a22" stroke-width="0.5" stroke-linecap="round" />
+          <path d="M 0 30 Q 4 28 8 30" stroke="#2a3a22" stroke-width="0.4" fill="none" />
+          <path d="M 16 48 Q 12 46 8 48" stroke="#2a3a22" stroke-width="0.4" fill="none" />
         </g>
-        <!-- distant foliage at top -->
-        <ellipse cx="55" cy="20" rx="32" ry="14" fill="#2a3a26" opacity="0.7" />
-        <ellipse cx="45" cy="6" rx="22" ry="10" fill="#1f2e1c" opacity="0.8" />
+        <!-- distant pine 2 (smaller, further back) -->
+        <g transform="translate(0 820)" opacity="0.7">
+          <path
+            d="M 6 0 L 3 16 L 7 14 L 2 32 L 9 30 L 1 52 L 10 48 L 4 80 L 11 76 L 7 90 Z"
+            fill="#3a4a2e" fill-opacity="0.3"
+          />
+          <path d="M 6 90 L 6 120" stroke="#2a3a22" stroke-width="0.4" stroke-linecap="round" />
+        </g>
+        <!-- horizon hint -->
+        <path d="M 0 1190 L 220 1192" stroke="#1f1108" stroke-width="0.4" opacity="0.6" />
       </g>
 
-      <!-- foreground redwood -->
-      <g>
-        <!-- main trunk silhouette with subtle root flare at base and slight taper to top -->
+      <!-- ============ FOREGROUND REDWOOD ============ -->
+
+      <!-- 1. Trunk watercolor wash with buttressed base -->
+      <g filter="url(#wash-soft-l)">
         <path
-          d="M 30 1200
-             C 36 1180, 32 1140, 42 1100
-             C 46 950, 50 700, 54 400
-             C 57 220, 60 90, 62 0
-             L 188 0
-             C 192 110, 196 260, 200 480
-             C 204 720, 208 980, 210 1120
-             C 212 1170, 214 1190, 220 1200
+          d="M 60 0
+             C 58 200, 55 500, 55 800
+             C 55 900, 50 970, 38 1030
+             C 25 1080, 12 1130, 0 1185
+             L 0 1200
+             L 220 1200
+             L 220 1185
+             C 208 1130, 195 1080, 182 1030
+             C 170 970, 165 900, 165 800
+             C 165 500, 162 200, 160 0
              Z"
-          fill="url(#bark-l)"
+          fill="url(#trunk-wash-l)"
         />
-
-        <!-- warm sheen catching light on right side of trunk -->
+        <!-- shadow side wash on left -->
         <path
-          d="M 62 0 L 188 0
-             C 192 110, 196 260, 200 480
-             C 204 720, 208 980, 210 1120
-             C 212 1170, 214 1190, 220 1200
-             L 220 0 Z"
-          fill="url(#bark-sheen-l)"
+          d="M 60 0
+             C 58 200, 55 500, 55 800
+             C 55 900, 50 970, 38 1030
+             C 25 1080, 12 1130, 0 1185
+             L 0 1200
+             L 55 1200
+             L 55 1185
+             C 52 1130, 58 1070, 68 1010
+             C 75 950, 80 900, 80 800
+             C 80 500, 78 200, 78 0
+             Z"
+          fill="#1f0d08" fill-opacity="0.4"
         />
+      </g>
 
-        <!-- deep vertical bark furrows -->
-        <g stroke="#0a0504" stroke-width="0.7" opacity="0.65" fill="none" stroke-linecap="round">
-          <path d="M 72 0 C 75 220, 72 520, 78 800 C 82 1000, 79 1120, 83 1200" />
-          <path d="M 88 0 C 91 240, 89 510, 94 790 C 98 1010, 95 1130, 99 1200" />
-          <path d="M 104 0 C 107 230, 105 500, 111 780 C 115 1000, 112 1120, 116 1200" />
-          <path d="M 120 0 C 123 250, 121 530, 127 790 C 131 1010, 128 1130, 132 1200" />
-          <path d="M 136 0 C 139 230, 137 510, 143 780 C 147 1000, 144 1120, 148 1200" />
-          <path d="M 152 0 C 155 240, 153 520, 159 790 C 163 1010, 160 1130, 164 1200" />
-          <path d="M 168 0 C 171 230, 169 500, 175 780 C 179 1000, 176 1120, 180 1200" />
-          <path d="M 184 0 C 187 240, 185 510, 191 790 C 195 1010, 192 1130, 196 1200" />
+      <!-- 2. Foliage washes (color under foliage) -->
+      <g filter="url(#wash-soft-l)">
+        <ellipse cx="200" cy="220" rx="40" ry="28" fill="url(#foliage-wash-l)" />
+        <ellipse cx="178" cy="195" rx="26" ry="20" fill="url(#foliage-wash-l)" opacity="0.85" />
+        <ellipse cx="210" cy="240" rx="22" ry="14" fill="url(#foliage-wash-l)" opacity="0.7" />
+        <ellipse cx="205" cy="480" rx="30" ry="22" fill="url(#foliage-wash-l)" opacity="0.8" />
+        <ellipse cx="200" cy="730" rx="26" ry="18" fill="url(#foliage-wash-l)" opacity="0.7" />
+        <ellipse cx="18" cy="540" rx="22" ry="14" fill="url(#foliage-wash-l)" opacity="0.55" />
+      </g>
+
+      <!-- 3. INK LINEWORK -->
+
+      <!-- Trunk silhouette outlines (left and right edges) -->
+      <g stroke="#1a0c08" stroke-width="1.3" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M 60 0
+                 C 58 200, 55 500, 55 800
+                 C 55 900, 50 970, 38 1030
+                 C 25 1080, 12 1130, 0 1185" />
+        <path d="M 160 0
+                 C 162 200, 165 500, 165 800
+                 C 165 900, 170 970, 182 1030
+                 C 195 1080, 208 1130, 220 1185" />
+      </g>
+
+      <!-- Vertical bark furrows on main trunk -->
+      <g stroke="#1a0c08" fill="none" stroke-linecap="round" opacity="0.85">
+        <path d="M 68 20 C 69 280, 66 580, 70 870" stroke-width="0.9" />
+        <path d="M 80 10 C 81 270, 78 570, 82 860" stroke-width="0.7" />
+        <path d="M 92 25 C 93 290, 90 590, 96 880" stroke-width="1.0" />
+        <path d="M 104 15 C 105 280, 102 590, 108 880" stroke-width="0.8" />
+        <path d="M 115 20 C 116 290, 113 600, 119 890" stroke-width="1.1" />
+        <path d="M 126 10 C 127 270, 124 580, 131 870" stroke-width="0.7" />
+        <path d="M 137 25 C 138 295, 135 600, 142 880" stroke-width="1.0" />
+        <path d="M 148 15 C 149 280, 146 590, 153 880" stroke-width="0.8" />
+      </g>
+
+      <!-- Furrows curving outward through the buttress base -->
+      <g stroke="#1a0c08" fill="none" stroke-linecap="round" opacity="0.8">
+        <path d="M 68 870 C 64 950, 50 1020, 28 1100 C 16 1140, 8 1170, 3 1196" stroke-width="0.9" />
+        <path d="M 80 860 C 78 940, 68 1010, 48 1090 C 38 1130, 30 1165, 26 1196" stroke-width="0.7" />
+        <path d="M 92 880 C 90 960, 82 1030, 66 1110 C 56 1145, 50 1175, 48 1198" stroke-width="0.8" />
+        <path d="M 104 880 C 104 970, 106 1050, 108 1130 C 108 1170, 108 1190, 108 1200" stroke-width="0.6" />
+        <path d="M 115 890 C 115 970, 117 1060, 120 1140 C 122 1175, 123 1195, 124 1200" stroke-width="0.7" />
+        <path d="M 126 880 C 128 960, 134 1030, 142 1110 C 150 1145, 158 1175, 162 1198" stroke-width="0.7" />
+        <path d="M 137 880 C 140 940, 148 1010, 162 1090 C 172 1130, 180 1165, 184 1196" stroke-width="0.9" />
+        <path d="M 148 870 C 152 950, 162 1020, 182 1100 C 195 1140, 205 1170, 210 1196" stroke-width="0.8" />
+      </g>
+
+      <!-- Deep shadow V-folds between buttress lobes -->
+      <g stroke="#0a0504" fill="none" stroke-linecap="round">
+        <path d="M 32 1080 C 28 1130, 22 1165, 14 1198" stroke-width="1.5" />
+        <path d="M 35 1080 C 32 1100, 28 1115, 22 1135" stroke-width="0.6" opacity="0.7" />
+
+        <path d="M 75 1090 C 74 1130, 73 1165, 72 1198" stroke-width="1.3" />
+        <path d="M 108 1100 C 108 1140, 108 1175, 108 1200" stroke-width="0.9" opacity="0.7" />
+        <path d="M 145 1090 C 146 1130, 147 1165, 148 1198" stroke-width="1.3" />
+
+        <path d="M 188 1080 C 192 1130, 198 1165, 206 1198" stroke-width="1.5" />
+        <path d="M 185 1080 C 188 1100, 192 1115, 198 1135" stroke-width="0.6" opacity="0.7" />
+      </g>
+
+      <!-- Crosshatch in deepest fold shadows -->
+      <g stroke="#0a0504" stroke-width="0.4" fill="none" stroke-linecap="round" opacity="0.55">
+        <path d="M 16 1168 L 26 1178" />
+        <path d="M 14 1180 L 24 1190" />
+        <path d="M 12 1190 L 22 1198" />
+        <path d="M 70 1168 L 80 1178" />
+        <path d="M 68 1180 L 78 1190" />
+        <path d="M 142 1168 L 152 1178" />
+        <path d="M 144 1180 L 154 1190" />
+        <path d="M 196 1168 L 206 1178" />
+        <path d="M 198 1180 L 208 1190" />
+      </g>
+
+      <!-- Short horizontal bark cracks -->
+      <g stroke="#1a0c08" stroke-width="0.4" fill="none" opacity="0.6" stroke-linecap="round">
+        <path d="M 68 320 Q 110 318 148 322" />
+        <path d="M 80 580 Q 118 578 145 582" />
+        <path d="M 74 780 Q 115 778 148 782" />
+      </g>
+
+      <!-- Knots -->
+      <g>
+        <ellipse cx="100" cy="380" rx="5" ry="3.5" fill="#1a0c08" />
+        <ellipse cx="100" cy="380" rx="3" ry="2" fill="#3a1d12" />
+        <ellipse cx="128" cy="650" rx="4" ry="2.8" fill="#1a0c08" opacity="0.85" />
+      </g>
+
+      <!-- BRANCHES with scribbly foliage clusters -->
+
+      <!-- Upper main branch reaching right -->
+      <g>
+        <path d="M 148 215 C 168 200, 188 196, 210 202 C 215 204, 218 208, 220 215"
+              stroke="#1a0c08" stroke-width="3" fill="none" stroke-linecap="round" />
+        <path d="M 152 232 C 170 232, 190 235, 208 244"
+              stroke="#1a0c08" stroke-width="1.8" fill="none" stroke-linecap="round" opacity="0.75" />
+        <!-- cluster outline -->
+        <g stroke="#1a2218" fill="none" stroke-linecap="round">
+          <path d="M 172 205 Q 182 185 200 188 Q 215 178 226 198 Q 232 218 222 232 Q 218 248 198 244 Q 178 250 168 230 Q 162 212 172 205 Z" stroke-width="0.9" />
+          <!-- inner scribble strokes -->
+          <g stroke-width="0.4" opacity="0.75">
+            <path d="M 178 200 L 181 206" />
+            <path d="M 184 198 L 187 204" />
+            <path d="M 190 199 L 193 205" />
+            <path d="M 196 200 L 199 206" />
+            <path d="M 202 202 L 205 208" />
+            <path d="M 208 204 L 211 211" />
+            <path d="M 214 208 L 217 215" />
+            <path d="M 175 213 L 178 219" />
+            <path d="M 182 214 L 185 221" />
+            <path d="M 188 215 L 191 222" />
+            <path d="M 194 217 L 197 224" />
+            <path d="M 200 218 L 203 225" />
+            <path d="M 206 220 L 209 227" />
+            <path d="M 212 222 L 215 229" />
+            <path d="M 178 228 L 181 234" />
+            <path d="M 184 229 L 187 236" />
+            <path d="M 190 230 L 193 237" />
+            <path d="M 196 232 L 199 239" />
+            <path d="M 202 233 L 205 240" />
+            <path d="M 208 235 L 211 241" />
+          </g>
         </g>
+      </g>
 
-        <!-- lighter bark fibers (cinnamon highlights between furrows) -->
-        <g stroke="#7a4226" stroke-width="0.4" opacity="0.4" fill="none" stroke-linecap="round">
-          <path d="M 80 60 C 82 280, 80 560, 86 820" />
-          <path d="M 112 200 C 114 420, 112 700, 118 940" />
-          <path d="M 144 80 C 146 360, 144 640, 150 880" />
-          <path d="M 176 240 C 178 460, 176 740, 182 980" />
+      <!-- Middle branch -->
+      <g>
+        <path d="M 152 470 C 175 465, 195 475, 215 488"
+              stroke="#1a0c08" stroke-width="2.6" fill="none" stroke-linecap="round" />
+        <g stroke="#1a2218" fill="none" stroke-linecap="round">
+          <path d="M 184 470 Q 198 458 215 468 Q 228 478 220 494 Q 208 504 190 498 Q 178 488 184 470 Z" stroke-width="0.8" />
+          <g stroke-width="0.4" opacity="0.75">
+            <path d="M 190 468 L 193 474" />
+            <path d="M 196 466 L 199 472" />
+            <path d="M 202 466 L 205 472" />
+            <path d="M 208 468 L 211 474" />
+            <path d="M 214 470 L 217 476" />
+            <path d="M 188 480 L 191 486" />
+            <path d="M 194 480 L 197 486" />
+            <path d="M 200 482 L 203 488" />
+            <path d="M 206 484 L 209 490" />
+            <path d="M 212 486 L 215 492" />
+            <path d="M 190 492 L 193 498" />
+            <path d="M 196 492 L 199 498" />
+            <path d="M 202 494 L 205 500" />
+            <path d="M 208 494 L 211 500" />
+          </g>
         </g>
+      </g>
 
-        <!-- short horizontal bark cracks -->
-        <g stroke="#0a0504" stroke-width="0.4" opacity="0.55" fill="none">
-          <path d="M 68 320 Q 105 316 142 322" />
-          <path d="M 95 640 Q 140 638 180 645" />
-          <path d="M 78 880 Q 120 876 158 882" />
-          <path d="M 110 1040 Q 150 1038 185 1044" />
+      <!-- Lower branch -->
+      <g>
+        <path d="M 155 720 C 175 718, 195 728, 215 740"
+              stroke="#1a0c08" stroke-width="2.2" fill="none" stroke-linecap="round" />
+        <g stroke="#1a2218" fill="none" stroke-linecap="round">
+          <path d="M 188 720 Q 202 712 218 722 Q 228 734 218 746 Q 202 752 188 744 Q 180 732 188 720 Z" stroke-width="0.8" />
+          <g stroke-width="0.4" opacity="0.75">
+            <path d="M 194 720 L 197 726" />
+            <path d="M 200 718 L 203 724" />
+            <path d="M 206 720 L 209 726" />
+            <path d="M 212 722 L 215 728" />
+            <path d="M 192 732 L 195 738" />
+            <path d="M 198 732 L 201 738" />
+            <path d="M 204 734 L 207 740" />
+            <path d="M 210 736 L 213 742" />
+            <path d="M 194 744 L 197 750" />
+            <path d="M 200 744 L 203 750" />
+            <path d="M 206 746 L 209 752" />
+          </g>
         </g>
+      </g>
 
-        <!-- knots and burls -->
-        <g>
-          <ellipse cx="118" cy="280" rx="7" ry="4.5" fill="#0a0504" opacity="0.85" />
-          <ellipse cx="117" cy="279" rx="5" ry="3" fill="#1f0d08" />
-          <ellipse cx="116" cy="278.5" rx="2.5" ry="1.4" fill="#3a1d12" />
-
-          <ellipse cx="148" cy="600" rx="5.5" ry="3.5" fill="#0a0504" opacity="0.75" />
-          <ellipse cx="147" cy="599" rx="3.5" ry="2" fill="#1f0d08" />
-
-          <ellipse cx="92" cy="940" rx="4.5" ry="3" fill="#0a0504" opacity="0.65" />
-          <ellipse cx="91" cy="939" rx="2.8" ry="1.6" fill="#1f0d08" />
+      <!-- Small left-side branch -->
+      <g>
+        <path d="M 65 530 C 48 528, 32 535, 14 542"
+              stroke="#1a0c08" stroke-width="1.6" fill="none" stroke-linecap="round" opacity="0.85" />
+        <g stroke="#1a2218" fill="none" stroke-linecap="round">
+          <path d="M 4 540 Q 12 530 26 534 Q 36 540 28 552 Q 14 554 4 546 Q -2 542 4 540 Z" stroke-width="0.7" />
+          <g stroke-width="0.35" opacity="0.7">
+            <path d="M 8 540 L 10 545" />
+            <path d="M 14 538 L 16 543" />
+            <path d="M 20 540 L 22 545" />
+            <path d="M 8 548 L 10 552" />
+            <path d="M 14 548 L 16 552" />
+            <path d="M 20 548 L 22 552" />
+          </g>
         </g>
+      </g>
 
-        <!-- branches with foliage clusters, reaching toward page interior -->
-        <!-- upper branch -->
-        <g>
-          <path d="M 195 70 Q 215 60 220 50" stroke="#1f0d08" stroke-width="3" fill="none" stroke-linecap="round" />
-          <path d="M 200 80 Q 218 78 220 76" stroke="#1f0d08" stroke-width="1.8" fill="none" stroke-linecap="round" />
-          <ellipse cx="218" cy="45" rx="20" ry="9" fill="url(#foliage-l)" />
-          <ellipse cx="210" cy="36" rx="14" ry="6" fill="#3d5e35" opacity="0.9" />
-          <ellipse cx="220" cy="62" rx="16" ry="7" fill="#1f2e1c" opacity="0.85" />
+      <!-- Forest floor: short horizontal strokes -->
+      <g stroke="#1a0c08" stroke-width="0.4" fill="none" stroke-linecap="round" opacity="0.5">
+        <path d="M 10 1196 L 18 1197" />
+        <path d="M 24 1198 L 32 1198" />
+        <path d="M 40 1196 L 50 1197" />
+        <path d="M 58 1198 L 68 1198" />
+        <path d="M 80 1197 L 90 1198" />
+        <path d="M 100 1198 L 112 1199" />
+        <path d="M 122 1197 L 132 1198" />
+        <path d="M 142 1196 L 152 1197" />
+        <path d="M 162 1198 L 172 1198" />
+        <path d="M 182 1197 L 192 1198" />
+        <path d="M 200 1196 L 210 1197" />
+      </g>
+
+      <!-- Small ferns at base -->
+      <g stroke="#1a2218" stroke-width="0.55" fill="none" stroke-linecap="round" opacity="0.85">
+        <g transform="translate(8 1186)">
+          <path d="M 0 12 Q 0 6 -1 0" />
+          <path d="M 0 12 Q -6 8 -10 3" />
+          <path d="M 0 12 Q 6 8 10 3" />
+          <path d="M 0 12 Q -4 10 -6 6" />
+          <path d="M 0 12 Q 4 10 6 6" />
         </g>
-
-        <!-- middle branch -->
-        <g>
-          <path d="M 205 360 Q 218 372 220 385" stroke="#1f0d08" stroke-width="2.5" fill="none" stroke-linecap="round" />
-          <ellipse cx="220" cy="382" rx="14" ry="6" fill="url(#foliage-l)" opacity="0.92" />
-          <ellipse cx="216" cy="370" rx="10" ry="4.5" fill="#3d5e35" opacity="0.8" />
+        <g transform="translate(106 1192)">
+          <path d="M 0 7 Q 0 3 0 0" />
+          <path d="M 0 7 Q -5 5 -7 2" />
+          <path d="M 0 7 Q 5 5 7 2" />
         </g>
-
-        <!-- lower branch -->
-        <g>
-          <path d="M 210 720 Q 220 728 220 738" stroke="#1f0d08" stroke-width="2" fill="none" stroke-linecap="round" />
-          <ellipse cx="220" cy="735" rx="10" ry="4.5" fill="url(#foliage-l)" opacity="0.8" />
+        <g transform="translate(210 1188)">
+          <path d="M 0 10 Q 0 5 1 0" />
+          <path d="M 0 10 Q -6 7 -9 3" />
+          <path d="M 0 10 Q 6 7 9 3" />
+          <path d="M 0 10 Q -3 8 -5 5" />
         </g>
-
-        <!-- root flare hint at very bottom -->
-        <path
-          d="M 30 1200 C 38 1188, 36 1170, 50 1160 C 70 1150, 90 1148, 120 1152 C 160 1156, 195 1170, 220 1186 L 220 1200 Z"
-          fill="#0a0504"
-          opacity="0.4"
-        />
       </g>
     </svg>
 
@@ -542,140 +690,274 @@
       preserveAspectRatio="xMinYMid slice"
     >
       <defs>
-        <linearGradient id="bark-r" x1="0" x2="1" y1="0" y2="0">
-          <stop offset="0%" stop-color="#120804" />
-          <stop offset="22%" stop-color="#2a1410" />
-          <stop offset="50%" stop-color="#4d2618" />
-          <stop offset="78%" stop-color="#6b3520" />
-          <stop offset="100%" stop-color="#3a1d12" />
+        <linearGradient id="trunk-wash-r" x1="0" x2="1" y1="0" y2="0">
+          <stop offset="0%" stop-color="#3a1d12" stop-opacity="0.55" />
+          <stop offset="35%" stop-color="#6b3520" stop-opacity="0.7" />
+          <stop offset="70%" stop-color="#8b4a2a" stop-opacity="0.6" />
+          <stop offset="100%" stop-color="#4a2818" stop-opacity="0.45" />
         </linearGradient>
-        <linearGradient id="bark-sheen-r" x1="0" x2="1" y1="0" y2="0">
-          <stop offset="0%" stop-color="#8d5535" stop-opacity="0" />
-          <stop offset="62%" stop-color="#8d5535" stop-opacity="0" />
-          <stop offset="85%" stop-color="#a8674a" stop-opacity="0.35" />
-          <stop offset="100%" stop-color="#5a2d1c" stop-opacity="0" />
-        </linearGradient>
-        <linearGradient id="bark-mid-r" x1="0" x2="1" y1="0" y2="0">
-          <stop offset="0%" stop-color="#0e0604" />
-          <stop offset="55%" stop-color="#2c1610" />
-          <stop offset="100%" stop-color="#1a0d08" />
-        </linearGradient>
-        <linearGradient id="bark-far-r" x1="0" x2="1" y1="0" y2="0">
-          <stop offset="0%" stop-color="#0c0908" />
-          <stop offset="100%" stop-color="#1a1410" />
-        </linearGradient>
-        <radialGradient id="foliage-r" cx="50%" cy="40%" r="60%">
-          <stop offset="0%" stop-color="#4a6a44" />
-          <stop offset="60%" stop-color="#2f4a2c" />
-          <stop offset="100%" stop-color="#1a2a18" />
+        <radialGradient id="foliage-wash-r" cx="50%" cy="45%" r="55%">
+          <stop offset="0%" stop-color="#5a7a4a" stop-opacity="0.55" />
+          <stop offset="100%" stop-color="#2a3a22" stop-opacity="0.1" />
         </radialGradient>
+        <filter id="wash-soft-r" x="-5%" y="-5%" width="110%" height="110%">
+          <feGaussianBlur stdDeviation="0.7" />
+        </filter>
       </defs>
 
-      <g opacity="0.35">
+      <g opacity="0.55">
+        <g transform="translate(2 540)">
+          <path
+            d="M 8 0 L 4 22 L 9 20 L 3 44 L 11 41 L 2 70 L 13 66 L 1 100 L 14 95 L 4 120 L 12 118 L 8 120 Z"
+            fill="#3a4a2e" fill-opacity="0.35"
+          />
+          <path d="M 8 120 L 8 160" stroke="#2a3a22" stroke-width="0.5" stroke-linecap="round" />
+          <path d="M 0 30 Q 4 28 8 30" stroke="#2a3a22" stroke-width="0.4" fill="none" />
+          <path d="M 16 48 Q 12 46 8 48" stroke="#2a3a22" stroke-width="0.4" fill="none" />
+        </g>
+        <g transform="translate(0 820)" opacity="0.7">
+          <path
+            d="M 6 0 L 3 16 L 7 14 L 2 32 L 9 30 L 1 52 L 10 48 L 4 80 L 11 76 L 7 90 Z"
+            fill="#3a4a2e" fill-opacity="0.3"
+          />
+          <path d="M 6 90 L 6 120" stroke="#2a3a22" stroke-width="0.4" stroke-linecap="round" />
+        </g>
+        <path d="M 0 1190 L 220 1192" stroke="#1f1108" stroke-width="0.4" opacity="0.6" />
+      </g>
+
+      <g filter="url(#wash-soft-r)">
         <path
-          d="M 0 1200 C 2 1100, 0 900, 4 700 C 6 450, 10 200, 12 0 L 26 0 C 28 250, 32 500, 34 750 C 36 950, 38 1100, 40 1200 Z"
-          fill="url(#bark-far-r)"
+          d="M 60 0
+             C 58 200, 55 500, 55 800
+             C 55 900, 50 970, 38 1030
+             C 25 1080, 12 1130, 0 1185
+             L 0 1200
+             L 220 1200
+             L 220 1185
+             C 208 1130, 195 1080, 182 1030
+             C 170 970, 165 900, 165 800
+             C 165 500, 162 200, 160 0
+             Z"
+          fill="url(#trunk-wash-r)"
+        />
+        <path
+          d="M 60 0
+             C 58 200, 55 500, 55 800
+             C 55 900, 50 970, 38 1030
+             C 25 1080, 12 1130, 0 1185
+             L 0 1200
+             L 55 1200
+             L 55 1185
+             C 52 1130, 58 1070, 68 1010
+             C 75 950, 80 900, 80 800
+             C 80 500, 78 200, 78 0
+             Z"
+          fill="#1f0d08" fill-opacity="0.4"
         />
       </g>
 
-      <g opacity="0.7">
-        <path
-          d="M 6 1200 C 10 1100, 8 850, 14 600 C 18 350, 22 150, 28 0 L 68 0 C 72 170, 76 380, 80 640 C 82 880, 84 1060, 86 1200 Z"
-          fill="url(#bark-mid-r)"
-        />
-        <g stroke="#0a0504" stroke-width="0.5" opacity="0.7" fill="none">
-          <path d="M 34 0 C 36 240, 35 520, 40 780 C 43 1000, 41 1120, 45 1200" />
-          <path d="M 50 0 C 52 230, 51 500, 56 760 C 59 980, 57 1110, 61 1200" />
-          <path d="M 66 0 C 68 240, 67 510, 72 780 C 75 1000, 73 1120, 77 1200" />
-        </g>
-        <ellipse cx="55" cy="20" rx="32" ry="14" fill="#2a3a26" opacity="0.7" />
-        <ellipse cx="45" cy="6" rx="22" ry="10" fill="#1f2e1c" opacity="0.8" />
+      <g filter="url(#wash-soft-r)">
+        <ellipse cx="200" cy="220" rx="40" ry="28" fill="url(#foliage-wash-r)" />
+        <ellipse cx="178" cy="195" rx="26" ry="20" fill="url(#foliage-wash-r)" opacity="0.85" />
+        <ellipse cx="210" cy="240" rx="22" ry="14" fill="url(#foliage-wash-r)" opacity="0.7" />
+        <ellipse cx="205" cy="480" rx="30" ry="22" fill="url(#foliage-wash-r)" opacity="0.8" />
+        <ellipse cx="200" cy="730" rx="26" ry="18" fill="url(#foliage-wash-r)" opacity="0.7" />
+        <ellipse cx="18" cy="540" rx="22" ry="14" fill="url(#foliage-wash-r)" opacity="0.55" />
+      </g>
+
+      <g stroke="#1a0c08" stroke-width="1.3" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M 60 0
+                 C 58 200, 55 500, 55 800
+                 C 55 900, 50 970, 38 1030
+                 C 25 1080, 12 1130, 0 1185" />
+        <path d="M 160 0
+                 C 162 200, 165 500, 165 800
+                 C 165 900, 170 970, 182 1030
+                 C 195 1080, 208 1130, 220 1185" />
+      </g>
+
+      <g stroke="#1a0c08" fill="none" stroke-linecap="round" opacity="0.85">
+        <path d="M 68 20 C 69 280, 66 580, 70 870" stroke-width="0.9" />
+        <path d="M 80 10 C 81 270, 78 570, 82 860" stroke-width="0.7" />
+        <path d="M 92 25 C 93 290, 90 590, 96 880" stroke-width="1.0" />
+        <path d="M 104 15 C 105 280, 102 590, 108 880" stroke-width="0.8" />
+        <path d="M 115 20 C 116 290, 113 600, 119 890" stroke-width="1.1" />
+        <path d="M 126 10 C 127 270, 124 580, 131 870" stroke-width="0.7" />
+        <path d="M 137 25 C 138 295, 135 600, 142 880" stroke-width="1.0" />
+        <path d="M 148 15 C 149 280, 146 590, 153 880" stroke-width="0.8" />
+      </g>
+
+      <g stroke="#1a0c08" fill="none" stroke-linecap="round" opacity="0.8">
+        <path d="M 68 870 C 64 950, 50 1020, 28 1100 C 16 1140, 8 1170, 3 1196" stroke-width="0.9" />
+        <path d="M 80 860 C 78 940, 68 1010, 48 1090 C 38 1130, 30 1165, 26 1196" stroke-width="0.7" />
+        <path d="M 92 880 C 90 960, 82 1030, 66 1110 C 56 1145, 50 1175, 48 1198" stroke-width="0.8" />
+        <path d="M 104 880 C 104 970, 106 1050, 108 1130 C 108 1170, 108 1190, 108 1200" stroke-width="0.6" />
+        <path d="M 115 890 C 115 970, 117 1060, 120 1140 C 122 1175, 123 1195, 124 1200" stroke-width="0.7" />
+        <path d="M 126 880 C 128 960, 134 1030, 142 1110 C 150 1145, 158 1175, 162 1198" stroke-width="0.7" />
+        <path d="M 137 880 C 140 940, 148 1010, 162 1090 C 172 1130, 180 1165, 184 1196" stroke-width="0.9" />
+        <path d="M 148 870 C 152 950, 162 1020, 182 1100 C 195 1140, 205 1170, 210 1196" stroke-width="0.8" />
+      </g>
+
+      <g stroke="#0a0504" fill="none" stroke-linecap="round">
+        <path d="M 32 1080 C 28 1130, 22 1165, 14 1198" stroke-width="1.5" />
+        <path d="M 35 1080 C 32 1100, 28 1115, 22 1135" stroke-width="0.6" opacity="0.7" />
+        <path d="M 75 1090 C 74 1130, 73 1165, 72 1198" stroke-width="1.3" />
+        <path d="M 108 1100 C 108 1140, 108 1175, 108 1200" stroke-width="0.9" opacity="0.7" />
+        <path d="M 145 1090 C 146 1130, 147 1165, 148 1198" stroke-width="1.3" />
+        <path d="M 188 1080 C 192 1130, 198 1165, 206 1198" stroke-width="1.5" />
+        <path d="M 185 1080 C 188 1100, 192 1115, 198 1135" stroke-width="0.6" opacity="0.7" />
+      </g>
+
+      <g stroke="#0a0504" stroke-width="0.4" fill="none" stroke-linecap="round" opacity="0.55">
+        <path d="M 16 1168 L 26 1178" />
+        <path d="M 14 1180 L 24 1190" />
+        <path d="M 12 1190 L 22 1198" />
+        <path d="M 70 1168 L 80 1178" />
+        <path d="M 68 1180 L 78 1190" />
+        <path d="M 142 1168 L 152 1178" />
+        <path d="M 144 1180 L 154 1190" />
+        <path d="M 196 1168 L 206 1178" />
+        <path d="M 198 1180 L 208 1190" />
+      </g>
+
+      <g stroke="#1a0c08" stroke-width="0.4" fill="none" opacity="0.6" stroke-linecap="round">
+        <path d="M 68 320 Q 110 318 148 322" />
+        <path d="M 80 580 Q 118 578 145 582" />
+        <path d="M 74 780 Q 115 778 148 782" />
       </g>
 
       <g>
-        <path
-          d="M 30 1200
-             C 36 1180, 32 1140, 42 1100
-             C 46 950, 50 700, 54 400
-             C 57 220, 60 90, 62 0
-             L 188 0
-             C 192 110, 196 260, 200 480
-             C 204 720, 208 980, 210 1120
-             C 212 1170, 214 1190, 220 1200
-             Z"
-          fill="url(#bark-r)"
-        />
+        <ellipse cx="100" cy="380" rx="5" ry="3.5" fill="#1a0c08" />
+        <ellipse cx="100" cy="380" rx="3" ry="2" fill="#3a1d12" />
+        <ellipse cx="128" cy="650" rx="4" ry="2.8" fill="#1a0c08" opacity="0.85" />
+      </g>
 
-        <path
-          d="M 62 0 L 188 0
-             C 192 110, 196 260, 200 480
-             C 204 720, 208 980, 210 1120
-             C 212 1170, 214 1190, 220 1200
-             L 220 0 Z"
-          fill="url(#bark-sheen-r)"
-        />
-
-        <g stroke="#0a0504" stroke-width="0.7" opacity="0.65" fill="none" stroke-linecap="round">
-          <path d="M 72 0 C 75 220, 72 520, 78 800 C 82 1000, 79 1120, 83 1200" />
-          <path d="M 88 0 C 91 240, 89 510, 94 790 C 98 1010, 95 1130, 99 1200" />
-          <path d="M 104 0 C 107 230, 105 500, 111 780 C 115 1000, 112 1120, 116 1200" />
-          <path d="M 120 0 C 123 250, 121 530, 127 790 C 131 1010, 128 1130, 132 1200" />
-          <path d="M 136 0 C 139 230, 137 510, 143 780 C 147 1000, 144 1120, 148 1200" />
-          <path d="M 152 0 C 155 240, 153 520, 159 790 C 163 1010, 160 1130, 164 1200" />
-          <path d="M 168 0 C 171 230, 169 500, 175 780 C 179 1000, 176 1120, 180 1200" />
-          <path d="M 184 0 C 187 240, 185 510, 191 790 C 195 1010, 192 1130, 196 1200" />
+      <g>
+        <path d="M 148 215 C 168 200, 188 196, 210 202 C 215 204, 218 208, 220 215"
+              stroke="#1a0c08" stroke-width="3" fill="none" stroke-linecap="round" />
+        <path d="M 152 232 C 170 232, 190 235, 208 244"
+              stroke="#1a0c08" stroke-width="1.8" fill="none" stroke-linecap="round" opacity="0.75" />
+        <g stroke="#1a2218" fill="none" stroke-linecap="round">
+          <path d="M 172 205 Q 182 185 200 188 Q 215 178 226 198 Q 232 218 222 232 Q 218 248 198 244 Q 178 250 168 230 Q 162 212 172 205 Z" stroke-width="0.9" />
+          <g stroke-width="0.4" opacity="0.75">
+            <path d="M 178 200 L 181 206" />
+            <path d="M 184 198 L 187 204" />
+            <path d="M 190 199 L 193 205" />
+            <path d="M 196 200 L 199 206" />
+            <path d="M 202 202 L 205 208" />
+            <path d="M 208 204 L 211 211" />
+            <path d="M 214 208 L 217 215" />
+            <path d="M 175 213 L 178 219" />
+            <path d="M 182 214 L 185 221" />
+            <path d="M 188 215 L 191 222" />
+            <path d="M 194 217 L 197 224" />
+            <path d="M 200 218 L 203 225" />
+            <path d="M 206 220 L 209 227" />
+            <path d="M 212 222 L 215 229" />
+            <path d="M 178 228 L 181 234" />
+            <path d="M 184 229 L 187 236" />
+            <path d="M 190 230 L 193 237" />
+            <path d="M 196 232 L 199 239" />
+            <path d="M 202 233 L 205 240" />
+            <path d="M 208 235 L 211 241" />
+          </g>
         </g>
+      </g>
 
-        <g stroke="#7a4226" stroke-width="0.4" opacity="0.4" fill="none" stroke-linecap="round">
-          <path d="M 80 60 C 82 280, 80 560, 86 820" />
-          <path d="M 112 200 C 114 420, 112 700, 118 940" />
-          <path d="M 144 80 C 146 360, 144 640, 150 880" />
-          <path d="M 176 240 C 178 460, 176 740, 182 980" />
+      <g>
+        <path d="M 152 470 C 175 465, 195 475, 215 488"
+              stroke="#1a0c08" stroke-width="2.6" fill="none" stroke-linecap="round" />
+        <g stroke="#1a2218" fill="none" stroke-linecap="round">
+          <path d="M 184 470 Q 198 458 215 468 Q 228 478 220 494 Q 208 504 190 498 Q 178 488 184 470 Z" stroke-width="0.8" />
+          <g stroke-width="0.4" opacity="0.75">
+            <path d="M 190 468 L 193 474" />
+            <path d="M 196 466 L 199 472" />
+            <path d="M 202 466 L 205 472" />
+            <path d="M 208 468 L 211 474" />
+            <path d="M 214 470 L 217 476" />
+            <path d="M 188 480 L 191 486" />
+            <path d="M 194 480 L 197 486" />
+            <path d="M 200 482 L 203 488" />
+            <path d="M 206 484 L 209 490" />
+            <path d="M 212 486 L 215 492" />
+            <path d="M 190 492 L 193 498" />
+            <path d="M 196 492 L 199 498" />
+            <path d="M 202 494 L 205 500" />
+            <path d="M 208 494 L 211 500" />
+          </g>
         </g>
+      </g>
 
-        <g stroke="#0a0504" stroke-width="0.4" opacity="0.55" fill="none">
-          <path d="M 68 320 Q 105 316 142 322" />
-          <path d="M 95 640 Q 140 638 180 645" />
-          <path d="M 78 880 Q 120 876 158 882" />
-          <path d="M 110 1040 Q 150 1038 185 1044" />
+      <g>
+        <path d="M 155 720 C 175 718, 195 728, 215 740"
+              stroke="#1a0c08" stroke-width="2.2" fill="none" stroke-linecap="round" />
+        <g stroke="#1a2218" fill="none" stroke-linecap="round">
+          <path d="M 188 720 Q 202 712 218 722 Q 228 734 218 746 Q 202 752 188 744 Q 180 732 188 720 Z" stroke-width="0.8" />
+          <g stroke-width="0.4" opacity="0.75">
+            <path d="M 194 720 L 197 726" />
+            <path d="M 200 718 L 203 724" />
+            <path d="M 206 720 L 209 726" />
+            <path d="M 212 722 L 215 728" />
+            <path d="M 192 732 L 195 738" />
+            <path d="M 198 732 L 201 738" />
+            <path d="M 204 734 L 207 740" />
+            <path d="M 210 736 L 213 742" />
+            <path d="M 194 744 L 197 750" />
+            <path d="M 200 744 L 203 750" />
+            <path d="M 206 746 L 209 752" />
+          </g>
         </g>
+      </g>
 
-        <g>
-          <ellipse cx="118" cy="280" rx="7" ry="4.5" fill="#0a0504" opacity="0.85" />
-          <ellipse cx="117" cy="279" rx="5" ry="3" fill="#1f0d08" />
-          <ellipse cx="116" cy="278.5" rx="2.5" ry="1.4" fill="#3a1d12" />
-
-          <ellipse cx="148" cy="600" rx="5.5" ry="3.5" fill="#0a0504" opacity="0.75" />
-          <ellipse cx="147" cy="599" rx="3.5" ry="2" fill="#1f0d08" />
-
-          <ellipse cx="92" cy="940" rx="4.5" ry="3" fill="#0a0504" opacity="0.65" />
-          <ellipse cx="91" cy="939" rx="2.8" ry="1.6" fill="#1f0d08" />
+      <g>
+        <path d="M 65 530 C 48 528, 32 535, 14 542"
+              stroke="#1a0c08" stroke-width="1.6" fill="none" stroke-linecap="round" opacity="0.85" />
+        <g stroke="#1a2218" fill="none" stroke-linecap="round">
+          <path d="M 4 540 Q 12 530 26 534 Q 36 540 28 552 Q 14 554 4 546 Q -2 542 4 540 Z" stroke-width="0.7" />
+          <g stroke-width="0.35" opacity="0.7">
+            <path d="M 8 540 L 10 545" />
+            <path d="M 14 538 L 16 543" />
+            <path d="M 20 540 L 22 545" />
+            <path d="M 8 548 L 10 552" />
+            <path d="M 14 548 L 16 552" />
+            <path d="M 20 548 L 22 552" />
+          </g>
         </g>
+      </g>
 
-        <g>
-          <path d="M 195 70 Q 215 60 220 50" stroke="#1f0d08" stroke-width="3" fill="none" stroke-linecap="round" />
-          <path d="M 200 80 Q 218 78 220 76" stroke="#1f0d08" stroke-width="1.8" fill="none" stroke-linecap="round" />
-          <ellipse cx="218" cy="45" rx="20" ry="9" fill="url(#foliage-r)" />
-          <ellipse cx="210" cy="36" rx="14" ry="6" fill="#3d5e35" opacity="0.9" />
-          <ellipse cx="220" cy="62" rx="16" ry="7" fill="#1f2e1c" opacity="0.85" />
+      <g stroke="#1a0c08" stroke-width="0.4" fill="none" stroke-linecap="round" opacity="0.5">
+        <path d="M 10 1196 L 18 1197" />
+        <path d="M 24 1198 L 32 1198" />
+        <path d="M 40 1196 L 50 1197" />
+        <path d="M 58 1198 L 68 1198" />
+        <path d="M 80 1197 L 90 1198" />
+        <path d="M 100 1198 L 112 1199" />
+        <path d="M 122 1197 L 132 1198" />
+        <path d="M 142 1196 L 152 1197" />
+        <path d="M 162 1198 L 172 1198" />
+        <path d="M 182 1197 L 192 1198" />
+        <path d="M 200 1196 L 210 1197" />
+      </g>
+
+      <g stroke="#1a2218" stroke-width="0.55" fill="none" stroke-linecap="round" opacity="0.85">
+        <g transform="translate(8 1186)">
+          <path d="M 0 12 Q 0 6 -1 0" />
+          <path d="M 0 12 Q -6 8 -10 3" />
+          <path d="M 0 12 Q 6 8 10 3" />
+          <path d="M 0 12 Q -4 10 -6 6" />
+          <path d="M 0 12 Q 4 10 6 6" />
         </g>
-
-        <g>
-          <path d="M 205 360 Q 218 372 220 385" stroke="#1f0d08" stroke-width="2.5" fill="none" stroke-linecap="round" />
-          <ellipse cx="220" cy="382" rx="14" ry="6" fill="url(#foliage-r)" opacity="0.92" />
-          <ellipse cx="216" cy="370" rx="10" ry="4.5" fill="#3d5e35" opacity="0.8" />
+        <g transform="translate(106 1192)">
+          <path d="M 0 7 Q 0 3 0 0" />
+          <path d="M 0 7 Q -5 5 -7 2" />
+          <path d="M 0 7 Q 5 5 7 2" />
         </g>
-
-        <g>
-          <path d="M 210 720 Q 220 728 220 738" stroke="#1f0d08" stroke-width="2" fill="none" stroke-linecap="round" />
-          <ellipse cx="220" cy="735" rx="10" ry="4.5" fill="url(#foliage-r)" opacity="0.8" />
+        <g transform="translate(210 1188)">
+          <path d="M 0 10 Q 0 5 1 0" />
+          <path d="M 0 10 Q -6 7 -9 3" />
+          <path d="M 0 10 Q 6 7 9 3" />
+          <path d="M 0 10 Q -3 8 -5 5" />
         </g>
-
-        <path
-          d="M 30 1200 C 38 1188, 36 1170, 50 1160 C 70 1150, 90 1148, 120 1152 C 160 1156, 195 1170, 220 1186 L 220 1200 Z"
-          fill="#0a0504"
-          opacity="0.4"
-        />
       </g>
     </svg>
 
