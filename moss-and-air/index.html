@@ -70,6 +70,21 @@
         width: 220px;
         z-index: 1;
         pointer-events: none;
+        opacity: 0.5;
+        -webkit-mask-image: linear-gradient(
+          to bottom,
+          transparent 0%,
+          rgba(0, 0, 0, 0.85) 14%,
+          rgba(0, 0, 0, 0.85) 82%,
+          transparent 100%
+        );
+        mask-image: linear-gradient(
+          to bottom,
+          transparent 0%,
+          rgba(0, 0, 0, 0.85) 14%,
+          rgba(0, 0, 0, 0.85) 82%,
+          transparent 100%
+        );
       }
 
       .redwoods-left { left: 0; }
@@ -124,12 +139,12 @@
       }
 
       @media (max-width: 720px) {
-        .redwoods { width: 140px; opacity: 0.9; }
+        .redwoods { width: 140px; }
         .page { padding: 64px 24px 56px; }
       }
 
       @media (max-width: 480px) {
-        .redwoods { width: 92px; opacity: 0.85; }
+        .redwoods { width: 92px; }
       }
 
       /* ---------- hero ---------- */
