@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>moss & air — music by a small forest</title>
+    <meta
+      name="description"
+      content="moss & air is a music producer crafting slow, mossy electronic music made of field recordings, tape hiss, and patient synths."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600&family=Inter:wght@300;400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <!-- drifting air motes (filled in by JS) -->
+    <div class="motes" aria-hidden="true"></div>
+
+    <!-- soft moss blobs floating behind everything -->
+    <svg
+      class="moss-bg"
+      aria-hidden="true"
+      viewBox="0 0 1200 1800"
+      preserveAspectRatio="xMidYMid slice"
+    >
+      <defs>
+        <radialGradient id="moss-blob" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#6b8f5a" stop-opacity="0.55" />
+          <stop offset="60%" stop-color="#4a6a44" stop-opacity="0.25" />
+          <stop offset="100%" stop-color="#2c3d2b" stop-opacity="0" />
+        </radialGradient>
+        <radialGradient id="moss-blob-2" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#a8c489" stop-opacity="0.45" />
+          <stop offset="100%" stop-color="#2c3d2b" stop-opacity="0" />
+        </radialGradient>
+        <pattern id="moss-speckle" x="0" y="0" width="60" height="60" patternUnits="userSpaceOnUse">
+          <circle cx="8" cy="14" r="1.2" fill="#9bbf7c" opacity="0.35" />
+          <circle cx="34" cy="6" r="0.8" fill="#cfe2ab" opacity="0.3" />
+          <circle cx="46" cy="28" r="1.6" fill="#7ea65f" opacity="0.4" />
+          <circle cx="20" cy="40" r="1.0" fill="#a8c489" opacity="0.3" />
+          <circle cx="52" cy="52" r="0.6" fill="#cfe2ab" opacity="0.35" />
+        </pattern>
+      </defs>
+      <ellipse cx="220" cy="260" rx="320" ry="220" fill="url(#moss-blob)" />
+      <ellipse cx="980" cy="520" rx="280" ry="190" fill="url(#moss-blob-2)" />
+      <ellipse cx="420" cy="980" rx="360" ry="240" fill="url(#moss-blob)" />
+      <ellipse cx="1020" cy="1300" rx="240" ry="180" fill="url(#moss-blob-2)" />
+      <ellipse cx="260" cy="1600" rx="300" ry="200" fill="url(#moss-blob)" />
+      <rect x="0" y="0" width="1200" height="1800" fill="url(#moss-speckle)" />
+    </svg>
+
+    <!-- tall redwoods on the left side -->
+    <svg
+      class="redwoods redwoods-left"
+      aria-hidden="true"
+      viewBox="0 0 200 1200"
+      preserveAspectRatio="xMinYMid slice"
+    >
+      <defs>
+        <linearGradient id="trunk-l" x1="0" x2="1" y1="0" y2="0">
+          <stop offset="0%" stop-color="#1a1410" />
+          <stop offset="55%" stop-color="#3a2418" />
+          <stop offset="100%" stop-color="#1a1410" />
+        </linearGradient>
+        <linearGradient id="canopy-l" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" stop-color="#1d2b1c" />
+          <stop offset="100%" stop-color="#2f4a2c" />
+        </linearGradient>
+      </defs>
+
+      <!-- back trunk -->
+      <path
+        d="M 10 1200 C 18 900, 6 600, 22 300 C 30 150, 18 60, 28 0 L 70 0 C 78 80, 70 170, 78 320 C 90 600, 80 900, 88 1200 Z"
+        fill="url(#trunk-l)"
+        opacity="0.6"
+      />
+      <!-- foreground trunk -->
+      <path
+        d="M 40 1200 C 52 950, 38 650, 58 320 C 66 180, 54 80, 72 0 L 130 0 C 142 90, 132 200, 138 340 C 150 650, 138 950, 150 1200 Z"
+        fill="url(#trunk-l)"
+      />
+      <!-- subtle bark striations -->
+      <g stroke="#2a1a12" stroke-width="0.8" opacity="0.45" fill="none">
+        <path d="M 70 0 C 76 200, 70 480, 80 760 C 86 980, 78 1100, 84 1200" />
+        <path d="M 95 0 C 102 220, 96 500, 108 780 C 116 1000, 108 1120, 116 1200" />
+        <path d="M 120 0 C 126 240, 122 520, 130 800 C 136 1020, 130 1140, 136 1200" />
+      </g>
+      <!-- soft canopy hints peeking from top -->
+      <ellipse cx="90" cy="-10" rx="120" ry="40" fill="url(#canopy-l)" opacity="0.7" />
+    </svg>
+
+    <!-- tall redwoods on the right side -->
+    <svg
+      class="redwoods redwoods-right"
+      aria-hidden="true"
+      viewBox="0 0 200 1200"
+      preserveAspectRatio="xMaxYMid slice"
+    >
+      <defs>
+        <linearGradient id="trunk-r" x1="0" x2="1" y1="0" y2="0">
+          <stop offset="0%" stop-color="#1a1410" />
+          <stop offset="45%" stop-color="#3a2418" />
+          <stop offset="100%" stop-color="#1a1410" />
+        </linearGradient>
+        <linearGradient id="canopy-r" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" stop-color="#1d2b1c" />
+          <stop offset="100%" stop-color="#2f4a2c" />
+        </linearGradient>
+      </defs>
+
+      <path
+        d="M 112 1200 C 120 900, 108 600, 124 300 C 132 150, 120 60, 130 0 L 172 0 C 180 80, 172 170, 180 320 C 192 600, 182 900, 190 1200 Z"
+        fill="url(#trunk-r)"
+        opacity="0.6"
+      />
+      <path
+        d="M 50 1200 C 62 950, 48 650, 68 320 C 76 180, 64 80, 82 0 L 140 0 C 152 90, 142 200, 148 340 C 160 650, 148 950, 160 1200 Z"
+        fill="url(#trunk-r)"
+      />
+      <g stroke="#2a1a12" stroke-width="0.8" opacity="0.45" fill="none">
+        <path d="M 80 0 C 86 200, 80 480, 90 760 C 96 980, 88 1100, 94 1200" />
+        <path d="M 105 0 C 112 220, 106 500, 118 780 C 126 1000, 118 1120, 126 1200" />
+        <path d="M 130 0 C 136 240, 132 520, 140 800 C 146 1020, 140 1140, 146 1200" />
+      </g>
+      <ellipse cx="110" cy="-10" rx="120" ry="40" fill="url(#canopy-r)" opacity="0.7" />
+    </svg>
+
+    <main class="page">
+      <header class="hero">
+        <p class="eyebrow">music by</p>
+        <h1 class="wordmark">
+          <span>moss</span>
+          <span class="amp" aria-hidden="true">
+            <!-- tiny leaf glyph between the words -->
+            <svg viewBox="0 0 32 32" width="28" height="28">
+              <path
+                d="M4 28 C 8 18, 14 10, 28 4 C 26 18, 18 26, 4 28 Z"
+                fill="#8eb56b"
+                opacity="0.85"
+              />
+              <path d="M4 28 C 12 22, 18 16, 26 8" stroke="#2c3d2b" stroke-width="1.2" fill="none" />
+            </svg>
+          </span>
+          <span class="amp-text" aria-hidden="true">&amp;</span>
+          <span>air</span>
+        </h1>
+        <p class="tagline">slow electronic music made of field recordings, tape hiss, and patient synths.</p>
+      </header>
+
+      <section class="intro" id="about" aria-labelledby="about-title">
+        <h2 id="about-title">who is moss &amp; air</h2>
+        <p>
+          moss &amp; air is the recording project of a producer working out of a damp cabin somewhere
+          north of the fog line. the music is built slowly — a hydrophone dropped in a creek, a
+          tape loop left out in the rain, a synth patch tuned to the room it was recorded in.
+        </p>
+        <p>
+          the records are quiet, but they are not empty. listen for the
+          insects, the kettle, the cedar floor. everything is on purpose, even the parts that
+          weren't.
+        </p>
+      </section>
+
+      <section class="latest" id="latest" aria-labelledby="latest-title">
+        <div class="section-head">
+          <p class="eyebrow">latest track</p>
+          <h2 id="latest-title">understory</h2>
+          <p class="meta">released april 2026 · single</p>
+        </div>
+
+        <div class="player" role="group" aria-label="audio player for understory">
+          <button class="play" type="button" aria-pressed="false" aria-label="play understory">
+            <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+              <path class="icon-play" d="M7 5 L19 12 L7 19 Z" fill="currentColor" />
+              <g class="icon-pause" fill="currentColor" style="display:none">
+                <rect x="7" y="5" width="4" height="14" />
+                <rect x="14" y="5" width="4" height="14" />
+              </g>
+            </svg>
+          </button>
+          <div class="waveform" aria-hidden="true">
+            <!-- bars get sized by JS for a gentle, generative pattern -->
+          </div>
+          <span class="time"><span class="elapsed">0:00</span> / <span class="total">4:38</span></span>
+        </div>
+
+        <p class="note">
+          a six-minute walk from the trailhead, recorded between rainshowers. mostly cedar,
+          mostly minor key.
+        </p>
+      </section>
+
+      <section class="albums" id="albums" aria-labelledby="albums-title">
+        <div class="section-head">
+          <p class="eyebrow">past albums</p>
+          <h2 id="albums-title">the back catalogue</h2>
+        </div>
+
+        <ul class="album-grid">
+          <li class="album">
+            <div class="cover cover-1" aria-hidden="true">
+              <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">
+                <rect width="100" height="100" fill="#3a4a36" />
+                <circle cx="30" cy="35" r="22" fill="#7ea65f" opacity="0.75" />
+                <circle cx="65" cy="60" r="30" fill="#cfe2ab" opacity="0.35" />
+                <path d="M0 80 Q50 60 100 85 L100 100 L0 100 Z" fill="#1d2b1c" />
+              </svg>
+            </div>
+            <h3>quiet years</h3>
+            <p class="meta">2024 · lp</p>
+            <p class="blurb">eight tracks recorded one winter, mostly indoors, mostly at night.</p>
+          </li>
+
+          <li class="album">
+            <div class="cover cover-2" aria-hidden="true">
+              <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">
+                <rect width="100" height="100" fill="#2a3a3d" />
+                <path d="M0 0 L100 0 L100 50 Q50 70 0 50 Z" fill="#5a7a72" opacity="0.7" />
+                <circle cx="78" cy="22" r="10" fill="#e9efe2" opacity="0.85" />
+                <path d="M0 75 Q40 65 60 75 T100 78 L100 100 L0 100 Z" fill="#1a2225" />
+              </svg>
+            </div>
+            <h3>fog ledger</h3>
+            <p class="meta">2023 · ep</p>
+            <p class="blurb">four pieces for hydrophone and tape, made on the coast in march.</p>
+          </li>
+
+          <li class="album">
+            <div class="cover cover-3" aria-hidden="true">
+              <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">
+                <rect width="100" height="100" fill="#1f2018" />
+                <g stroke="#8eb56b" stroke-width="0.8" opacity="0.85" fill="none">
+                  <path d="M10 100 C 14 60, 8 30, 18 0" />
+                  <path d="M30 100 C 34 50, 28 20, 38 0" />
+                  <path d="M55 100 C 60 60, 54 30, 64 0" />
+                  <path d="M80 100 C 84 50, 78 20, 88 0" />
+                </g>
+                <circle cx="72" cy="30" r="14" fill="#cfe2ab" opacity="0.55" />
+              </svg>
+            </div>
+            <h3>understory drafts</h3>
+            <p class="meta">2022 · lp</p>
+            <p class="blurb">a long, drifting record. side a is one piece. side b is another.</p>
+          </li>
+
+          <li class="album">
+            <div class="cover cover-4" aria-hidden="true">
+              <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">
+                <rect width="100" height="100" fill="#4a5234" />
+                <ellipse cx="50" cy="55" rx="42" ry="28" fill="#a8c489" opacity="0.55" />
+                <ellipse cx="50" cy="55" rx="22" ry="14" fill="#e9efe2" opacity="0.6" />
+                <path d="M0 90 L100 95 L100 100 L0 100 Z" fill="#2c3d2b" />
+              </svg>
+            </div>
+            <h3>kettle / creek</h3>
+            <p class="meta">2021 · single</p>
+            <p class="blurb">a two-track release. the b-side is just the kettle, for nine minutes.</p>
+          </li>
+        </ul>
+      </section>
+
+      <footer class="foot">
+        <p>moss &amp; air · bandcamp · spotify · instagram</p>
+        <p class="fineprint">recorded in the pacific northwest. all rights reserved.</p>
+      </footer>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>
