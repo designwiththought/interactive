@@ -3,31 +3,32 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>moss & air — music by a small forest</title>
+    <title>moss &amp; air</title>
     <meta
       name="description"
-      content="moss & air is a music producer crafting slow, mossy electronic music made of field recordings, tape hiss, and patient synths."
+      content="moss & air — a recording project of slow, mossy electronic music. field recordings, tape, patient synths. catalogue and latest release."
     />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600&family=Inter:wght@300;400;500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300;1,9..144,400;1,9..144,500&family=Inter:wght@300;400;500&family=IBM+Plex+Mono:wght@300;400;500&display=swap"
       rel="stylesheet"
     />
     <style>
       :root {
-        --bg: #14180f;
-        --bg-deep: #0c0f08;
-        --ink: #e9efe2;
-        --ink-soft: #b6c1a8;
-        --ink-dim: #7c8b6f;
-        --moss: #8eb56b;
-        --moss-deep: #4a6a44;
-        --bark: #3a2418;
-        --mist: rgba(233, 239, 226, 0.04);
-        --rule: rgba(233, 239, 226, 0.12);
-        --serif: "Fraunces", "Iowan Old Style", "Georgia", serif;
+        --bg: #0c0f0c;
+        --bg-deep: #06080a;
+        --paper: #e7e3d5;
+        --paper-soft: #c8c4b5;
+        --paper-dim: #8a8a7c;
+        --paper-mute: #5a5d54;
+        --moss: #7a9568;
+        --moss-deep: #2f4530;
+        --rule: rgba(231, 227, 213, 0.12);
+        --rule-strong: rgba(231, 227, 213, 0.22);
+        --serif: "Fraunces", "Iowan Old Style", Georgia, serif;
         --sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+        --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
       }
 
       * { box-sizing: border-box; }
@@ -36,71 +37,79 @@
         margin: 0;
         padding: 0;
         background: var(--bg);
-        color: var(--ink);
+        color: var(--paper);
         font-family: var(--sans);
         font-weight: 300;
-        line-height: 1.6;
+        line-height: 1.55;
         -webkit-font-smoothing: antialiased;
         overflow-x: hidden;
       }
 
       body {
         background:
-          linear-gradient(to bottom, #181c12 0%, var(--bg) 32%, var(--bg-deep) 100%) fixed;
+          radial-gradient(ellipse 90% 60% at 50% 0%, #131713 0%, var(--bg) 50%) fixed,
+          var(--bg);
         min-height: 100vh;
       }
 
-      /* ---------- background layers ---------- */
+      ::selection { background: var(--moss-deep); color: var(--paper); }
 
-      /* film grain over everything */
+      /* ---------- atmosphere ---------- */
+
       .grain {
         position: fixed;
         inset: 0;
         z-index: 4;
         pointer-events: none;
-        opacity: 0.08;
+        opacity: 0.06;
         mix-blend-mode: overlay;
         background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
       }
 
-      .redwoods {
-        position: fixed;
-        top: 0;
-        height: 100vh;
-        width: 220px;
-        z-index: 1;
-        pointer-events: none;
-        opacity: 0.5;
-        -webkit-mask-image: linear-gradient(
-          to bottom,
-          transparent 0%,
-          rgba(0, 0, 0, 0.85) 14%,
-          rgba(0, 0, 0, 0.85) 82%,
-          transparent 100%
-        );
-        mask-image: linear-gradient(
-          to bottom,
-          transparent 0%,
-          rgba(0, 0, 0, 0.85) 14%,
-          rgba(0, 0, 0, 0.85) 82%,
-          transparent 100%
-        );
-      }
-
-      .redwoods-left { left: 0; }
-      .redwoods-right { right: 0; transform: scaleX(-1); }
-
-      body::before {
-        content: "";
+      /* thin vertical column rules, like a field journal */
+      .columns {
         position: fixed;
         inset: 0;
-        z-index: 2;
+        z-index: 1;
         pointer-events: none;
-        background:
-          linear-gradient(to bottom, rgba(12, 15, 8, 0.45) 0, rgba(12, 15, 8, 0) 200px),
-          linear-gradient(to top, rgba(12, 15, 8, 0.35) 0, rgba(12, 15, 8, 0) 180px);
       }
+      .columns::before,
+      .columns::after {
+        content: "";
+        position: absolute;
+        top: 8vh;
+        bottom: 8vh;
+        width: 1px;
+        background: linear-gradient(
+          to bottom,
+          transparent 0%,
+          var(--rule) 12%,
+          var(--rule) 88%,
+          transparent 100%
+        );
+      }
+      .columns::before { left: max(28px, calc((100% - 920px) / 2 - 36px)); }
+      .columns::after  { right: max(28px, calc((100% - 920px) / 2 - 36px)); }
 
+      /* small vertical tickmarks on the rules — like a measuring scale */
+      .ticks {
+        position: fixed;
+        inset: 0;
+        z-index: 1;
+        pointer-events: none;
+        font-family: var(--mono);
+        font-size: 9px;
+        letter-spacing: 0.08em;
+        color: var(--paper-mute);
+      }
+      .ticks span {
+        position: absolute;
+        transform: translateY(-50%);
+      }
+      .ticks .left  { left: max(8px, calc((100% - 920px) / 2 - 78px)); }
+      .ticks .right { right: max(8px, calc((100% - 920px) / 2 - 78px)); }
+
+      /* drifting motes, kept subtle */
       .motes {
         position: fixed;
         inset: 0;
@@ -108,1008 +117,532 @@
         pointer-events: none;
         overflow: hidden;
       }
-
       .mote {
         position: absolute;
-        width: 3px;
-        height: 3px;
+        width: 2px;
+        height: 2px;
         border-radius: 50%;
-        background: radial-gradient(circle, rgba(233, 239, 226, 0.35) 0%, rgba(233, 239, 226, 0) 70%);
-        will-change: transform, opacity;
+        background: radial-gradient(circle, rgba(231, 227, 213, 0.4) 0%, rgba(231, 227, 213, 0) 70%);
         animation-name: drift;
         animation-timing-function: linear;
         animation-iteration-count: infinite;
       }
-
       @keyframes drift {
-        0% { transform: translate3d(0, 100vh, 0); opacity: 0; }
-        20% { opacity: 0.22; }
-        80% { opacity: 0.18; }
-        100% { transform: translate3d(var(--drift-x, 30px), -10vh, 0); opacity: 0; }
+        0%   { transform: translate3d(0, 100vh, 0); opacity: 0; }
+        25%  { opacity: 0.25; }
+        75%  { opacity: 0.2; }
+        100% { transform: translate3d(var(--drift-x, 24px), -8vh, 0); opacity: 0; }
       }
 
-      /* ---------- page layout ---------- */
+      /* ---------- page frame ---------- */
 
       .page {
         position: relative;
         z-index: 3;
-        max-width: 760px;
+        max-width: 920px;
         margin: 0 auto;
-        padding: 96px 32px 80px;
+        padding: 88px 64px 80px;
       }
 
       @media (max-width: 720px) {
-        .redwoods { width: 140px; }
-        .page { padding: 64px 24px 56px; }
+        .page { padding: 56px 28px 56px; }
+        .columns::before,
+        .columns::after { display: none; }
+        .ticks { display: none; }
       }
 
-      @media (max-width: 480px) {
-        .redwoods { width: 92px; }
+      /* ---------- masthead ---------- */
+
+      .masthead {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: end;
+        gap: 24px;
+        padding-bottom: 28px;
+        border-bottom: 1px solid var(--rule);
+        margin-bottom: 80px;
       }
 
-      /* ---------- hero ---------- */
-
-      .hero { text-align: center; margin-bottom: 96px; }
-
-      .eyebrow {
+      .masthead .colophon {
+        font-family: var(--mono);
         font-size: 11px;
-        letter-spacing: 0.22em;
+        letter-spacing: 0.18em;
         text-transform: uppercase;
-        color: var(--ink-dim);
-        margin: 0 0 18px;
-        font-weight: 400;
+        color: var(--paper-dim);
+        line-height: 1.5;
+        text-align: right;
+      }
+      .masthead .colophon strong {
+        color: var(--paper);
+        font-weight: 500;
       }
 
       .wordmark {
         font-family: var(--serif);
         font-weight: 300;
-        font-size: clamp(56px, 12vw, 120px);
-        line-height: 0.95;
-        letter-spacing: -0.02em;
+        font-style: italic;
+        font-size: clamp(64px, 13vw, 152px);
+        line-height: 0.9;
+        letter-spacing: -0.035em;
         margin: 0;
-        display: inline-flex;
-        align-items: baseline;
-        gap: 0.18em;
-        flex-wrap: wrap;
-        justify-content: center;
+        color: var(--paper);
+      }
+      .wordmark .amp {
+        font-style: italic;
+        font-weight: 300;
+        opacity: 0.55;
+        padding: 0 0.04em;
       }
 
-      .wordmark span:first-child,
-      .wordmark span:last-child { font-style: italic; }
-
-      .amp {
-        display: inline-flex;
-        align-items: center;
-        transform: translateY(-0.12em);
+      /* small botanical mark, used sparingly */
+      .frond {
+        display: inline-block;
+        width: 18px;
+        height: 18px;
+        vertical-align: -2px;
+        margin-right: 10px;
+        color: var(--moss);
       }
+      .frond svg { width: 100%; height: 100%; display: block; }
 
-      .amp svg { width: 0.5em; height: 0.5em; }
+      /* ---------- section frame ---------- */
 
-      .amp-text { display: none; }
-
-      @media (prefers-reduced-motion: no-preference) {
-        .amp svg {
-          animation: sway 9s ease-in-out infinite;
-          transform-origin: 50% 80%;
-        }
+      .section {
+        display: grid;
+        grid-template-columns: 96px 1fr;
+        gap: 32px;
+        padding: 72px 0 0;
       }
+      .section + .section { border-top: 1px solid var(--rule); padding-top: 72px; margin-top: 72px; }
 
-      @keyframes sway {
-        0%, 100% { transform: rotate(-6deg); }
-        50% { transform: rotate(8deg); }
-      }
-
-      .tagline {
-        margin: 28px auto 0;
-        max-width: 460px;
-        color: var(--ink-soft);
-        font-size: 16px;
-        line-height: 1.55;
-      }
-
-      /* ---------- generic section ---------- */
-
-      section { margin: 0 auto 96px; padding: 0 8px; }
-
-      section h2 {
+      .section-num {
         font-family: var(--serif);
-        font-weight: 400;
-        font-size: clamp(28px, 4.4vw, 40px);
-        letter-spacing: -0.01em;
-        margin: 0 0 24px;
-        color: var(--ink);
+        font-style: italic;
+        font-weight: 300;
+        font-size: 44px;
+        line-height: 1;
+        color: var(--paper-mute);
+        letter-spacing: -0.02em;
       }
-
-      .section-head {
-        margin-bottom: 36px;
-        border-top: 1px solid var(--rule);
-        padding-top: 36px;
-      }
-
-      .section-head .eyebrow { margin-bottom: 14px; }
-      .section-head h2 { margin-bottom: 8px; }
-
-      .meta {
-        font-size: 12px;
-        color: var(--ink-dim);
-        letter-spacing: 0.05em;
+      .section-label {
+        display: block;
+        margin-top: 12px;
+        font-family: var(--mono);
+        font-size: 10px;
+        letter-spacing: 0.22em;
         text-transform: uppercase;
+        color: var(--paper-dim);
+      }
+
+      .section-body h2 {
+        font-family: var(--serif);
+        font-style: italic;
+        font-weight: 300;
+        font-size: clamp(28px, 4.4vw, 44px);
+        line-height: 1.05;
+        letter-spacing: -0.02em;
+        margin: 0 0 28px;
+        color: var(--paper);
+        max-width: 18ch;
+      }
+
+      .section-body p {
+        font-size: 16px;
+        line-height: 1.7;
+        color: var(--paper-soft);
+        max-width: 56ch;
         margin: 0;
       }
+      .section-body p + p { margin-top: 18px; }
 
-      /* ---------- intro ---------- */
+      @media (max-width: 720px) {
+        .section {
+          grid-template-columns: 1fr;
+          gap: 14px;
+          padding-top: 56px;
+        }
+        .section + .section { padding-top: 56px; margin-top: 56px; }
+        .section-num { font-size: 32px; }
+        .section-num .section-label { display: inline-block; margin: 0 0 0 14px; vertical-align: 4px; }
+      }
 
-      .intro { border-top: 1px solid var(--rule); padding-top: 36px; }
-      .intro h2 { font-style: italic; }
-      .intro p { font-size: 17px; color: var(--ink-soft); max-width: 60ch; }
-      .intro p + p { margin-top: 18px; }
+      /* ---------- I. notes (intro) ---------- */
 
-      /* ---------- player ---------- */
+      .notes p:first-of-type::first-line {
+        font-family: var(--serif);
+        font-style: italic;
+        color: var(--paper);
+      }
 
-      .latest .player {
+      /* ---------- II. latest ---------- */
+
+      .latest-card {
+        margin-top: 36px;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: baseline;
+        gap: 24px;
+        padding-bottom: 18px;
+        border-bottom: 1px solid var(--rule-strong);
+      }
+
+      .track-title {
+        font-family: var(--serif);
+        font-style: italic;
+        font-weight: 300;
+        font-size: 36px;
+        letter-spacing: -0.02em;
+        line-height: 1;
+        margin: 0;
+        color: var(--paper);
+      }
+
+      .track-meta {
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--paper-dim);
+        text-align: right;
+        white-space: nowrap;
+      }
+
+      .player {
+        margin-top: 22px;
         display: flex;
         align-items: center;
         gap: 18px;
-        padding: 22px 24px;
-        background: var(--mist);
-        border: 1px solid var(--rule);
-        border-radius: 14px;
-        backdrop-filter: blur(2px);
       }
 
       .play {
         appearance: none;
-        border: 1px solid var(--rule);
-        background: rgba(142, 181, 107, 0.08);
-        color: var(--moss);
-        width: 46px;
-        height: 46px;
+        background: transparent;
+        border: 1px solid var(--rule-strong);
+        color: var(--paper);
+        width: 38px;
+        height: 38px;
         border-radius: 50%;
         display: inline-flex;
         align-items: center;
         justify-content: center;
         cursor: pointer;
-        transition: background 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
         flex-shrink: 0;
+        transition: border-color 0.2s ease, color 0.2s ease;
       }
+      .play:hover { border-color: var(--moss); color: var(--moss); }
+      .play:focus-visible { outline: 1px solid var(--moss); outline-offset: 3px; }
 
-      .play:hover {
-        background: rgba(142, 181, 107, 0.16);
-        border-color: rgba(142, 181, 107, 0.4);
-        transform: scale(1.04);
-      }
-
-      .play:focus-visible { outline: 2px solid var(--moss); outline-offset: 3px; }
-
-      .waveform {
+      .progress {
         flex: 1;
-        display: flex;
-        align-items: center;
-        gap: 3px;
-        height: 36px;
-        min-width: 0;
+        height: 1px;
+        background: var(--rule-strong);
+        position: relative;
+        overflow: visible;
+        cursor: pointer;
       }
-
-      .waveform .bar {
-        flex: 1;
-        background: var(--ink-dim);
-        border-radius: 2px;
-        transition: background 0.4s ease, transform 0.4s ease;
-        transform-origin: center;
+      .progress .fill {
+        position: absolute;
+        inset: 0 auto 0 0;
+        width: 0%;
+        background: var(--paper);
+        transition: width 0.15s linear;
       }
-
-      .waveform .bar.played { background: var(--moss); }
+      .progress .knob {
+        position: absolute;
+        top: 50%;
+        left: 0;
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--paper);
+        transform: translate(-50%, -50%);
+        transition: left 0.15s linear;
+      }
 
       .time {
-        font-size: 12px;
-        color: var(--ink-dim);
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--paper-dim);
         letter-spacing: 0.04em;
         white-space: nowrap;
+        font-variant-numeric: tabular-nums;
       }
 
-      .note {
-        margin-top: 20px;
-        color: var(--ink-soft);
+      .track-note {
+        margin-top: 22px;
         font-size: 15px;
-        max-width: 60ch;
+        color: var(--paper-soft);
+        max-width: 52ch;
       }
 
-      /* ---------- albums ---------- */
+      /* ---------- III. archive ---------- */
 
-      .album-grid {
+      .archive {
         list-style: none;
-        margin: 0;
+        margin: 28px 0 0;
         padding: 0;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .archive-row {
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 36px 28px;
+        grid-template-columns: 76px 1fr auto;
+        align-items: baseline;
+        gap: 28px;
+        padding: 22px 0 18px;
+        border-top: 1px solid var(--rule);
+        transition: background 0.3s ease;
+      }
+      .archive-row:last-child { border-bottom: 1px solid var(--rule); }
+
+      .archive-row:hover { background: rgba(231, 227, 213, 0.02); }
+
+      .cat-num {
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        color: var(--paper-dim);
+        font-variant-numeric: tabular-nums;
       }
 
-      @media (max-width: 560px) {
-        .album-grid { grid-template-columns: 1fr; }
-      }
-
-      .album h3 {
+      .album-title {
         font-family: var(--serif);
-        font-weight: 400;
         font-style: italic;
-        font-size: 22px;
-        margin: 16px 0 6px;
-        color: var(--ink);
+        font-weight: 300;
+        font-size: 24px;
+        letter-spacing: -0.01em;
+        line-height: 1.15;
+        margin: 0 0 6px;
+        color: var(--paper);
       }
 
-      .album .meta { margin-bottom: 8px; }
-
-      .album .blurb {
+      .album-blurb {
         margin: 0;
         font-size: 14px;
-        color: var(--ink-soft);
+        color: var(--paper-soft);
         line-height: 1.55;
+        max-width: 56ch;
       }
 
-      .cover {
-        aspect-ratio: 1 / 1;
-        border-radius: 6px;
-        overflow: hidden;
-        border: 1px solid var(--rule);
-        position: relative;
-        transition: transform 0.4s ease, box-shadow 0.4s ease;
+      .album-format {
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--paper-dim);
+        text-align: right;
+        line-height: 1.7;
+        white-space: nowrap;
+      }
+      .album-format .year { color: var(--paper-soft); display: block; }
+
+      @media (max-width: 720px) {
+        .archive-row {
+          grid-template-columns: 1fr auto;
+          gap: 6px 16px;
+          padding: 22px 0 16px;
+        }
+        .archive-row .cat-num {
+          grid-column: 1 / 2;
+          grid-row: 1;
+        }
+        .archive-row .album-format {
+          grid-column: 2 / 3;
+          grid-row: 1;
+        }
+        .archive-row .album-text {
+          grid-column: 1 / -1;
+        }
       }
 
-      .cover svg { display: block; width: 100%; height: 100%; }
-
-      .album:hover .cover {
-        transform: translateY(-3px);
-        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
-      }
-
-      /* ---------- footer ---------- */
+      /* ---------- foot ---------- */
 
       .foot {
-        border-top: 1px solid var(--rule);
+        margin-top: 96px;
         padding-top: 28px;
-        text-align: center;
-        color: var(--ink-dim);
-        font-size: 13px;
+        border-top: 1px solid var(--rule);
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 24px;
+        align-items: end;
+      }
+      .foot-links a {
+        color: var(--paper);
+        text-decoration: none;
+        font-family: var(--mono);
+        font-size: 12px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        border-bottom: 1px solid var(--rule-strong);
+        padding-bottom: 3px;
+        margin-right: 22px;
+        transition: border-color 0.2s ease, color 0.2s ease;
+      }
+      .foot-links a:hover { color: var(--moss); border-color: var(--moss); }
+      .foot-meta {
+        font-family: var(--mono);
+        font-size: 10px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--paper-mute);
+        text-align: right;
+        line-height: 1.6;
       }
 
-      .foot p { margin: 0 0 6px; }
-
-      .fineprint {
-        font-size: 11px;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
+      @media (max-width: 720px) {
+        .foot { grid-template-columns: 1fr; }
+        .foot-meta { text-align: left; }
       }
 
       @media (prefers-reduced-motion: reduce) {
-        .mote, .amp svg { animation: none !important; }
+        .mote { animation: none !important; }
       }
     </style>
   </head>
   <body>
     <div class="motes" aria-hidden="true"></div>
     <div class="grain" aria-hidden="true"></div>
-
-    <svg
-      class="redwoods redwoods-left"
-      aria-hidden="true"
-      viewBox="0 0 220 1200"
-      preserveAspectRatio="xMinYMid slice"
-    >
-      <defs>
-        <linearGradient id="trunk-wash-l" x1="0" x2="1" y1="0" y2="0">
-          <stop offset="0%" stop-color="#3a1d12" stop-opacity="0.55" />
-          <stop offset="35%" stop-color="#6b3520" stop-opacity="0.7" />
-          <stop offset="70%" stop-color="#8b4a2a" stop-opacity="0.6" />
-          <stop offset="100%" stop-color="#4a2818" stop-opacity="0.45" />
-        </linearGradient>
-        <radialGradient id="foliage-wash-l" cx="50%" cy="45%" r="55%">
-          <stop offset="0%" stop-color="#5a7a4a" stop-opacity="0.55" />
-          <stop offset="100%" stop-color="#2a3a22" stop-opacity="0.1" />
-        </radialGradient>
-        <filter id="wash-soft-l" x="-5%" y="-5%" width="110%" height="110%">
-          <feGaussianBlur stdDeviation="0.7" />
-        </filter>
-      </defs>
-
-      <!-- ============ DISTANT TREES (pines behind) ============ -->
-      <g opacity="0.55">
-        <!-- distant pine 1 -->
-        <g transform="translate(2 540)">
-          <path
-            d="M 8 0 L 4 22 L 9 20 L 3 44 L 11 41 L 2 70 L 13 66 L 1 100 L 14 95 L 4 120 L 12 118 L 8 120 Z"
-            fill="#3a4a2e" fill-opacity="0.35"
-          />
-          <path d="M 8 120 L 8 160" stroke="#2a3a22" stroke-width="0.5" stroke-linecap="round" />
-          <path d="M 0 30 Q 4 28 8 30" stroke="#2a3a22" stroke-width="0.4" fill="none" />
-          <path d="M 16 48 Q 12 46 8 48" stroke="#2a3a22" stroke-width="0.4" fill="none" />
-        </g>
-        <!-- distant pine 2 (smaller, further back) -->
-        <g transform="translate(0 820)" opacity="0.7">
-          <path
-            d="M 6 0 L 3 16 L 7 14 L 2 32 L 9 30 L 1 52 L 10 48 L 4 80 L 11 76 L 7 90 Z"
-            fill="#3a4a2e" fill-opacity="0.3"
-          />
-          <path d="M 6 90 L 6 120" stroke="#2a3a22" stroke-width="0.4" stroke-linecap="round" />
-        </g>
-        <!-- horizon hint -->
-        <path d="M 0 1190 L 220 1192" stroke="#1f1108" stroke-width="0.4" opacity="0.6" />
-      </g>
-
-      <!-- ============ FOREGROUND REDWOOD ============ -->
-
-      <!-- 1. Trunk watercolor wash with buttressed base -->
-      <g filter="url(#wash-soft-l)">
-        <path
-          d="M 60 0
-             C 58 200, 55 500, 55 800
-             C 55 900, 50 970, 38 1030
-             C 25 1080, 12 1130, 0 1185
-             L 0 1200
-             L 220 1200
-             L 220 1185
-             C 208 1130, 195 1080, 182 1030
-             C 170 970, 165 900, 165 800
-             C 165 500, 162 200, 160 0
-             Z"
-          fill="url(#trunk-wash-l)"
-        />
-        <!-- shadow side wash on left -->
-        <path
-          d="M 60 0
-             C 58 200, 55 500, 55 800
-             C 55 900, 50 970, 38 1030
-             C 25 1080, 12 1130, 0 1185
-             L 0 1200
-             L 55 1200
-             L 55 1185
-             C 52 1130, 58 1070, 68 1010
-             C 75 950, 80 900, 80 800
-             C 80 500, 78 200, 78 0
-             Z"
-          fill="#1f0d08" fill-opacity="0.4"
-        />
-      </g>
-
-      <!-- 2. Foliage washes (color under foliage) -->
-      <g filter="url(#wash-soft-l)">
-        <ellipse cx="200" cy="220" rx="40" ry="28" fill="url(#foliage-wash-l)" />
-        <ellipse cx="178" cy="195" rx="26" ry="20" fill="url(#foliage-wash-l)" opacity="0.85" />
-        <ellipse cx="210" cy="240" rx="22" ry="14" fill="url(#foliage-wash-l)" opacity="0.7" />
-        <ellipse cx="205" cy="480" rx="30" ry="22" fill="url(#foliage-wash-l)" opacity="0.8" />
-        <ellipse cx="200" cy="730" rx="26" ry="18" fill="url(#foliage-wash-l)" opacity="0.7" />
-        <ellipse cx="18" cy="540" rx="22" ry="14" fill="url(#foliage-wash-l)" opacity="0.55" />
-      </g>
-
-      <!-- 3. INK LINEWORK -->
-
-      <!-- Trunk silhouette outlines (left and right edges) -->
-      <g stroke="#1a0c08" stroke-width="1.3" fill="none" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M 60 0
-                 C 58 200, 55 500, 55 800
-                 C 55 900, 50 970, 38 1030
-                 C 25 1080, 12 1130, 0 1185" />
-        <path d="M 160 0
-                 C 162 200, 165 500, 165 800
-                 C 165 900, 170 970, 182 1030
-                 C 195 1080, 208 1130, 220 1185" />
-      </g>
-
-      <!-- Vertical bark furrows on main trunk -->
-      <g stroke="#1a0c08" fill="none" stroke-linecap="round" opacity="0.85">
-        <path d="M 68 20 C 69 280, 66 580, 70 870" stroke-width="0.9" />
-        <path d="M 80 10 C 81 270, 78 570, 82 860" stroke-width="0.7" />
-        <path d="M 92 25 C 93 290, 90 590, 96 880" stroke-width="1.0" />
-        <path d="M 104 15 C 105 280, 102 590, 108 880" stroke-width="0.8" />
-        <path d="M 115 20 C 116 290, 113 600, 119 890" stroke-width="1.1" />
-        <path d="M 126 10 C 127 270, 124 580, 131 870" stroke-width="0.7" />
-        <path d="M 137 25 C 138 295, 135 600, 142 880" stroke-width="1.0" />
-        <path d="M 148 15 C 149 280, 146 590, 153 880" stroke-width="0.8" />
-      </g>
-
-      <!-- Furrows curving outward through the buttress base -->
-      <g stroke="#1a0c08" fill="none" stroke-linecap="round" opacity="0.8">
-        <path d="M 68 870 C 64 950, 50 1020, 28 1100 C 16 1140, 8 1170, 3 1196" stroke-width="0.9" />
-        <path d="M 80 860 C 78 940, 68 1010, 48 1090 C 38 1130, 30 1165, 26 1196" stroke-width="0.7" />
-        <path d="M 92 880 C 90 960, 82 1030, 66 1110 C 56 1145, 50 1175, 48 1198" stroke-width="0.8" />
-        <path d="M 104 880 C 104 970, 106 1050, 108 1130 C 108 1170, 108 1190, 108 1200" stroke-width="0.6" />
-        <path d="M 115 890 C 115 970, 117 1060, 120 1140 C 122 1175, 123 1195, 124 1200" stroke-width="0.7" />
-        <path d="M 126 880 C 128 960, 134 1030, 142 1110 C 150 1145, 158 1175, 162 1198" stroke-width="0.7" />
-        <path d="M 137 880 C 140 940, 148 1010, 162 1090 C 172 1130, 180 1165, 184 1196" stroke-width="0.9" />
-        <path d="M 148 870 C 152 950, 162 1020, 182 1100 C 195 1140, 205 1170, 210 1196" stroke-width="0.8" />
-      </g>
-
-      <!-- Deep shadow V-folds between buttress lobes -->
-      <g stroke="#0a0504" fill="none" stroke-linecap="round">
-        <path d="M 32 1080 C 28 1130, 22 1165, 14 1198" stroke-width="1.5" />
-        <path d="M 35 1080 C 32 1100, 28 1115, 22 1135" stroke-width="0.6" opacity="0.7" />
-
-        <path d="M 75 1090 C 74 1130, 73 1165, 72 1198" stroke-width="1.3" />
-        <path d="M 108 1100 C 108 1140, 108 1175, 108 1200" stroke-width="0.9" opacity="0.7" />
-        <path d="M 145 1090 C 146 1130, 147 1165, 148 1198" stroke-width="1.3" />
-
-        <path d="M 188 1080 C 192 1130, 198 1165, 206 1198" stroke-width="1.5" />
-        <path d="M 185 1080 C 188 1100, 192 1115, 198 1135" stroke-width="0.6" opacity="0.7" />
-      </g>
-
-      <!-- Crosshatch in deepest fold shadows -->
-      <g stroke="#0a0504" stroke-width="0.4" fill="none" stroke-linecap="round" opacity="0.55">
-        <path d="M 16 1168 L 26 1178" />
-        <path d="M 14 1180 L 24 1190" />
-        <path d="M 12 1190 L 22 1198" />
-        <path d="M 70 1168 L 80 1178" />
-        <path d="M 68 1180 L 78 1190" />
-        <path d="M 142 1168 L 152 1178" />
-        <path d="M 144 1180 L 154 1190" />
-        <path d="M 196 1168 L 206 1178" />
-        <path d="M 198 1180 L 208 1190" />
-      </g>
-
-      <!-- Short horizontal bark cracks -->
-      <g stroke="#1a0c08" stroke-width="0.4" fill="none" opacity="0.6" stroke-linecap="round">
-        <path d="M 68 320 Q 110 318 148 322" />
-        <path d="M 80 580 Q 118 578 145 582" />
-        <path d="M 74 780 Q 115 778 148 782" />
-      </g>
-
-      <!-- Knots -->
-      <g>
-        <ellipse cx="100" cy="380" rx="5" ry="3.5" fill="#1a0c08" />
-        <ellipse cx="100" cy="380" rx="3" ry="2" fill="#3a1d12" />
-        <ellipse cx="128" cy="650" rx="4" ry="2.8" fill="#1a0c08" opacity="0.85" />
-      </g>
-
-      <!-- BRANCHES with scribbly foliage clusters -->
-
-      <!-- Upper main branch reaching right -->
-      <g>
-        <path d="M 148 215 C 168 200, 188 196, 210 202 C 215 204, 218 208, 220 215"
-              stroke="#1a0c08" stroke-width="3" fill="none" stroke-linecap="round" />
-        <path d="M 152 232 C 170 232, 190 235, 208 244"
-              stroke="#1a0c08" stroke-width="1.8" fill="none" stroke-linecap="round" opacity="0.75" />
-        <!-- cluster outline -->
-        <g stroke="#1a2218" fill="none" stroke-linecap="round">
-          <path d="M 172 205 Q 182 185 200 188 Q 215 178 226 198 Q 232 218 222 232 Q 218 248 198 244 Q 178 250 168 230 Q 162 212 172 205 Z" stroke-width="0.9" />
-          <!-- inner scribble strokes -->
-          <g stroke-width="0.4" opacity="0.75">
-            <path d="M 178 200 L 181 206" />
-            <path d="M 184 198 L 187 204" />
-            <path d="M 190 199 L 193 205" />
-            <path d="M 196 200 L 199 206" />
-            <path d="M 202 202 L 205 208" />
-            <path d="M 208 204 L 211 211" />
-            <path d="M 214 208 L 217 215" />
-            <path d="M 175 213 L 178 219" />
-            <path d="M 182 214 L 185 221" />
-            <path d="M 188 215 L 191 222" />
-            <path d="M 194 217 L 197 224" />
-            <path d="M 200 218 L 203 225" />
-            <path d="M 206 220 L 209 227" />
-            <path d="M 212 222 L 215 229" />
-            <path d="M 178 228 L 181 234" />
-            <path d="M 184 229 L 187 236" />
-            <path d="M 190 230 L 193 237" />
-            <path d="M 196 232 L 199 239" />
-            <path d="M 202 233 L 205 240" />
-            <path d="M 208 235 L 211 241" />
-          </g>
-        </g>
-      </g>
-
-      <!-- Middle branch -->
-      <g>
-        <path d="M 152 470 C 175 465, 195 475, 215 488"
-              stroke="#1a0c08" stroke-width="2.6" fill="none" stroke-linecap="round" />
-        <g stroke="#1a2218" fill="none" stroke-linecap="round">
-          <path d="M 184 470 Q 198 458 215 468 Q 228 478 220 494 Q 208 504 190 498 Q 178 488 184 470 Z" stroke-width="0.8" />
-          <g stroke-width="0.4" opacity="0.75">
-            <path d="M 190 468 L 193 474" />
-            <path d="M 196 466 L 199 472" />
-            <path d="M 202 466 L 205 472" />
-            <path d="M 208 468 L 211 474" />
-            <path d="M 214 470 L 217 476" />
-            <path d="M 188 480 L 191 486" />
-            <path d="M 194 480 L 197 486" />
-            <path d="M 200 482 L 203 488" />
-            <path d="M 206 484 L 209 490" />
-            <path d="M 212 486 L 215 492" />
-            <path d="M 190 492 L 193 498" />
-            <path d="M 196 492 L 199 498" />
-            <path d="M 202 494 L 205 500" />
-            <path d="M 208 494 L 211 500" />
-          </g>
-        </g>
-      </g>
-
-      <!-- Lower branch -->
-      <g>
-        <path d="M 155 720 C 175 718, 195 728, 215 740"
-              stroke="#1a0c08" stroke-width="2.2" fill="none" stroke-linecap="round" />
-        <g stroke="#1a2218" fill="none" stroke-linecap="round">
-          <path d="M 188 720 Q 202 712 218 722 Q 228 734 218 746 Q 202 752 188 744 Q 180 732 188 720 Z" stroke-width="0.8" />
-          <g stroke-width="0.4" opacity="0.75">
-            <path d="M 194 720 L 197 726" />
-            <path d="M 200 718 L 203 724" />
-            <path d="M 206 720 L 209 726" />
-            <path d="M 212 722 L 215 728" />
-            <path d="M 192 732 L 195 738" />
-            <path d="M 198 732 L 201 738" />
-            <path d="M 204 734 L 207 740" />
-            <path d="M 210 736 L 213 742" />
-            <path d="M 194 744 L 197 750" />
-            <path d="M 200 744 L 203 750" />
-            <path d="M 206 746 L 209 752" />
-          </g>
-        </g>
-      </g>
-
-      <!-- Small left-side branch -->
-      <g>
-        <path d="M 65 530 C 48 528, 32 535, 14 542"
-              stroke="#1a0c08" stroke-width="1.6" fill="none" stroke-linecap="round" opacity="0.85" />
-        <g stroke="#1a2218" fill="none" stroke-linecap="round">
-          <path d="M 4 540 Q 12 530 26 534 Q 36 540 28 552 Q 14 554 4 546 Q -2 542 4 540 Z" stroke-width="0.7" />
-          <g stroke-width="0.35" opacity="0.7">
-            <path d="M 8 540 L 10 545" />
-            <path d="M 14 538 L 16 543" />
-            <path d="M 20 540 L 22 545" />
-            <path d="M 8 548 L 10 552" />
-            <path d="M 14 548 L 16 552" />
-            <path d="M 20 548 L 22 552" />
-          </g>
-        </g>
-      </g>
-
-      <!-- Forest floor: short horizontal strokes -->
-      <g stroke="#1a0c08" stroke-width="0.4" fill="none" stroke-linecap="round" opacity="0.5">
-        <path d="M 10 1196 L 18 1197" />
-        <path d="M 24 1198 L 32 1198" />
-        <path d="M 40 1196 L 50 1197" />
-        <path d="M 58 1198 L 68 1198" />
-        <path d="M 80 1197 L 90 1198" />
-        <path d="M 100 1198 L 112 1199" />
-        <path d="M 122 1197 L 132 1198" />
-        <path d="M 142 1196 L 152 1197" />
-        <path d="M 162 1198 L 172 1198" />
-        <path d="M 182 1197 L 192 1198" />
-        <path d="M 200 1196 L 210 1197" />
-      </g>
-
-      <!-- Small ferns at base -->
-      <g stroke="#1a2218" stroke-width="0.55" fill="none" stroke-linecap="round" opacity="0.85">
-        <g transform="translate(8 1186)">
-          <path d="M 0 12 Q 0 6 -1 0" />
-          <path d="M 0 12 Q -6 8 -10 3" />
-          <path d="M 0 12 Q 6 8 10 3" />
-          <path d="M 0 12 Q -4 10 -6 6" />
-          <path d="M 0 12 Q 4 10 6 6" />
-        </g>
-        <g transform="translate(106 1192)">
-          <path d="M 0 7 Q 0 3 0 0" />
-          <path d="M 0 7 Q -5 5 -7 2" />
-          <path d="M 0 7 Q 5 5 7 2" />
-        </g>
-        <g transform="translate(210 1188)">
-          <path d="M 0 10 Q 0 5 1 0" />
-          <path d="M 0 10 Q -6 7 -9 3" />
-          <path d="M 0 10 Q 6 7 9 3" />
-          <path d="M 0 10 Q -3 8 -5 5" />
-        </g>
-      </g>
-    </svg>
-
-    <svg
-      class="redwoods redwoods-right"
-      aria-hidden="true"
-      viewBox="0 0 220 1200"
-      preserveAspectRatio="xMinYMid slice"
-    >
-      <defs>
-        <linearGradient id="trunk-wash-r" x1="0" x2="1" y1="0" y2="0">
-          <stop offset="0%" stop-color="#3a1d12" stop-opacity="0.55" />
-          <stop offset="35%" stop-color="#6b3520" stop-opacity="0.7" />
-          <stop offset="70%" stop-color="#8b4a2a" stop-opacity="0.6" />
-          <stop offset="100%" stop-color="#4a2818" stop-opacity="0.45" />
-        </linearGradient>
-        <radialGradient id="foliage-wash-r" cx="50%" cy="45%" r="55%">
-          <stop offset="0%" stop-color="#5a7a4a" stop-opacity="0.55" />
-          <stop offset="100%" stop-color="#2a3a22" stop-opacity="0.1" />
-        </radialGradient>
-        <filter id="wash-soft-r" x="-5%" y="-5%" width="110%" height="110%">
-          <feGaussianBlur stdDeviation="0.7" />
-        </filter>
-      </defs>
-
-      <g opacity="0.55">
-        <g transform="translate(2 540)">
-          <path
-            d="M 8 0 L 4 22 L 9 20 L 3 44 L 11 41 L 2 70 L 13 66 L 1 100 L 14 95 L 4 120 L 12 118 L 8 120 Z"
-            fill="#3a4a2e" fill-opacity="0.35"
-          />
-          <path d="M 8 120 L 8 160" stroke="#2a3a22" stroke-width="0.5" stroke-linecap="round" />
-          <path d="M 0 30 Q 4 28 8 30" stroke="#2a3a22" stroke-width="0.4" fill="none" />
-          <path d="M 16 48 Q 12 46 8 48" stroke="#2a3a22" stroke-width="0.4" fill="none" />
-        </g>
-        <g transform="translate(0 820)" opacity="0.7">
-          <path
-            d="M 6 0 L 3 16 L 7 14 L 2 32 L 9 30 L 1 52 L 10 48 L 4 80 L 11 76 L 7 90 Z"
-            fill="#3a4a2e" fill-opacity="0.3"
-          />
-          <path d="M 6 90 L 6 120" stroke="#2a3a22" stroke-width="0.4" stroke-linecap="round" />
-        </g>
-        <path d="M 0 1190 L 220 1192" stroke="#1f1108" stroke-width="0.4" opacity="0.6" />
-      </g>
-
-      <g filter="url(#wash-soft-r)">
-        <path
-          d="M 60 0
-             C 58 200, 55 500, 55 800
-             C 55 900, 50 970, 38 1030
-             C 25 1080, 12 1130, 0 1185
-             L 0 1200
-             L 220 1200
-             L 220 1185
-             C 208 1130, 195 1080, 182 1030
-             C 170 970, 165 900, 165 800
-             C 165 500, 162 200, 160 0
-             Z"
-          fill="url(#trunk-wash-r)"
-        />
-        <path
-          d="M 60 0
-             C 58 200, 55 500, 55 800
-             C 55 900, 50 970, 38 1030
-             C 25 1080, 12 1130, 0 1185
-             L 0 1200
-             L 55 1200
-             L 55 1185
-             C 52 1130, 58 1070, 68 1010
-             C 75 950, 80 900, 80 800
-             C 80 500, 78 200, 78 0
-             Z"
-          fill="#1f0d08" fill-opacity="0.4"
-        />
-      </g>
-
-      <g filter="url(#wash-soft-r)">
-        <ellipse cx="200" cy="220" rx="40" ry="28" fill="url(#foliage-wash-r)" />
-        <ellipse cx="178" cy="195" rx="26" ry="20" fill="url(#foliage-wash-r)" opacity="0.85" />
-        <ellipse cx="210" cy="240" rx="22" ry="14" fill="url(#foliage-wash-r)" opacity="0.7" />
-        <ellipse cx="205" cy="480" rx="30" ry="22" fill="url(#foliage-wash-r)" opacity="0.8" />
-        <ellipse cx="200" cy="730" rx="26" ry="18" fill="url(#foliage-wash-r)" opacity="0.7" />
-        <ellipse cx="18" cy="540" rx="22" ry="14" fill="url(#foliage-wash-r)" opacity="0.55" />
-      </g>
-
-      <g stroke="#1a0c08" stroke-width="1.3" fill="none" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M 60 0
-                 C 58 200, 55 500, 55 800
-                 C 55 900, 50 970, 38 1030
-                 C 25 1080, 12 1130, 0 1185" />
-        <path d="M 160 0
-                 C 162 200, 165 500, 165 800
-                 C 165 900, 170 970, 182 1030
-                 C 195 1080, 208 1130, 220 1185" />
-      </g>
-
-      <g stroke="#1a0c08" fill="none" stroke-linecap="round" opacity="0.85">
-        <path d="M 68 20 C 69 280, 66 580, 70 870" stroke-width="0.9" />
-        <path d="M 80 10 C 81 270, 78 570, 82 860" stroke-width="0.7" />
-        <path d="M 92 25 C 93 290, 90 590, 96 880" stroke-width="1.0" />
-        <path d="M 104 15 C 105 280, 102 590, 108 880" stroke-width="0.8" />
-        <path d="M 115 20 C 116 290, 113 600, 119 890" stroke-width="1.1" />
-        <path d="M 126 10 C 127 270, 124 580, 131 870" stroke-width="0.7" />
-        <path d="M 137 25 C 138 295, 135 600, 142 880" stroke-width="1.0" />
-        <path d="M 148 15 C 149 280, 146 590, 153 880" stroke-width="0.8" />
-      </g>
-
-      <g stroke="#1a0c08" fill="none" stroke-linecap="round" opacity="0.8">
-        <path d="M 68 870 C 64 950, 50 1020, 28 1100 C 16 1140, 8 1170, 3 1196" stroke-width="0.9" />
-        <path d="M 80 860 C 78 940, 68 1010, 48 1090 C 38 1130, 30 1165, 26 1196" stroke-width="0.7" />
-        <path d="M 92 880 C 90 960, 82 1030, 66 1110 C 56 1145, 50 1175, 48 1198" stroke-width="0.8" />
-        <path d="M 104 880 C 104 970, 106 1050, 108 1130 C 108 1170, 108 1190, 108 1200" stroke-width="0.6" />
-        <path d="M 115 890 C 115 970, 117 1060, 120 1140 C 122 1175, 123 1195, 124 1200" stroke-width="0.7" />
-        <path d="M 126 880 C 128 960, 134 1030, 142 1110 C 150 1145, 158 1175, 162 1198" stroke-width="0.7" />
-        <path d="M 137 880 C 140 940, 148 1010, 162 1090 C 172 1130, 180 1165, 184 1196" stroke-width="0.9" />
-        <path d="M 148 870 C 152 950, 162 1020, 182 1100 C 195 1140, 205 1170, 210 1196" stroke-width="0.8" />
-      </g>
-
-      <g stroke="#0a0504" fill="none" stroke-linecap="round">
-        <path d="M 32 1080 C 28 1130, 22 1165, 14 1198" stroke-width="1.5" />
-        <path d="M 35 1080 C 32 1100, 28 1115, 22 1135" stroke-width="0.6" opacity="0.7" />
-        <path d="M 75 1090 C 74 1130, 73 1165, 72 1198" stroke-width="1.3" />
-        <path d="M 108 1100 C 108 1140, 108 1175, 108 1200" stroke-width="0.9" opacity="0.7" />
-        <path d="M 145 1090 C 146 1130, 147 1165, 148 1198" stroke-width="1.3" />
-        <path d="M 188 1080 C 192 1130, 198 1165, 206 1198" stroke-width="1.5" />
-        <path d="M 185 1080 C 188 1100, 192 1115, 198 1135" stroke-width="0.6" opacity="0.7" />
-      </g>
-
-      <g stroke="#0a0504" stroke-width="0.4" fill="none" stroke-linecap="round" opacity="0.55">
-        <path d="M 16 1168 L 26 1178" />
-        <path d="M 14 1180 L 24 1190" />
-        <path d="M 12 1190 L 22 1198" />
-        <path d="M 70 1168 L 80 1178" />
-        <path d="M 68 1180 L 78 1190" />
-        <path d="M 142 1168 L 152 1178" />
-        <path d="M 144 1180 L 154 1190" />
-        <path d="M 196 1168 L 206 1178" />
-        <path d="M 198 1180 L 208 1190" />
-      </g>
-
-      <g stroke="#1a0c08" stroke-width="0.4" fill="none" opacity="0.6" stroke-linecap="round">
-        <path d="M 68 320 Q 110 318 148 322" />
-        <path d="M 80 580 Q 118 578 145 582" />
-        <path d="M 74 780 Q 115 778 148 782" />
-      </g>
-
-      <g>
-        <ellipse cx="100" cy="380" rx="5" ry="3.5" fill="#1a0c08" />
-        <ellipse cx="100" cy="380" rx="3" ry="2" fill="#3a1d12" />
-        <ellipse cx="128" cy="650" rx="4" ry="2.8" fill="#1a0c08" opacity="0.85" />
-      </g>
-
-      <g>
-        <path d="M 148 215 C 168 200, 188 196, 210 202 C 215 204, 218 208, 220 215"
-              stroke="#1a0c08" stroke-width="3" fill="none" stroke-linecap="round" />
-        <path d="M 152 232 C 170 232, 190 235, 208 244"
-              stroke="#1a0c08" stroke-width="1.8" fill="none" stroke-linecap="round" opacity="0.75" />
-        <g stroke="#1a2218" fill="none" stroke-linecap="round">
-          <path d="M 172 205 Q 182 185 200 188 Q 215 178 226 198 Q 232 218 222 232 Q 218 248 198 244 Q 178 250 168 230 Q 162 212 172 205 Z" stroke-width="0.9" />
-          <g stroke-width="0.4" opacity="0.75">
-            <path d="M 178 200 L 181 206" />
-            <path d="M 184 198 L 187 204" />
-            <path d="M 190 199 L 193 205" />
-            <path d="M 196 200 L 199 206" />
-            <path d="M 202 202 L 205 208" />
-            <path d="M 208 204 L 211 211" />
-            <path d="M 214 208 L 217 215" />
-            <path d="M 175 213 L 178 219" />
-            <path d="M 182 214 L 185 221" />
-            <path d="M 188 215 L 191 222" />
-            <path d="M 194 217 L 197 224" />
-            <path d="M 200 218 L 203 225" />
-            <path d="M 206 220 L 209 227" />
-            <path d="M 212 222 L 215 229" />
-            <path d="M 178 228 L 181 234" />
-            <path d="M 184 229 L 187 236" />
-            <path d="M 190 230 L 193 237" />
-            <path d="M 196 232 L 199 239" />
-            <path d="M 202 233 L 205 240" />
-            <path d="M 208 235 L 211 241" />
-          </g>
-        </g>
-      </g>
-
-      <g>
-        <path d="M 152 470 C 175 465, 195 475, 215 488"
-              stroke="#1a0c08" stroke-width="2.6" fill="none" stroke-linecap="round" />
-        <g stroke="#1a2218" fill="none" stroke-linecap="round">
-          <path d="M 184 470 Q 198 458 215 468 Q 228 478 220 494 Q 208 504 190 498 Q 178 488 184 470 Z" stroke-width="0.8" />
-          <g stroke-width="0.4" opacity="0.75">
-            <path d="M 190 468 L 193 474" />
-            <path d="M 196 466 L 199 472" />
-            <path d="M 202 466 L 205 472" />
-            <path d="M 208 468 L 211 474" />
-            <path d="M 214 470 L 217 476" />
-            <path d="M 188 480 L 191 486" />
-            <path d="M 194 480 L 197 486" />
-            <path d="M 200 482 L 203 488" />
-            <path d="M 206 484 L 209 490" />
-            <path d="M 212 486 L 215 492" />
-            <path d="M 190 492 L 193 498" />
-            <path d="M 196 492 L 199 498" />
-            <path d="M 202 494 L 205 500" />
-            <path d="M 208 494 L 211 500" />
-          </g>
-        </g>
-      </g>
-
-      <g>
-        <path d="M 155 720 C 175 718, 195 728, 215 740"
-              stroke="#1a0c08" stroke-width="2.2" fill="none" stroke-linecap="round" />
-        <g stroke="#1a2218" fill="none" stroke-linecap="round">
-          <path d="M 188 720 Q 202 712 218 722 Q 228 734 218 746 Q 202 752 188 744 Q 180 732 188 720 Z" stroke-width="0.8" />
-          <g stroke-width="0.4" opacity="0.75">
-            <path d="M 194 720 L 197 726" />
-            <path d="M 200 718 L 203 724" />
-            <path d="M 206 720 L 209 726" />
-            <path d="M 212 722 L 215 728" />
-            <path d="M 192 732 L 195 738" />
-            <path d="M 198 732 L 201 738" />
-            <path d="M 204 734 L 207 740" />
-            <path d="M 210 736 L 213 742" />
-            <path d="M 194 744 L 197 750" />
-            <path d="M 200 744 L 203 750" />
-            <path d="M 206 746 L 209 752" />
-          </g>
-        </g>
-      </g>
-
-      <g>
-        <path d="M 65 530 C 48 528, 32 535, 14 542"
-              stroke="#1a0c08" stroke-width="1.6" fill="none" stroke-linecap="round" opacity="0.85" />
-        <g stroke="#1a2218" fill="none" stroke-linecap="round">
-          <path d="M 4 540 Q 12 530 26 534 Q 36 540 28 552 Q 14 554 4 546 Q -2 542 4 540 Z" stroke-width="0.7" />
-          <g stroke-width="0.35" opacity="0.7">
-            <path d="M 8 540 L 10 545" />
-            <path d="M 14 538 L 16 543" />
-            <path d="M 20 540 L 22 545" />
-            <path d="M 8 548 L 10 552" />
-            <path d="M 14 548 L 16 552" />
-            <path d="M 20 548 L 22 552" />
-          </g>
-        </g>
-      </g>
-
-      <g stroke="#1a0c08" stroke-width="0.4" fill="none" stroke-linecap="round" opacity="0.5">
-        <path d="M 10 1196 L 18 1197" />
-        <path d="M 24 1198 L 32 1198" />
-        <path d="M 40 1196 L 50 1197" />
-        <path d="M 58 1198 L 68 1198" />
-        <path d="M 80 1197 L 90 1198" />
-        <path d="M 100 1198 L 112 1199" />
-        <path d="M 122 1197 L 132 1198" />
-        <path d="M 142 1196 L 152 1197" />
-        <path d="M 162 1198 L 172 1198" />
-        <path d="M 182 1197 L 192 1198" />
-        <path d="M 200 1196 L 210 1197" />
-      </g>
-
-      <g stroke="#1a2218" stroke-width="0.55" fill="none" stroke-linecap="round" opacity="0.85">
-        <g transform="translate(8 1186)">
-          <path d="M 0 12 Q 0 6 -1 0" />
-          <path d="M 0 12 Q -6 8 -10 3" />
-          <path d="M 0 12 Q 6 8 10 3" />
-          <path d="M 0 12 Q -4 10 -6 6" />
-          <path d="M 0 12 Q 4 10 6 6" />
-        </g>
-        <g transform="translate(106 1192)">
-          <path d="M 0 7 Q 0 3 0 0" />
-          <path d="M 0 7 Q -5 5 -7 2" />
-          <path d="M 0 7 Q 5 5 7 2" />
-        </g>
-        <g transform="translate(210 1188)">
-          <path d="M 0 10 Q 0 5 1 0" />
-          <path d="M 0 10 Q -6 7 -9 3" />
-          <path d="M 0 10 Q 6 7 9 3" />
-          <path d="M 0 10 Q -3 8 -5 5" />
-        </g>
-      </g>
-    </svg>
+    <div class="columns" aria-hidden="true"></div>
+    <div class="ticks" aria-hidden="true">
+      <span class="left"  style="top: 18vh">— I</span>
+      <span class="left"  style="top: 42vh">— II</span>
+      <span class="left"  style="top: 70vh">— III</span>
+      <span class="right" style="top: 18vh">I —</span>
+      <span class="right" style="top: 42vh">II —</span>
+      <span class="right" style="top: 70vh">III —</span>
+    </div>
 
     <main class="page">
-      <header class="hero">
-        <p class="eyebrow">music by</p>
+      <header class="masthead">
         <h1 class="wordmark">
-          <span>moss</span>
-          <span class="amp" aria-hidden="true">
-            <svg viewBox="0 0 32 32" width="28" height="28">
-              <path
-                d="M4 28 C 8 18, 14 10, 28 4 C 26 18, 18 26, 4 28 Z"
-                fill="#8eb56b"
-                opacity="0.85"
-              />
-              <path d="M4 28 C 12 22, 18 16, 26 8" stroke="#2c3d2b" stroke-width="1.2" fill="none" />
-            </svg>
-          </span>
-          <span class="amp-text" aria-hidden="true">&amp;</span>
-          <span>air</span>
+          <span>moss</span><span class="amp">&amp;</span><span>air</span>
         </h1>
-        <p class="tagline">slow electronic music made of field recordings, tape hiss, and patient synths.</p>
+        <p class="colophon">
+          a recording project<br />
+          <strong>est. 2021 · pacific northwest</strong>
+        </p>
       </header>
 
-      <section class="intro" id="about" aria-labelledby="about-title">
-        <h2 id="about-title">who is moss &amp; air</h2>
-        <p>
-          moss &amp; air is the recording project of a producer working out of a damp cabin somewhere
-          north of the fog line. the music is built slowly — a hydrophone dropped in a creek, a
-          tape loop left out in the rain, a synth patch tuned to the room it was recorded in.
-        </p>
-        <p>
-          the records are quiet, but they are not empty. listen for the
-          insects, the kettle, the cedar floor. everything is on purpose, even the parts that
-          weren't.
-        </p>
+      <!-- ===== I. NOTES ===== -->
+      <section class="section notes" aria-labelledby="notes-h">
+        <div class="section-num">
+          I.
+          <span class="section-label">Notes</span>
+        </div>
+        <div class="section-body">
+          <h2 id="notes-h">slow music made in a damp room.</h2>
+          <p>
+            moss &amp; air is a recording project working out of a cabin north of the fog line.
+            records are built slowly: a hydrophone in a creek, a tape loop left out in the rain,
+            a synth tuned to the room it was recorded in.
+          </p>
+          <p>
+            the music is quiet but not empty. listen for the insects, the kettle, the cedar
+            floor. everything is on purpose, even the parts that weren't.
+          </p>
+        </div>
       </section>
 
-      <section class="latest" id="latest" aria-labelledby="latest-title">
-        <div class="section-head">
-          <p class="eyebrow">latest track</p>
-          <h2 id="latest-title">understory</h2>
-          <p class="meta">released april 2026 · single</p>
+      <!-- ===== II. LATEST ===== -->
+      <section class="section latest" aria-labelledby="latest-h">
+        <div class="section-num">
+          II.
+          <span class="section-label">Latest</span>
         </div>
+        <div class="section-body">
+          <h2 id="latest-h">a new single, recorded between rains.</h2>
 
-        <div class="player" role="group" aria-label="audio player for understory">
-          <button class="play" type="button" aria-pressed="false" aria-label="play understory">
-            <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
-              <path class="icon-play" d="M7 5 L19 12 L7 19 Z" fill="currentColor" />
-              <g class="icon-pause" fill="currentColor" style="display:none">
-                <rect x="7" y="5" width="4" height="14" />
-                <rect x="14" y="5" width="4" height="14" />
-              </g>
-            </svg>
-          </button>
-          <div class="waveform" aria-hidden="true"></div>
-          <span class="time"><span class="elapsed">0:00</span> / <span class="total">4:38</span></span>
-        </div>
+          <div class="latest-card">
+            <h3 class="track-title">Understory</h3>
+            <p class="track-meta">M&amp;A.005 · single · april 2026</p>
+          </div>
 
-        <p class="note">
-          a six-minute walk from the trailhead, recorded between rainshowers. mostly cedar,
-          mostly minor key.
-        </p>
-      </section>
-
-      <section class="albums" id="albums" aria-labelledby="albums-title">
-        <div class="section-head">
-          <p class="eyebrow">past albums</p>
-          <h2 id="albums-title">the back catalogue</h2>
-        </div>
-
-        <ul class="album-grid">
-          <li class="album">
-            <div class="cover cover-1" aria-hidden="true">
-              <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">
-                <rect width="100" height="100" fill="#3a4a36" />
-                <circle cx="30" cy="35" r="22" fill="#7ea65f" opacity="0.75" />
-                <circle cx="65" cy="60" r="30" fill="#cfe2ab" opacity="0.35" />
-                <path d="M0 80 Q50 60 100 85 L100 100 L0 100 Z" fill="#1d2b1c" />
-              </svg>
-            </div>
-            <h3>quiet years</h3>
-            <p class="meta">2024 · lp</p>
-            <p class="blurb">eight tracks recorded one winter, mostly indoors, mostly at night.</p>
-          </li>
-
-          <li class="album">
-            <div class="cover cover-2" aria-hidden="true">
-              <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">
-                <rect width="100" height="100" fill="#2a3a3d" />
-                <path d="M0 0 L100 0 L100 50 Q50 70 0 50 Z" fill="#5a7a72" opacity="0.7" />
-                <circle cx="78" cy="22" r="10" fill="#e9efe2" opacity="0.85" />
-                <path d="M0 75 Q40 65 60 75 T100 78 L100 100 L0 100 Z" fill="#1a2225" />
-              </svg>
-            </div>
-            <h3>fog ledger</h3>
-            <p class="meta">2023 · ep</p>
-            <p class="blurb">four pieces for hydrophone and tape, made on the coast in march.</p>
-          </li>
-
-          <li class="album">
-            <div class="cover cover-3" aria-hidden="true">
-              <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">
-                <rect width="100" height="100" fill="#1f2018" />
-                <g stroke="#8eb56b" stroke-width="0.8" opacity="0.85" fill="none">
-                  <path d="M10 100 C 14 60, 8 30, 18 0" />
-                  <path d="M30 100 C 34 50, 28 20, 38 0" />
-                  <path d="M55 100 C 60 60, 54 30, 64 0" />
-                  <path d="M80 100 C 84 50, 78 20, 88 0" />
+          <div class="player" role="group" aria-label="audio player for understory">
+            <button class="play" type="button" aria-pressed="false" aria-label="play understory">
+              <svg viewBox="0 0 24 24" width="11" height="11" aria-hidden="true">
+                <path class="icon-play" d="M7 5 L19 12 L7 19 Z" fill="currentColor" />
+                <g class="icon-pause" fill="currentColor" style="display:none">
+                  <rect x="7" y="5" width="4" height="14" />
+                  <rect x="14" y="5" width="4" height="14" />
                 </g>
-                <circle cx="72" cy="30" r="14" fill="#cfe2ab" opacity="0.55" />
               </svg>
+            </button>
+            <div class="progress" role="slider" aria-label="track progress" aria-valuemin="0" aria-valuemax="278" aria-valuenow="0" tabindex="0">
+              <div class="fill"></div>
+              <div class="knob"></div>
             </div>
-            <h3>understory drafts</h3>
-            <p class="meta">2022 · lp</p>
-            <p class="blurb">a long, drifting record. side a is one piece. side b is another.</p>
-          </li>
+            <span class="time"><span class="elapsed">0:00</span> / <span class="total">4:38</span></span>
+          </div>
 
-          <li class="album">
-            <div class="cover cover-4" aria-hidden="true">
-              <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">
-                <rect width="100" height="100" fill="#4a5234" />
-                <ellipse cx="50" cy="55" rx="42" ry="28" fill="#a8c489" opacity="0.55" />
-                <ellipse cx="50" cy="55" rx="22" ry="14" fill="#e9efe2" opacity="0.6" />
-                <path d="M0 90 L100 95 L100 100 L0 100 Z" fill="#2c3d2b" />
-              </svg>
-            </div>
-            <h3>kettle / creek</h3>
-            <p class="meta">2021 · single</p>
-            <p class="blurb">a two-track release. the b-side is just the kettle, for nine minutes.</p>
-          </li>
-        </ul>
+          <p class="track-note">
+            a six-minute walk from the trailhead. mostly cedar, mostly minor key. the wind
+            through second-growth at 4 a.m. is its own instrument and it gets a credit on the
+            sleeve.
+          </p>
+        </div>
+      </section>
+
+      <!-- ===== III. ARCHIVE ===== -->
+      <section class="section archive-section" aria-labelledby="archive-h">
+        <div class="section-num">
+          III.
+          <span class="section-label">Archive</span>
+        </div>
+        <div class="section-body">
+          <h2 id="archive-h">previous releases.</h2>
+
+          <ol class="archive">
+            <li class="archive-row">
+              <span class="cat-num">M&amp;A.004</span>
+              <div class="album-text">
+                <h3 class="album-title">Quiet Years</h3>
+                <p class="album-blurb">eight tracks recorded one winter, mostly indoors, mostly at night. a slow record.</p>
+              </div>
+              <div class="album-format"><span class="year">2024</span>LP · 8 tracks · 47:12</div>
+            </li>
+
+            <li class="archive-row">
+              <span class="cat-num">M&amp;A.003</span>
+              <div class="album-text">
+                <h3 class="album-title">Fog Ledger</h3>
+                <p class="album-blurb">four pieces for hydrophone and tape, made on the coast in march. one piece is mostly the tide.</p>
+              </div>
+              <div class="album-format"><span class="year">2023</span>EP · 4 tracks · 22:40</div>
+            </li>
+
+            <li class="archive-row">
+              <span class="cat-num">M&amp;A.002</span>
+              <div class="album-text">
+                <h3 class="album-title">Understory Drafts</h3>
+                <p class="album-blurb">a long, drifting record. side a is one piece, side b is another. play it twice.</p>
+              </div>
+              <div class="album-format"><span class="year">2022</span>LP · 2 tracks · 41:08</div>
+            </li>
+
+            <li class="archive-row">
+              <span class="cat-num">M&amp;A.001</span>
+              <div class="album-text">
+                <h3 class="album-title">Kettle / Creek</h3>
+                <p class="album-blurb">a two-track release. the b-side is just the kettle, for nine minutes. it is the best of the two.</p>
+              </div>
+              <div class="album-format"><span class="year">2021</span>7" · 2 tracks · 14:22</div>
+            </li>
+          </ol>
+        </div>
       </section>
 
       <footer class="foot">
-        <p>moss &amp; air · bandcamp · spotify · instagram</p>
-        <p class="fineprint">recorded in the pacific northwest. all rights reserved.</p>
+        <div class="foot-links">
+          <a href="#">Bandcamp</a>
+          <a href="#">Spotify</a>
+          <a href="#">Instagram</a>
+        </div>
+        <p class="foot-meta">
+          moss &amp; air<br />
+          recorded in the pacific northwest<br />
+          © 2026
+        </p>
       </footer>
     </main>
 
@@ -1117,67 +650,48 @@
       (function () {
         const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-        // drifting air motes — kept very subtle
+        // very subtle drifting motes
         const motesEl = document.querySelector(".motes");
         if (motesEl && !reduceMotion) {
           const count = window.innerWidth < 720 ? 4 : 6;
           for (let i = 0; i < count; i++) {
             const m = document.createElement("span");
             m.className = "mote";
-            const size = 1.5 + Math.random() * 2;
-            m.style.width = `${size}px`;
-            m.style.height = `${size}px`;
-            m.style.left = `${15 + Math.random() * 70}%`;
-            m.style.setProperty("--drift-x", `${(Math.random() - 0.5) * 120}px`);
-            const duration = 50 + Math.random() * 40;
+            m.style.left = `${10 + Math.random() * 80}%`;
+            m.style.setProperty("--drift-x", `${(Math.random() - 0.5) * 80}px`);
+            const duration = 60 + Math.random() * 40;
             m.style.animationDuration = `${duration}s`;
             m.style.animationDelay = `-${Math.random() * duration}s`;
             motesEl.appendChild(m);
           }
         }
 
-        // generated waveform
-        const wave = document.querySelector(".waveform");
-        const BAR_COUNT = 64;
-        if (wave) {
-          for (let i = 0; i < BAR_COUNT; i++) {
-            const bar = document.createElement("span");
-            bar.className = "bar";
-            const t = i / BAR_COUNT;
-            const envelope = Math.sin(t * Math.PI) * 0.7 + 0.25;
-            const wobble = Math.sin(i * 0.9) * 0.15 + Math.sin(i * 0.27) * 0.18;
-            const h = Math.max(0.12, Math.min(1, envelope + wobble + Math.random() * 0.12));
-            bar.style.height = `${h * 100}%`;
-            wave.appendChild(bar);
-          }
-        }
-
-        // fake playback state
+        // player
         const playBtn = document.querySelector(".play");
         const iconPlay = document.querySelector(".icon-play");
         const iconPause = document.querySelector(".icon-pause");
         const elapsedEl = document.querySelector(".elapsed");
         const totalEl = document.querySelector(".total");
+        const progressEl = document.querySelector(".progress");
+        const fillEl = document.querySelector(".progress .fill");
+        const knobEl = document.querySelector(".progress .knob");
         const TRACK_LENGTH = 4 * 60 + 38;
         let elapsed = 0;
         let playing = false;
         let rafId = null;
         let lastTick = 0;
 
-        function fmt(seconds) {
-          const m = Math.floor(seconds / 60);
-          const s = Math.floor(seconds % 60).toString().padStart(2, "0");
-          return `${m}:${s}`;
+        function fmt(s) {
+          const m = Math.floor(s / 60);
+          const r = Math.floor(s % 60).toString().padStart(2, "0");
+          return `${m}:${r}`;
         }
 
-        function paintProgress() {
-          if (!wave) return;
-          const bars = wave.querySelectorAll(".bar");
-          const progress = elapsed / TRACK_LENGTH;
-          bars.forEach((b, i) => {
-            const p = i / bars.length;
-            b.classList.toggle("played", p <= progress);
-          });
+        function paint() {
+          const pct = (elapsed / TRACK_LENGTH) * 100;
+          fillEl.style.width = `${pct}%`;
+          knobEl.style.left = `${pct}%`;
+          progressEl.setAttribute("aria-valuenow", Math.floor(elapsed).toString());
         }
 
         function tick(now) {
@@ -1187,11 +701,8 @@
           lastTick = now;
           elapsed = Math.min(TRACK_LENGTH, elapsed + dt);
           elapsedEl.textContent = fmt(elapsed);
-          paintProgress();
-          if (elapsed >= TRACK_LENGTH) {
-            stop();
-            return;
-          }
+          paint();
+          if (elapsed >= TRACK_LENGTH) { stop(); return; }
           rafId = requestAnimationFrame(tick);
         }
 
@@ -1214,23 +725,18 @@
           if (rafId) cancelAnimationFrame(rafId);
         }
 
-        if (playBtn && elapsedEl && totalEl) {
+        if (playBtn) {
           totalEl.textContent = fmt(TRACK_LENGTH);
           elapsedEl.textContent = fmt(0);
-          playBtn.addEventListener("click", () => {
-            if (playing) stop();
-            else start();
+          paint();
+          playBtn.addEventListener("click", () => { playing ? stop() : start(); });
+          progressEl.addEventListener("click", (e) => {
+            const r = progressEl.getBoundingClientRect();
+            const ratio = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width));
+            elapsed = ratio * TRACK_LENGTH;
+            elapsedEl.textContent = fmt(elapsed);
+            paint();
           });
-
-          if (wave) {
-            wave.addEventListener("click", (e) => {
-              const rect = wave.getBoundingClientRect();
-              const ratio = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width));
-              elapsed = ratio * TRACK_LENGTH;
-              elapsedEl.textContent = fmt(elapsed);
-              paintProgress();
-            });
-          }
         }
       })();
     </script>
