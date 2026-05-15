@@ -570,17 +570,33 @@
       }
 
       .archive-row {
+        border-top: 1px solid var(--rule);
+      }
+      .archive-row:last-child { border-bottom: 1px solid var(--rule); }
+
+      .archive-link {
         display: grid;
         grid-template-columns: 76px 1fr auto;
         align-items: baseline;
         gap: 28px;
         padding: 22px 0 18px;
-        border-top: 1px solid var(--rule);
-        transition: background 0.3s ease;
+        color: var(--paper);
+        text-decoration: none;
+        transition: background 0.3s ease, color 0.2s ease;
       }
-      .archive-row:last-child { border-bottom: 1px solid var(--rule); }
-
-      .archive-row:hover { background: rgba(231, 227, 213, 0.02); }
+      .archive-link:hover {
+        background: rgba(231, 227, 213, 0.025);
+        color: var(--moss);
+      }
+      .archive-link:hover .album-blurb,
+      .archive-link:hover .album-format,
+      .archive-link:hover .cat-num {
+        color: var(--moss);
+      }
+      .archive-link:focus-visible {
+        outline: 1px solid var(--moss);
+        outline-offset: 4px;
+      }
 
       .cat-num {
         font-family: var(--mono);
@@ -598,7 +614,7 @@
         letter-spacing: -0.01em;
         line-height: 1.15;
         margin: 0 0 6px;
-        color: var(--paper);
+        color: inherit;
       }
 
       .album-blurb {
@@ -622,20 +638,20 @@
       .album-format .year { color: var(--paper-soft); display: block; }
 
       @media (max-width: 720px) {
-        .archive-row {
+        .archive-link {
           grid-template-columns: 1fr auto;
           gap: 6px 16px;
           padding: 22px 0 16px;
         }
-        .archive-row .cat-num {
+        .archive-link .cat-num {
           grid-column: 1 / 2;
           grid-row: 1;
         }
-        .archive-row .album-format {
+        .archive-link .album-format {
           grid-column: 2 / 3;
           grid-row: 1;
         }
-        .archive-row .album-text {
+        .archive-link .album-text {
           grid-column: 1 / -1;
         }
       }
@@ -863,41 +879,53 @@
         <div class="section-body">
           <h2 id="archive-h">previous albums.</h2>
 
-          <ol class="archive">
+          <ol class="archive" aria-label="Albums list">
             <li class="archive-row">
-              <span class="cat-num">M&amp;A.004</span>
-              <div class="album-text">
-                <h3 class="album-title">Quiet Years</h3>
-                <p class="album-blurb">eight tracks recorded one winter, mostly indoors, mostly at night. a slow record.</p>
-              </div>
-              <div class="album-format"><span class="year">2024</span>LP · 8 tracks · 47:12</div>
+              <a class="archive-link" href="#" target="_blank" rel="noopener noreferrer">
+                <span class="cat-num">M&amp;A.004</span>
+                <div class="album-text">
+                  <h3 class="album-title">Quiet Years</h3>
+                  <p class="album-blurb">eight tracks recorded one winter, mostly indoors, mostly at night. a slow record.</p>
+                </div>
+                <div class="album-format"><span class="year">2024</span>LP · 8 tracks · 47:12</div>
+                <span class="sr-only">(opens in new tab)</span>
+              </a>
             </li>
 
             <li class="archive-row">
-              <span class="cat-num">M&amp;A.003</span>
-              <div class="album-text">
-                <h3 class="album-title">Fog Ledger</h3>
-                <p class="album-blurb">four pieces for hydrophone and tape, made on the coast in march. one piece is mostly the tide.</p>
-              </div>
-              <div class="album-format"><span class="year">2023</span>EP · 4 tracks · 22:40</div>
+              <a class="archive-link" href="#" target="_blank" rel="noopener noreferrer">
+                <span class="cat-num">M&amp;A.003</span>
+                <div class="album-text">
+                  <h3 class="album-title">Fog Ledger</h3>
+                  <p class="album-blurb">four pieces for hydrophone and tape, made on the coast in march. one piece is mostly the tide.</p>
+                </div>
+                <div class="album-format"><span class="year">2023</span>EP · 4 tracks · 22:40</div>
+                <span class="sr-only">(opens in new tab)</span>
+              </a>
             </li>
 
             <li class="archive-row">
-              <span class="cat-num">M&amp;A.002</span>
-              <div class="album-text">
-                <h3 class="album-title">Understory Drafts</h3>
-                <p class="album-blurb">a long, drifting record. side a is one piece, side b is another. play it twice.</p>
-              </div>
-              <div class="album-format"><span class="year">2022</span>LP · 2 tracks · 41:08</div>
+              <a class="archive-link" href="#" target="_blank" rel="noopener noreferrer">
+                <span class="cat-num">M&amp;A.002</span>
+                <div class="album-text">
+                  <h3 class="album-title">Understory Drafts</h3>
+                  <p class="album-blurb">a long, drifting record. side a is one piece, side b is another. play it twice.</p>
+                </div>
+                <div class="album-format"><span class="year">2022</span>LP · 2 tracks · 41:08</div>
+                <span class="sr-only">(opens in new tab)</span>
+              </a>
             </li>
 
             <li class="archive-row">
-              <span class="cat-num">M&amp;A.001</span>
-              <div class="album-text">
-                <h3 class="album-title">Kettle / Creek</h3>
-                <p class="album-blurb">a two-track release. the b-side is just the kettle, for nine minutes. it is the best of the two.</p>
-              </div>
-              <div class="album-format"><span class="year">2021</span>7" · 2 tracks · 14:22</div>
+              <a class="archive-link" href="#" target="_blank" rel="noopener noreferrer">
+                <span class="cat-num">M&amp;A.001</span>
+                <div class="album-text">
+                  <h3 class="album-title">Kettle / Creek</h3>
+                  <p class="album-blurb">a two-track release. the b-side is just the kettle, for nine minutes. it is the best of the two.</p>
+                </div>
+                <div class="album-format"><span class="year">2021</span>7" · 2 tracks · 14:22</div>
+                <span class="sr-only">(opens in new tab)</span>
+              </a>
             </li>
           </ol>
         </div>
