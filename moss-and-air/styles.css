@@ -384,7 +384,14 @@ a.wordmark:focus-visible { outline: 1px solid var(--moss); outline-offset: 6px; 
   position: relative;
   background: transparent;
   cursor: pointer;
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
 }
+.progress.dragging { cursor: grabbing; }
+.progress.dragging .fill,
+.progress.dragging .knob { transition: none; }
+.progress.dragging .knob { width: 12px; height: 12px; }
 .progress::before {
   content: "";
   position: absolute;
