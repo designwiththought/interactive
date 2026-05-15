@@ -389,7 +389,8 @@
       .play:focus-visible { outline: 1px solid var(--moss); outline-offset: 3px; }
 
       .progress {
-        flex: 1;
+        flex: 1 1 0;
+        min-width: 0;
         height: 1px;
         background: var(--rule-strong);
         position: relative;
@@ -429,6 +430,22 @@
         font-size: 15px;
         color: var(--paper-soft);
         max-width: 52ch;
+      }
+
+      @media (max-width: 720px) {
+        .latest-card {
+          grid-template-columns: 1fr;
+          gap: 8px;
+          align-items: start;
+        }
+        .track-title { font-size: 30px; }
+        .track-meta {
+          text-align: left;
+          white-space: normal;
+        }
+        .player { gap: 14px; }
+        .play { width: 34px; height: 34px; }
+        .time { font-size: 10px; }
       }
 
       /* ---------- III. archive ---------- */
