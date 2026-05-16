@@ -1,0 +1,1566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Waveform — A Podcast About Curious Minds</title>
+<style>
+  :root {
+    --bg: #0b0b14;
+    --bg-elev: #14142a;
+    --surface: #1c1c3a;
+    --surface-2: #232347;
+    --text: #f4f4ff;
+    --muted: #a3a3c9;
+    --accent: #ff5e7e;
+    --accent-2: #7c5cff;
+    --accent-3: #5cf2ff;
+    --radius: 16px;
+    --radius-sm: 10px;
+    --shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+    --transition: 0.25s ease;
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    overflow-x: hidden;
+    padding-bottom: 100px;
+  }
+
+  /* ===== Navigation ===== */
+  nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    padding: 18px 6vw;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    backdrop-filter: blur(14px);
+    background: rgba(11, 11, 20, 0.7);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    transition: padding var(--transition);
+  }
+
+  nav.scrolled {
+    padding: 12px 6vw;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 800;
+    font-size: 20px;
+    letter-spacing: -0.5px;
+  }
+
+  .logo-mark {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+  }
+
+  .logo-mark span {
+    display: block;
+    width: 3px;
+    background: linear-gradient(180deg, var(--accent), var(--accent-2));
+    border-radius: 2px;
+    animation: wave 1.2s ease-in-out infinite;
+  }
+
+  .logo-mark span:nth-child(1) { height: 40%; animation-delay: 0s; }
+  .logo-mark span:nth-child(2) { height: 80%; animation-delay: 0.15s; }
+  .logo-mark span:nth-child(3) { height: 60%; animation-delay: 0.3s; }
+  .logo-mark span:nth-child(4) { height: 90%; animation-delay: 0.45s; }
+  .logo-mark span:nth-child(5) { height: 50%; animation-delay: 0.6s; }
+
+  @keyframes wave {
+    0%, 100% { transform: scaleY(0.6); }
+    50% { transform: scaleY(1); }
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 32px;
+    list-style: none;
+  }
+
+  .nav-links a {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: color var(--transition);
+    position: relative;
+  }
+
+  .nav-links a:hover {
+    color: var(--text);
+  }
+
+  .nav-links a::after {
+    content: '';
+    position: absolute;
+    bottom: -6px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: var(--accent);
+    transition: width var(--transition);
+  }
+
+  .nav-links a:hover::after {
+    width: 100%;
+  }
+
+  .nav-cta {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: white;
+    padding: 10px 20px;
+    border-radius: 100px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    transition: transform var(--transition), box-shadow var(--transition);
+  }
+
+  .nav-cta:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(255, 94, 126, 0.4);
+  }
+
+  .menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    color: var(--text);
+    font-size: 24px;
+    cursor: pointer;
+  }
+
+  /* ===== Hero ===== */
+  .hero {
+    min-height: 100vh;
+    padding: 140px 6vw 80px;
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    align-items: center;
+    gap: 60px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(124, 92, 255, 0.3), transparent 70%);
+    top: -100px;
+    right: -100px;
+    border-radius: 50%;
+    filter: blur(60px);
+    z-index: 0;
+  }
+
+  .hero::after {
+    content: '';
+    position: absolute;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(255, 94, 126, 0.25), transparent 70%);
+    bottom: -100px;
+    left: -100px;
+    border-radius: 50%;
+    filter: blur(60px);
+    z-index: 0;
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 1;
+  }
+
+  .hero-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    background: rgba(124, 92, 255, 0.15);
+    border: 1px solid rgba(124, 92, 255, 0.3);
+    border-radius: 100px;
+    font-size: 13px;
+    color: var(--accent-3);
+    margin-bottom: 24px;
+    font-weight: 500;
+  }
+
+  .pulse-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--accent-3);
+    border-radius: 50%;
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(92, 242, 255, 0.7); }
+    50% { box-shadow: 0 0 0 10px rgba(92, 242, 255, 0); }
+  }
+
+  .hero h1 {
+    font-size: clamp(40px, 6vw, 72px);
+    line-height: 1.05;
+    letter-spacing: -2px;
+    font-weight: 800;
+    margin-bottom: 24px;
+  }
+
+  .hero h1 .gradient {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2), var(--accent-3));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .hero p {
+    font-size: 18px;
+    color: var(--muted);
+    max-width: 540px;
+    margin-bottom: 36px;
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: white;
+    border: none;
+    padding: 14px 28px;
+    border-radius: 100px;
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    transition: transform var(--transition), box-shadow var(--transition);
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 40px rgba(255, 94, 126, 0.4);
+  }
+
+  .btn-secondary {
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--text);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    padding: 14px 28px;
+    border-radius: 100px;
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background var(--transition), border-color var(--transition);
+  }
+
+  .btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.25);
+  }
+
+  .hero-stats {
+    display: flex;
+    gap: 40px;
+    margin-top: 48px;
+    padding-top: 32px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .stat-num {
+    font-size: 28px;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--accent-3), var(--accent-2));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .stat-label {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  /* ===== Hero visual / live player card ===== */
+  .hero-card {
+    position: relative;
+    z-index: 1;
+    background: linear-gradient(160deg, var(--surface) 0%, var(--bg-elev) 100%);
+    border-radius: 24px;
+    padding: 32px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: var(--shadow);
+    transform: perspective(1000px) rotateY(-5deg) rotateX(2deg);
+    transition: transform 0.6s ease;
+  }
+
+  .hero-card:hover {
+    transform: perspective(1000px) rotateY(0deg) rotateX(0deg);
+  }
+
+  .episode-art {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: var(--radius);
+    background:
+      radial-gradient(circle at 30% 30%, rgba(255, 94, 126, 0.6), transparent 60%),
+      radial-gradient(circle at 70% 70%, rgba(124, 92, 255, 0.7), transparent 60%),
+      linear-gradient(135deg, #2a1a4d, #0a0a1f);
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .episode-art::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at center, transparent 35%, rgba(0, 0, 0, 0.5) 80%);
+  }
+
+  .episode-art svg {
+    position: relative;
+    z-index: 1;
+    width: 60%;
+    height: 60%;
+    opacity: 0.95;
+  }
+
+  .episode-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .episode-num {
+    font-size: 12px;
+    color: var(--accent-3);
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .episode-duration {
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .episode-title {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    letter-spacing: -0.5px;
+  }
+
+  .episode-guest {
+    color: var(--muted);
+    font-size: 14px;
+    margin-bottom: 20px;
+  }
+
+  /* ===== Audio Player Controls ===== */
+  .player-wrap {
+    background: rgba(0, 0, 0, 0.25);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+  }
+
+  .progress-bar {
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    overflow: hidden;
+    cursor: pointer;
+    margin-bottom: 12px;
+  }
+
+  .progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    border-radius: 3px;
+    transition: width 0.1s linear;
+  }
+
+  .player-times {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 14px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .player-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+  }
+
+  .player-btn {
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    padding: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: color var(--transition), background var(--transition);
+  }
+
+  .player-btn:hover {
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  .play-btn {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: white;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform var(--transition), box-shadow var(--transition);
+  }
+
+  .play-btn:hover {
+    transform: scale(1.08);
+    box-shadow: 0 10px 30px rgba(255, 94, 126, 0.5);
+  }
+
+  /* ===== Section base ===== */
+  section.block {
+    padding: 100px 6vw;
+    position: relative;
+  }
+
+  .section-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 48px;
+    flex-wrap: wrap;
+    gap: 24px;
+  }
+
+  .section-title {
+    font-size: clamp(30px, 4vw, 44px);
+    letter-spacing: -1px;
+    font-weight: 800;
+    max-width: 600px;
+  }
+
+  .section-title .gradient {
+    background: linear-gradient(135deg, var(--accent-3), var(--accent-2));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .section-sub {
+    color: var(--muted);
+    font-size: 16px;
+    max-width: 420px;
+  }
+
+  /* ===== Episodes Grid ===== */
+  .filter-bar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+  }
+
+  .filter-chip {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--muted);
+    padding: 8px 18px;
+    border-radius: 100px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all var(--transition);
+  }
+
+  .filter-chip:hover {
+    color: var(--text);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+
+  .filter-chip.active {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: white;
+    border-color: transparent;
+  }
+
+  .episodes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 24px;
+  }
+
+  .episode-card {
+    background: var(--surface);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: var(--radius);
+    padding: 20px;
+    cursor: pointer;
+    transition: transform var(--transition), border-color var(--transition), background var(--transition);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .episode-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent, rgba(124, 92, 255, 0.08));
+    opacity: 0;
+    transition: opacity var(--transition);
+    pointer-events: none;
+  }
+
+  .episode-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(124, 92, 255, 0.4);
+    background: var(--surface-2);
+  }
+
+  .episode-card:hover::before {
+    opacity: 1;
+  }
+
+  .episode-card .ep-art {
+    width: 100%;
+    aspect-ratio: 16/9;
+    border-radius: var(--radius-sm);
+    margin-bottom: 16px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .ep-art-1 { background: linear-gradient(135deg, #ff5e7e, #7c5cff); }
+  .ep-art-2 { background: linear-gradient(135deg, #5cf2ff, #7c5cff); }
+  .ep-art-3 { background: linear-gradient(135deg, #ffaa5c, #ff5e7e); }
+  .ep-art-4 { background: linear-gradient(135deg, #5cffaf, #5cf2ff); }
+  .ep-art-5 { background: linear-gradient(135deg, #7c5cff, #c45cff); }
+  .ep-art-6 { background: linear-gradient(135deg, #ff5cb6, #ffaa5c); }
+
+  .ep-play-overlay {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    transition: transform var(--transition);
+  }
+
+  .episode-card:hover .ep-play-overlay {
+    transform: scale(1.12);
+  }
+
+  .ep-cat {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--accent-3);
+    margin-bottom: 8px;
+  }
+
+  .ep-title {
+    font-size: 17px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    line-height: 1.3;
+    letter-spacing: -0.3px;
+  }
+
+  .ep-desc {
+    color: var(--muted);
+    font-size: 13.5px;
+    margin-bottom: 16px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .ep-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: var(--muted);
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .ep-host {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .ep-host-avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: white;
+  }
+
+  /* ===== Hosts ===== */
+  .hosts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 24px;
+  }
+
+  .host-card {
+    background: var(--surface);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: var(--radius);
+    padding: 28px;
+    text-align: center;
+    transition: transform var(--transition), border-color var(--transition);
+  }
+
+  .host-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(255, 94, 126, 0.4);
+  }
+
+  .host-avatar {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    margin: 0 auto 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    font-weight: 800;
+    color: white;
+    position: relative;
+  }
+
+  .host-1 { background: linear-gradient(135deg, #ff5e7e, #7c5cff); }
+  .host-2 { background: linear-gradient(135deg, #5cf2ff, #7c5cff); }
+  .host-3 { background: linear-gradient(135deg, #ffaa5c, #ff5e7e); }
+  .host-4 { background: linear-gradient(135deg, #5cffaf, #5cf2ff); }
+
+  .host-name {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .host-role {
+    color: var(--accent-3);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+
+  .host-bio {
+    color: var(--muted);
+    font-size: 13.5px;
+  }
+
+  /* ===== Newsletter ===== */
+  .newsletter {
+    background: linear-gradient(135deg, rgba(255, 94, 126, 0.08), rgba(124, 92, 255, 0.08));
+    border: 1px solid rgba(124, 92, 255, 0.18);
+    border-radius: 24px;
+    padding: 60px;
+    text-align: center;
+    margin: 0 6vw;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .newsletter::before {
+    content: '';
+    position: absolute;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(255, 94, 126, 0.25), transparent 70%);
+    top: -100px;
+    left: -100px;
+    border-radius: 50%;
+    filter: blur(40px);
+  }
+
+  .newsletter::after {
+    content: '';
+    position: absolute;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(92, 242, 255, 0.25), transparent 70%);
+    bottom: -100px;
+    right: -100px;
+    border-radius: 50%;
+    filter: blur(40px);
+  }
+
+  .newsletter-content {
+    position: relative;
+    z-index: 1;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .newsletter h2 {
+    font-size: clamp(28px, 4vw, 40px);
+    letter-spacing: -1px;
+    margin-bottom: 14px;
+    font-weight: 800;
+  }
+
+  .newsletter p {
+    color: var(--muted);
+    margin-bottom: 32px;
+  }
+
+  .newsletter-form {
+    display: flex;
+    gap: 10px;
+    max-width: 460px;
+    margin: 0 auto;
+    flex-wrap: wrap;
+  }
+
+  .newsletter-input {
+    flex: 1;
+    min-width: 220px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 100px;
+    padding: 14px 22px;
+    color: var(--text);
+    font-size: 14px;
+    outline: none;
+    transition: border-color var(--transition);
+  }
+
+  .newsletter-input:focus {
+    border-color: var(--accent-2);
+  }
+
+  .newsletter-input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+  }
+
+  .newsletter-msg {
+    margin-top: 18px;
+    font-size: 14px;
+    color: var(--accent-3);
+    min-height: 20px;
+  }
+
+  /* ===== Footer ===== */
+  footer {
+    padding: 60px 6vw 30px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    margin-top: 60px;
+  }
+
+  .footer-grid {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 1fr 1fr;
+    gap: 40px;
+    margin-bottom: 40px;
+  }
+
+  .footer-col h4 {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--muted);
+    margin-bottom: 16px;
+    font-weight: 600;
+  }
+
+  .footer-col ul {
+    list-style: none;
+  }
+
+  .footer-col ul li {
+    margin-bottom: 10px;
+  }
+
+  .footer-col ul a {
+    color: var(--text);
+    text-decoration: none;
+    font-size: 14px;
+    transition: color var(--transition);
+  }
+
+  .footer-col ul a:hover {
+    color: var(--accent);
+  }
+
+  .footer-tagline {
+    color: var(--muted);
+    font-size: 14px;
+    margin-top: 14px;
+    max-width: 280px;
+  }
+
+  .footer-social {
+    display: flex;
+    gap: 12px;
+    margin-top: 18px;
+  }
+
+  .footer-social a {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.06);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    transition: background var(--transition), color var(--transition);
+    text-decoration: none;
+  }
+
+  .footer-social a:hover {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: white;
+  }
+
+  .footer-bottom {
+    padding-top: 24px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    text-align: center;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  /* ===== Sticky Mini Player ===== */
+  .mini-player {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(20, 20, 42, 0.92);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 14px 6vw;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    z-index: 90;
+    transform: translateY(100%);
+    transition: transform 0.4s ease;
+  }
+
+  .mini-player.visible {
+    transform: translateY(0);
+  }
+
+  .mini-player-info {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .mini-art {
+    width: 44px;
+    height: 44px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    flex-shrink: 0;
+  }
+
+  .mini-text {
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .mini-title {
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .mini-sub {
+    font-size: 12px;
+    color: var(--muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .mini-player .player-controls {
+    gap: 14px;
+  }
+
+  .mini-progress {
+    flex: 2;
+    max-width: 400px;
+  }
+
+  /* ===== Responsive ===== */
+  @media (max-width: 900px) {
+    .hero {
+      grid-template-columns: 1fr;
+      padding-top: 110px;
+      gap: 40px;
+    }
+    .hero-card {
+      transform: none;
+    }
+    .footer-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+    .newsletter {
+      padding: 40px 24px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .nav-links {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: var(--bg-elev);
+      flex-direction: column;
+      padding: 24px;
+      gap: 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .nav-links.open {
+      display: flex;
+    }
+    .menu-toggle {
+      display: block;
+    }
+    .nav-cta {
+      display: none;
+    }
+    .hero-stats {
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+    .footer-grid {
+      grid-template-columns: 1fr;
+      gap: 28px;
+    }
+    .section-head {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .mini-progress {
+      display: none;
+    }
+  }
+
+  /* ===== Scroll reveal ===== */
+  .reveal {
+    opacity: 0;
+    transform: translateY(28px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== Navigation ===== -->
+<nav id="navbar">
+  <a href="#" class="logo" aria-label="Waveform home">
+    <span class="logo-mark" aria-hidden="true">
+      <span></span><span></span><span></span><span></span><span></span>
+    </span>
+    Waveform
+  </a>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="#episodes">Episodes</a></li>
+    <li><a href="#hosts">Hosts</a></li>
+    <li><a href="#newsletter">Newsletter</a></li>
+    <li><a href="#about">About</a></li>
+  </ul>
+  <a href="#newsletter" class="nav-cta">Subscribe</a>
+  <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">&#9776;</button>
+</nav>
+
+<!-- ===== Hero ===== -->
+<header class="hero">
+  <div class="hero-content">
+    <div class="hero-eyebrow">
+      <span class="pulse-dot"></span>
+      New episode every Tuesday
+    </div>
+    <h1>Tune into the <span class="gradient">conversations</span> shaping tomorrow.</h1>
+    <p>Waveform is a weekly podcast where curious minds meet bold ideas — designers, founders, scientists, and storytellers sharing what they're really thinking about.</p>
+    <div class="hero-actions">
+      <a href="#episodes" class="btn-primary">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        Play latest episode
+      </a>
+      <a href="#episodes" class="btn-secondary">Browse all episodes</a>
+    </div>
+    <div class="hero-stats">
+      <div>
+        <div class="stat-num" data-count="142">0</div>
+        <div class="stat-label">Episodes published</div>
+      </div>
+      <div>
+        <div class="stat-num" data-count="2400000" data-format="k">0</div>
+        <div class="stat-label">Total listens</div>
+      </div>
+      <div>
+        <div class="stat-num">4.9<span style="font-size:18px;">★</span></div>
+        <div class="stat-label">Listener rating</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-card reveal">
+    <div class="episode-art" aria-hidden="true">
+      <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g stroke="white" stroke-width="3" stroke-linecap="round">
+          <line x1="20" y1="100" x2="20" y2="100">
+            <animate attributeName="y1" values="80;60;80" dur="1.4s" repeatCount="indefinite"/>
+            <animate attributeName="y2" values="120;140;120" dur="1.4s" repeatCount="indefinite"/>
+          </line>
+          <line x1="45" y1="100" x2="45" y2="100">
+            <animate attributeName="y1" values="60;30;60" dur="1.4s" repeatCount="indefinite" begin="0.1s"/>
+            <animate attributeName="y2" values="140;170;140" dur="1.4s" repeatCount="indefinite" begin="0.1s"/>
+          </line>
+          <line x1="70" y1="100" x2="70" y2="100">
+            <animate attributeName="y1" values="70;40;70" dur="1.4s" repeatCount="indefinite" begin="0.2s"/>
+            <animate attributeName="y2" values="130;160;130" dur="1.4s" repeatCount="indefinite" begin="0.2s"/>
+          </line>
+          <line x1="95" y1="100" x2="95" y2="100">
+            <animate attributeName="y1" values="50;20;50" dur="1.4s" repeatCount="indefinite" begin="0.3s"/>
+            <animate attributeName="y2" values="150;180;150" dur="1.4s" repeatCount="indefinite" begin="0.3s"/>
+          </line>
+          <line x1="120" y1="100" x2="120" y2="100">
+            <animate attributeName="y1" values="70;40;70" dur="1.4s" repeatCount="indefinite" begin="0.4s"/>
+            <animate attributeName="y2" values="130;160;130" dur="1.4s" repeatCount="indefinite" begin="0.4s"/>
+          </line>
+          <line x1="145" y1="100" x2="145" y2="100">
+            <animate attributeName="y1" values="60;30;60" dur="1.4s" repeatCount="indefinite" begin="0.5s"/>
+            <animate attributeName="y2" values="140;170;140" dur="1.4s" repeatCount="indefinite" begin="0.5s"/>
+          </line>
+          <line x1="170" y1="100" x2="170" y2="100">
+            <animate attributeName="y1" values="80;60;80" dur="1.4s" repeatCount="indefinite" begin="0.6s"/>
+            <animate attributeName="y2" values="120;140;120" dur="1.4s" repeatCount="indefinite" begin="0.6s"/>
+          </line>
+        </g>
+      </svg>
+    </div>
+    <div class="episode-meta">
+      <span class="episode-num">Episode 142 • Now Playing</span>
+      <span class="episode-duration">52:14</span>
+    </div>
+    <h3 class="episode-title">The architecture of attention</h3>
+    <p class="episode-guest">with Dr. Maya Okonkwo, cognitive scientist</p>
+
+    <div class="player-wrap">
+      <div class="progress-bar" id="progressBar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <div class="player-times">
+        <span id="currentTime">0:00</span>
+        <span id="totalTime">52:14</span>
+      </div>
+      <div class="player-controls">
+        <button class="player-btn" aria-label="Rewind 15 seconds">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>
+        </button>
+        <button class="play-btn" id="playBtn" aria-label="Play or pause">
+          <svg id="playIcon" width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          <svg id="pauseIcon" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" style="display:none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+        </button>
+        <button class="player-btn" aria-label="Forward 30 seconds">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" style="transform:scaleX(-1);"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ===== Episodes ===== -->
+<section class="block" id="episodes">
+  <div class="section-head reveal">
+    <h2 class="section-title">Recent <span class="gradient">episodes</span></h2>
+    <p class="section-sub">Sit with ideas longer. Browse our archive of long-form conversations, sorted by topic.</p>
+  </div>
+
+  <div class="filter-bar reveal">
+    <button class="filter-chip active" data-filter="all">All</button>
+    <button class="filter-chip" data-filter="science">Science</button>
+    <button class="filter-chip" data-filter="design">Design</button>
+    <button class="filter-chip" data-filter="founders">Founders</button>
+    <button class="filter-chip" data-filter="culture">Culture</button>
+  </div>
+
+  <div class="episodes-grid" id="episodesGrid">
+    <!-- populated by JS -->
+  </div>
+</section>
+
+<!-- ===== Hosts ===== -->
+<section class="block" id="hosts">
+  <div class="section-head reveal">
+    <h2 class="section-title">The voices <span class="gradient">behind</span> the mic</h2>
+    <p class="section-sub">A small, opinionated team of journalists, technologists, and creators who love asking better questions.</p>
+  </div>
+
+  <div class="hosts-grid">
+    <div class="host-card reveal">
+      <div class="host-avatar host-1">JS</div>
+      <h3 class="host-name">Juno Sato</h3>
+      <p class="host-role">Co-host & Producer</p>
+      <p class="host-bio">Former design lead at Figma. Obsessed with how tools shape thinking.</p>
+    </div>
+    <div class="host-card reveal">
+      <div class="host-avatar host-2">AR</div>
+      <h3 class="host-name">Amara Reyes</h3>
+      <p class="host-role">Co-host</p>
+      <p class="host-bio">Science journalist with a soft spot for biology and bad sci-fi novels.</p>
+    </div>
+    <div class="host-card reveal">
+      <div class="host-avatar host-3">DC</div>
+      <h3 class="host-name">Devon Carr</h3>
+      <p class="host-role">Editor</p>
+      <p class="host-bio">Books the guests, edits the tape, runs the entire show on espresso.</p>
+    </div>
+    <div class="host-card reveal">
+      <div class="host-avatar host-4">LK</div>
+      <h3 class="host-name">Lin Kovács</h3>
+      <p class="host-role">Audio Engineer</p>
+      <p class="host-bio">Makes everyone sound like they're sitting across from you in a quiet room.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Newsletter ===== -->
+<section class="block" id="newsletter">
+  <div class="newsletter reveal">
+    <div class="newsletter-content">
+      <h2>Get show notes in your inbox</h2>
+      <p>The links, the books, the rabbit holes — one short email every Tuesday morning. No spam, unsubscribe anytime.</p>
+      <form class="newsletter-form" id="newsletterForm" novalidate>
+        <input type="email" class="newsletter-input" id="newsletterEmail" placeholder="you@somewhere.com" required>
+        <button type="submit" class="btn-primary">Subscribe</button>
+      </form>
+      <div class="newsletter-msg" id="newsletterMsg" role="status" aria-live="polite"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Footer ===== -->
+<footer id="about">
+  <div class="footer-grid">
+    <div class="footer-col">
+      <div class="logo">
+        <span class="logo-mark" aria-hidden="true">
+          <span></span><span></span><span></span><span></span><span></span>
+        </span>
+        Waveform
+      </div>
+      <p class="footer-tagline">A weekly podcast about the ideas, people, and tools shaping how we think.</p>
+      <div class="footer-social">
+        <a href="#" aria-label="Twitter">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M22.46 6c-.77.35-1.6.58-2.46.69.88-.53 1.56-1.37 1.88-2.38-.83.5-1.75.85-2.72 1.05C18.37 4.5 17.26 4 16 4c-2.35 0-4.27 1.92-4.27 4.29 0 .34.04.67.11.98C8.28 9.09 5.11 7.38 3 4.79c-.37.63-.58 1.37-.58 2.15 0 1.49.75 2.81 1.91 3.56-.71 0-1.37-.2-1.95-.5v.03c0 2.08 1.48 3.82 3.44 4.21a4.22 4.22 0 0 1-1.93.07 4.28 4.28 0 0 0 4 2.98 8.521 8.521 0 0 1-5.33 1.84c-.34 0-.68-.02-1.02-.06C3.44 20.29 5.7 21 8.12 21 16 21 20.33 14.46 20.33 8.79c0-.19 0-.37-.01-.56.84-.6 1.56-1.36 2.14-2.23z"/></svg>
+        </a>
+        <a href="#" aria-label="Instagram">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.16c3.2 0 3.58.01 4.85.07 1.17.05 1.8.25 2.23.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.42.36 1.06.41 2.23.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.05 1.17-.25 1.8-.41 2.23-.22.56-.48.96-.9 1.38-.42.42-.82.68-1.38.9-.42.16-1.06.36-2.23.41-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-1.17-.05-1.8-.25-2.23-.41a3.7 3.7 0 0 1-1.38-.9 3.7 3.7 0 0 1-.9-1.38c-.16-.42-.36-1.06-.41-2.23C2.17 15.58 2.16 15.2 2.16 12s.01-3.58.07-4.85c.05-1.17.25-1.8.41-2.23.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.42-.16 1.06-.36 2.23-.41C8.42 2.17 8.8 2.16 12 2.16M12 0C8.74 0 8.33.01 7.05.07 5.78.13 4.9.33 4.14.63 3.35.94 2.68 1.36 2.01 2.03 1.34 2.7.93 3.37.62 4.16.32 4.92.12 5.8.06 7.07.01 8.35 0 8.76 0 12s.01 3.65.07 4.93c.06 1.27.26 2.15.56 2.91.31.79.73 1.46 1.4 2.13.67.67 1.34 1.09 2.13 1.4.76.3 1.64.5 2.91.56C8.35 23.99 8.76 24 12 24s3.65-.01 4.93-.07c1.27-.06 2.15-.26 2.91-.56.79-.31 1.46-.73 2.13-1.4.67-.67 1.09-1.34 1.4-2.13.3-.76.5-1.64.56-2.91.06-1.28.07-1.69.07-4.93s-.01-3.65-.07-4.93c-.06-1.27-.26-2.15-.56-2.91-.31-.79-.73-1.46-1.4-2.13C21.3 1.36 20.63.94 19.84.63c-.76-.3-1.64-.5-2.91-.56C15.65.01 15.24 0 12 0zm0 5.84A6.16 6.16 0 1 0 18.16 12 6.16 6.16 0 0 0 12 5.84zm0 10.16A4 4 0 1 1 16 12a4 4 0 0 1-4 4zm6.41-10.41a1.44 1.44 0 1 0 1.44 1.44 1.44 1.44 0 0 0-1.44-1.44z"/></svg>
+        </a>
+        <a href="#" aria-label="YouTube">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5a3 3 0 0 0-2.1 2.1C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1c.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.6 15.6V8.4l6.2 3.6-6.2 3.6z"/></svg>
+        </a>
+      </div>
+    </div>
+    <div class="footer-col">
+      <h4>Listen on</h4>
+      <ul>
+        <li><a href="#">Apple Podcasts</a></li>
+        <li><a href="#">Spotify</a></li>
+        <li><a href="#">Overcast</a></li>
+        <li><a href="#">Pocket Casts</a></li>
+        <li><a href="#">RSS feed</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Show</h4>
+      <ul>
+        <li><a href="#episodes">All episodes</a></li>
+        <li><a href="#hosts">Hosts</a></li>
+        <li><a href="#">Guests</a></li>
+        <li><a href="#">Transcripts</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Company</h4>
+      <ul>
+        <li><a href="#">Press kit</a></li>
+        <li><a href="#">Sponsors</a></li>
+        <li><a href="#">Contact</a></li>
+        <li><a href="#">Privacy</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    &copy; <span id="year"></span> Waveform Podcast. Made with too much coffee.
+  </div>
+</footer>
+
+<!-- ===== Sticky Mini Player ===== -->
+<div class="mini-player" id="miniPlayer" aria-hidden="true">
+  <div class="mini-player-info">
+    <div class="mini-art"></div>
+    <div class="mini-text">
+      <div class="mini-title" id="miniTitle">The architecture of attention</div>
+      <div class="mini-sub" id="miniSub">Episode 142 • Dr. Maya Okonkwo</div>
+    </div>
+  </div>
+  <div class="mini-progress">
+    <div class="progress-bar" id="miniProgressBar">
+      <div class="progress-fill" id="miniProgressFill"></div>
+    </div>
+  </div>
+  <div class="player-controls">
+    <button class="play-btn" id="miniPlayBtn" aria-label="Play or pause" style="width:42px;height:42px;">
+      <svg id="miniPlayIcon" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+      <svg id="miniPauseIcon" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="display:none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+    </button>
+  </div>
+</div>
+
+<script>
+  // ===== Data =====
+  const episodes = [
+    {
+      id: 142, cat: 'science', cls: 'ep-art-1',
+      title: 'The architecture of attention',
+      desc: 'How focus shapes memory, identity, and even how the brain models the future.',
+      host: 'JS', hostName: 'Juno', duration: '52:14', date: 'May 14',
+    },
+    {
+      id: 141, cat: 'design', cls: 'ep-art-2',
+      title: 'Designing tools that disappear',
+      desc: 'When software gets out of the way: the long road to invisible interfaces.',
+      host: 'AR', hostName: 'Amara', duration: '48:02', date: 'May 7',
+    },
+    {
+      id: 140, cat: 'founders', cls: 'ep-art-3',
+      title: 'The quiet first year',
+      desc: 'Three founders talk about building in private before anyone is watching.',
+      host: 'DC', hostName: 'Devon', duration: '1:04:38', date: 'Apr 30',
+    },
+    {
+      id: 139, cat: 'culture', cls: 'ep-art-4',
+      title: 'Why we re-read books',
+      desc: 'A literary critic on the books that change every time you open them again.',
+      host: 'JS', hostName: 'Juno', duration: '41:19', date: 'Apr 23',
+    },
+    {
+      id: 138, cat: 'science', cls: 'ep-art-5',
+      title: 'A short history of forgetting',
+      desc: 'Memory researchers on the biology of letting go — and why it matters.',
+      host: 'AR', hostName: 'Amara', duration: '56:47', date: 'Apr 16',
+    },
+    {
+      id: 137, cat: 'design', cls: 'ep-art-6',
+      title: 'Typography is a love letter',
+      desc: 'Letters carry feelings. We talk to the designers who bend them on purpose.',
+      host: 'DC', hostName: 'Devon', duration: '37:55', date: 'Apr 9',
+    },
+  ];
+
+  // ===== Render Episodes =====
+  const grid = document.getElementById('episodesGrid');
+
+  function renderEpisodes(filter = 'all') {
+    const list = filter === 'all' ? episodes : episodes.filter(e => e.cat === filter);
+    grid.innerHTML = list.map(ep => `
+      <article class="episode-card reveal" data-id="${ep.id}" data-title="${ep.title}" data-host="${ep.hostName}">
+        <div class="ep-art ${ep.cls}">
+          <div class="ep-play-overlay">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          </div>
+        </div>
+        <span class="ep-cat">${ep.cat}</span>
+        <h3 class="ep-title">${ep.title}</h3>
+        <p class="ep-desc">${ep.desc}</p>
+        <div class="ep-footer">
+          <div class="ep-host">
+            <div class="ep-host-avatar">${ep.host}</div>
+            <span>${ep.hostName} • ${ep.date}</span>
+          </div>
+          <span>${ep.duration}</span>
+        </div>
+      </article>
+    `).join('');
+
+    document.querySelectorAll('.episode-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const title = card.dataset.title;
+        const host = card.dataset.host;
+        const id = card.dataset.id;
+        playEpisode(title, `Episode ${id} • ${host}`);
+      });
+      observer.observe(card);
+    });
+  }
+
+  // ===== Filter Chips =====
+  document.querySelectorAll('.filter-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      renderEpisodes(chip.dataset.filter);
+    });
+  });
+
+  // ===== Nav scroll effect =====
+  const nav = document.getElementById('navbar');
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 30);
+  });
+
+  // ===== Mobile menu =====
+  const navLinks = document.getElementById('navLinks');
+  document.getElementById('menuToggle').addEventListener('click', () => {
+    navLinks.classList.toggle('open');
+  });
+  navLinks.querySelectorAll('a').forEach(a => {
+    a.addEventListener('click', () => navLinks.classList.remove('open'));
+  });
+
+  // ===== Player (simulated) =====
+  let playing = false;
+  let progress = 0;
+  const total = 3134; // 52:14 in seconds
+  let timer = null;
+
+  const playBtn = document.getElementById('playBtn');
+  const playIcon = document.getElementById('playIcon');
+  const pauseIcon = document.getElementById('pauseIcon');
+  const progressFill = document.getElementById('progressFill');
+  const progressBar = document.getElementById('progressBar');
+  const currentTime = document.getElementById('currentTime');
+  const totalTime = document.getElementById('totalTime');
+
+  const miniPlayer = document.getElementById('miniPlayer');
+  const miniPlayBtn = document.getElementById('miniPlayBtn');
+  const miniPlayIcon = document.getElementById('miniPlayIcon');
+  const miniPauseIcon = document.getElementById('miniPauseIcon');
+  const miniProgressFill = document.getElementById('miniProgressFill');
+  const miniTitle = document.getElementById('miniTitle');
+  const miniSub = document.getElementById('miniSub');
+
+  function formatTime(sec) {
+    const m = Math.floor(sec / 60);
+    const s = Math.floor(sec % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
+  }
+
+  function updateIcons() {
+    playIcon.style.display = playing ? 'none' : 'block';
+    pauseIcon.style.display = playing ? 'block' : 'none';
+    miniPlayIcon.style.display = playing ? 'none' : 'block';
+    miniPauseIcon.style.display = playing ? 'block' : 'none';
+  }
+
+  function updateProgress() {
+    const pct = (progress / total) * 100;
+    progressFill.style.width = pct + '%';
+    miniProgressFill.style.width = pct + '%';
+    currentTime.textContent = formatTime(progress);
+  }
+
+  function togglePlay() {
+    playing = !playing;
+    updateIcons();
+    miniPlayer.classList.add('visible');
+    miniPlayer.setAttribute('aria-hidden', 'false');
+    if (playing) {
+      timer = setInterval(() => {
+        progress = Math.min(progress + 1, total);
+        updateProgress();
+        if (progress >= total) {
+          playing = false;
+          updateIcons();
+          clearInterval(timer);
+        }
+      }, 1000);
+    } else {
+      clearInterval(timer);
+    }
+  }
+
+  playBtn.addEventListener('click', togglePlay);
+  miniPlayBtn.addEventListener('click', togglePlay);
+
+  progressBar.addEventListener('click', (e) => {
+    const rect = progressBar.getBoundingClientRect();
+    const pct = (e.clientX - rect.left) / rect.width;
+    progress = Math.floor(total * pct);
+    updateProgress();
+  });
+
+  function playEpisode(title, sub) {
+    miniTitle.textContent = title;
+    miniSub.textContent = sub;
+    progress = 0;
+    if (!playing) togglePlay();
+    else updateProgress();
+  }
+
+  totalTime.textContent = formatTime(total);
+  updateProgress();
+  updateIcons();
+
+  // ===== Newsletter =====
+  document.getElementById('newsletterForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const input = document.getElementById('newsletterEmail');
+    const msg = document.getElementById('newsletterMsg');
+    const email = input.value.trim();
+    const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+    if (!valid) {
+      msg.style.color = '#ff8a8a';
+      msg.textContent = 'Please enter a valid email address.';
+      return;
+    }
+    msg.style.color = 'var(--accent-3)';
+    msg.textContent = `Thanks! We'll send the next issue to ${email}.`;
+    input.value = '';
+  });
+
+  // ===== Animated counter =====
+  function animateCounter(el) {
+    const target = parseInt(el.dataset.count, 10);
+    if (!target) return;
+    const format = el.dataset.format;
+    const duration = 1400;
+    const start = performance.now();
+    function step(now) {
+      const t = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - t, 3);
+      const value = Math.floor(target * eased);
+      el.textContent = format === 'k'
+        ? (value >= 1000000 ? (value/1000000).toFixed(1) + 'M' : Math.floor(value/1000) + 'K')
+        : value.toLocaleString();
+      if (t < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  // ===== Scroll Reveal =====
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        if (entry.target.matches('.hero-stats') || entry.target.id === 'navbar') {
+          // no-op
+        }
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.15 });
+
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  // Counter trigger
+  const statsObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.querySelectorAll('[data-count]').forEach(animateCounter);
+        statsObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.3 });
+  statsObserver.observe(document.querySelector('.hero-stats'));
+
+  // ===== Footer year =====
+  document.getElementById('year').textContent = new Date().getFullYear();
+
+  // ===== Init =====
+  renderEpisodes();
+</script>
+</body>
+</html>
