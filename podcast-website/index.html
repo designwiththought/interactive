@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Kettle Talk — long conversations, one mug at a time.</title>
+<title>Halfheard — a seasonal podcast about stories I only caught half of.</title>
 <style>
   :root {
     --paper: #f4ecdb;
@@ -353,9 +353,39 @@
     font-size: 14px;
   }
 
+  .season-head {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin: 40px 0 4px;
+    padding-bottom: 14px;
+    flex-wrap: wrap;
+  }
+  .season-head:first-child { margin-top: 0; }
+  .season-head h3 {
+    font-size: 13px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--terracotta);
+    font-weight: 600;
+  }
+  .season-head .season-title {
+    font-size: 22px;
+    font-style: italic;
+    font-weight: 500;
+    letter-spacing: -0.3px;
+    color: var(--ink);
+  }
+  .season-head .season-status {
+    margin-left: auto;
+    color: var(--ink-faint);
+    font-style: italic;
+    font-size: 13px;
+  }
+
   .episode-row {
     display: grid;
-    grid-template-columns: 64px 1fr auto;
+    grid-template-columns: 80px 1fr auto;
     gap: 24px;
     align-items: baseline;
     padding: 22px 0;
@@ -399,9 +429,12 @@
   }
   .row-blurb {
     color: var(--ink-soft);
-    font-size: 14.5px;
-    line-height: 1.5;
+    font-size: 15px;
+    line-height: 1.55;
     max-width: 640px;
+    font-style: italic;
+    padding-left: 14px;
+    border-left: 2px solid var(--paper-shadow);
   }
 
   .row-meta {
@@ -490,7 +523,7 @@
     border: 1px solid var(--rule);
   }
   .bio-portrait::after {
-    content: "Mira at home — May ’26";
+    content: "Brian in the studio — May ’26";
     position: absolute;
     bottom: -36px;
     left: 0; right: 0;
@@ -723,50 +756,57 @@
 <body>
 
 <header class="top">
-  <a class="wordmark" href="#">Kettle <span class="amp">&amp;</span> Talk</a>
+  <a class="wordmark" href="#">Half<span class="amp">·</span>heard</a>
   <nav aria-label="Primary">
     <ul>
-      <li><a href="#episodes">episodes</a></li>
+      <li><a href="#episodes">seasons</a></li>
       <li><a href="#about">about</a></li>
       <li><a href="#letter">subscribe</a></li>
     </ul>
   </nav>
-  <span class="top-meta">№ 78 · in season three</span>
+  <span class="top-meta">Season three · in progress</span>
 </header>
 
 <!-- ===== Hero ===== -->
 <section class="hero">
   <div class="hero-left">
-    <div class="kicker">A weekly podcast, since the winter of ’22</div>
-    <h1>Sit down.<br/>The <em>kettle’s</em> on.</h1>
+    <div class="kicker">A seasonal podcast, recorded in San Francisco</div>
+    <h1>Half a story is a <em>beginning</em>.</h1>
     <p class="lede">
-      <span class="drop">L</span>ong conversations with one person at a time, hosted by Mira Solano from her kitchen table in Oakland. No prep questions, no agenda — just two mugs of tea and about an hour. We've done seventy-eight of these so far.
+      <span class="drop">H</span>alfheard is a podcast about the stories I only caught the tail end of — overheard at a bar, mentioned in a footnote, half-remembered by somebody’s grandmother — and then went looking for the rest of. Each season is a series of researched presentations on one theme. Written and recorded by Brian, in a small studio south of Market.
     </p>
-    <p class="hero-meta">New episode every Tuesday morning · roughly 50&ndash;65 min · also on <a href="#">Apple</a>, <a href="#">Spotify</a>, and <a href="#">Overcast</a>.</p>
+    <p class="hero-meta">A new season every spring and fall · usually six to eight episodes · also on <a href="#">Apple</a>, <a href="#">Spotify</a>, and <a href="#">Overcast</a>.</p>
   </div>
 
   <aside class="episode-card reveal" aria-label="Latest episode">
-    <span class="stamp">This week</span>
+    <span class="stamp">Now playing</span>
     <div class="ep-art">
       <svg viewBox="0 0 200 120" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <!-- kettle silhouette -->
-        <path d="M55 80 Q55 50 90 50 L130 50 Q150 50 150 65 L150 80 Z" fill="#221b13"/>
-        <path d="M150 60 Q170 55 170 70 Q170 80 150 75" fill="none" stroke="#221b13" stroke-width="5"/>
-        <rect x="95" y="40" width="20" height="14" rx="3" fill="#221b13"/>
-        <rect x="103" y="32" width="4" height="10" fill="#221b13"/>
-        <path d="M50 85 L160 85 L155 95 L55 95 Z" fill="#221b13"/>
-        <!-- steam -->
-        <path d="M104 28 Q100 22 104 16 Q108 10 104 4" stroke="#221b13" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.7">
-          <animate attributeName="opacity" values="0.3;0.8;0.3" dur="3s" repeatCount="indefinite"/>
-        </path>
+        <!-- ear listening / partial waveform -->
+        <path d="M55 60 Q55 30 85 30 Q120 30 120 60 Q120 75 105 80 Q95 84 95 92" stroke="#221b13" stroke-width="6" fill="none" stroke-linecap="round"/>
+        <circle cx="85" cy="58" r="6" fill="#221b13"/>
+        <g stroke="#221b13" stroke-width="3" stroke-linecap="round">
+          <line x1="140" y1="60" x2="140" y2="60">
+            <animate attributeName="y1" values="50;30;50" dur="1.6s" repeatCount="indefinite"/>
+            <animate attributeName="y2" values="70;90;70" dur="1.6s" repeatCount="indefinite"/>
+          </line>
+          <line x1="155" y1="60" x2="155" y2="60">
+            <animate attributeName="y1" values="40;20;40" dur="1.6s" repeatCount="indefinite" begin="0.2s"/>
+            <animate attributeName="y2" values="80;100;80" dur="1.6s" repeatCount="indefinite" begin="0.2s"/>
+          </line>
+          <line x1="170" y1="60" x2="170" y2="60">
+            <animate attributeName="y1" values="50;35;50" dur="1.6s" repeatCount="indefinite" begin="0.4s"/>
+            <animate attributeName="y2" values="70;85;70" dur="1.6s" repeatCount="indefinite" begin="0.4s"/>
+          </line>
+        </g>
       </svg>
     </div>
-    <div class="ep-num">№ 78 · recorded May 12</div>
-    <h3 class="ep-name">On gardens, and grief</h3>
-    <p class="ep-guest">with Tomás Reyes, who has spent twelve years rebuilding a community garden in Sacramento.</p>
+    <div class="ep-num">Season 3 · Episode 3 — released May 12</div>
+    <h3 class="ep-name">The lighthouse that wasn’t empty</h3>
+    <p class="ep-guest">“I heard a lighthouse on the Oregon coast kept burning for eleven years after the Coast Guard left. I wanted to know who was paying for the kerosene.”</p>
     <div class="player">
       <div class="progress" id="progress"><div class="progress-fill" id="fill"></div></div>
-      <div class="times"><span id="now">0:00</span><span id="dur">1:04:23</span></div>
+      <div class="times"><span id="now">0:00</span><span id="dur">38:14</span></div>
       <div class="controls">
         <button class="ctrl" aria-label="Back 15 seconds">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>
@@ -786,33 +826,35 @@
 <!-- ===== Letter from the host ===== -->
 <section id="letter">
   <div class="letter">
-    <h2>A note from Mira</h2>
-    <p>I started <em>Kettle Talk</em> in the winter of 2022, mostly because I missed the kind of conversations that don't go anywhere in particular — the ones that wander off, double back, get quiet, and then suddenly land somewhere.</p>
-    <p>Every Tuesday morning I make tea (usually Assam, sometimes barley if it’s warm) and I sit down with one person for about an hour. I don't send questions ahead of time. I don't edit out the pauses. Some of these have been the best conversations of my year.</p>
-    <p>Thank you for listening. Pull up a chair.</p>
-    <span class="signoff">— Mira</span>
-    <div class="signoff-line">Oakland · May 2026</div>
+    <h2>A note from Brian</h2>
+    <p>I’m the kind of person who hears half a story at a dinner party and then can’t sleep until I know the rest. <em>Halfheard</em> is what happens when I stop trying to fight it.</p>
+    <p>Every season I pick a theme and I chase six or eight of these stories down — calling people, reading old newspapers, getting on planes when I have to. Then I sit in my studio and tell you what I found. No co-host. No interviews. Just me, a microphone, and a story I couldn’t let go.</p>
+    <p>Each episode opens the same way:</p>
+    <p style="font-style: italic; color: var(--terracotta); padding-left: 20px; border-left: 2px solid var(--rule);">“From a small studio in San Francisco — I’m Brian. You’re listening to <em>Halfheard</em>. These are the stories I only caught half of, and went looking for the rest.”</p>
+    <p>Then I tell you what I’ve been chasing. Thanks for listening.</p>
+    <span class="signoff">— Brian</span>
+    <div class="signoff-line">San Francisco · May 2026</div>
   </div>
 </section>
 
 <!-- ===== Episode index ===== -->
 <section id="episodes">
   <div class="index-head">
-    <h2>The <em>archive</em></h2>
-    <span class="aside">six most recent, newest first</span>
+    <h2>The <em>seasons</em></h2>
+    <span class="aside">newest first · each episode is a self-contained presentation</span>
   </div>
 
   <div id="rows"></div>
 
-  <p class="archive-link">all 78 episodes are on the <a href="#">full archive page</a> →</p>
+  <p class="archive-link">earlier seasons are on the <a href="#">full archive page</a> →</p>
 </section>
 
 <!-- ===== Pull quote ===== -->
 <section class="quote-section">
   <blockquote>
-    I think we’re really bad at admitting we still need each other. Especially after thirty.
+    It turns out the lighthouse wasn’t haunted. It was a retired baker named Eleanor, and she had a perfectly reasonable explanation, if you don’t count the part with the goat.
   </blockquote>
-  <div class="quote-attr">Sasha Marin — episode 74</div>
+  <div class="quote-attr">From episode S3·E3 — “The lighthouse that wasn’t empty”</div>
 </section>
 
 <!-- ===== About / host ===== -->
@@ -821,13 +863,13 @@
     <div class="bio-portrait reveal" aria-hidden="true"></div>
     <div>
       <h2>About the host</h2>
-      <h3>Mira Solano</h3>
-      <p>Mira is a writer and former public radio producer who spent a decade making longer-than-they-should-be documentaries about gardens, neighborhoods, and people who collect strange things.</p>
-      <p>She lives in a small apartment in West Oakland with a cat named Pepper and an absurd number of unmatched mugs. <em>Kettle Talk</em> is recorded at her kitchen table, usually on Tuesdays, often with someone’s dog in the background.</p>
+      <h3>Brian</h3>
+      <p>Brian is a writer and former newsroom researcher who spent a decade trying to fact-check stories that nobody had bothered to fact-check yet. He grew up half-listening to his grandfather’s shortwave radio, which is probably where the trouble started.</p>
+      <p>He lives in San Francisco and records <em>Halfheard</em> from a small studio south of Market — usually at night, usually with the window open, usually after he should be in bed.</p>
       <div class="bio-links">
-        <a href="#">Email Mira</a>
-        <a href="#">Suggest a guest</a>
-        <a href="#">Mira's notebook</a>
+        <a href="#">Email Brian</a>
+        <a href="#">Suggest a story</a>
+        <a href="#">Field notes</a>
       </div>
     </div>
   </div>
@@ -837,8 +879,8 @@
 <section>
   <div class="postcard-wrap">
     <div class="postcard reveal">
-      <h2>A short <em>letter</em> on Tuesday mornings.</h2>
-      <p>Show notes, the book the guest mentioned, and whatever I’ve been making for breakfast. About six paragraphs. That's it.</p>
+      <h2>A short <em>dispatch</em> between seasons.</h2>
+      <p>Three or four times a year — usually when a new season drops, plus a “stuff I couldn’t fit in” note in between. No spam, never on a Monday.</p>
       <form class="signup" id="signup" novalidate>
         <input type="email" id="email" placeholder="your email, in your own handwriting if it were possible" />
         <button type="submit">send it</button>
@@ -850,8 +892,8 @@
 
 <!-- ===== Masthead ===== -->
 <footer class="masthead">
-  <div class="mast">Kettle <span class="amp">&amp;</span> Talk</div>
-  <div>recorded at a kitchen table in Oakland, California</div>
+  <div class="mast">Half<span class="amp">·</span>heard</div>
+  <div>written and recorded in a small studio in San Francisco</div>
   <nav>
     <a href="#">apple podcasts</a>·
     <a href="#">spotify</a>·
@@ -859,14 +901,14 @@
     <a href="#">pocket casts</a>·
     <a href="#">rss</a>
   </nav>
-  <div class="small">&copy; <span id="year"></span> Mira Solano. All conversations used with permission. Tea is encouraged.</div>
+  <div class="small">&copy; <span id="year"></span> Brian. Stories chased to the best of one person’s ability. Corrections welcome.</div>
 </footer>
 
 <!-- ===== Mini Player ===== -->
 <div class="mini" id="mini" aria-hidden="true">
   <div class="mini-meta">
-    <div class="mini-title" id="miniTitle">On gardens, and grief</div>
-    <div class="mini-sub" id="miniSub">№ 78 · with Tomás Reyes</div>
+    <div class="mini-title" id="miniTitle">The lighthouse that wasn’t empty</div>
+    <div class="mini-sub" id="miniSub">Season 3 · Episode 3</div>
   </div>
   <div class="mini-progress"><div class="progress"><div class="progress-fill" id="miniFill"></div></div></div>
   <button class="play" id="miniPlayBtn" aria-label="Play or pause">
@@ -877,75 +919,88 @@
 
 <script>
   // ===== Episode data =====
-  const episodes = [
+  // Each episode's "intro" is the line Brian says at the cold open, after
+  // the show open. They're written to start with a fragment of overheard
+  // information and end on the question that sent him chasing it.
+  const seasons = [
     {
-      num: 78, date: 'May 12',
-      title: 'On gardens, and grief',
-      guest: 'Tomás Reyes',
-      blurb: 'Twelve years of weeding the same plot of land, and what it gave back. We talked about his father, mostly.',
-      duration: '1:04:23',
+      num: 3,
+      theme: 'Stories you almost didn’t hear',
+      status: 'season 3 · in progress',
+      episodes: [
+        {
+          num: 3, date: 'May 12', duration: '38:14',
+          title: 'The lighthouse that wasn’t empty',
+          intro: '“I heard a lighthouse on the Oregon coast kept burning for eleven years after the Coast Guard left. I wanted to know who was paying for the kerosene.”',
+        },
+        {
+          num: 2, date: 'Apr 14', duration: '41:08',
+          title: 'Songs from a dead mall',
+          intro: '“Someone told me there’s a man in Phoenix who records the ambient hum of empty shopping malls. I thought it was a joke. Then I called him.”',
+        },
+        {
+          num: 1, date: 'Mar 17', duration: '44:22',
+          title: 'The library that burned twice',
+          intro: '“A friend’s grandmother swore that a library in eastern Pennsylvania burned down in 1973 — and then again, in nearly the same spot, twenty-three years later. I had to know if it was true.”',
+        },
+      ]
     },
     {
-      num: 77, date: 'May 5',
-      title: 'The year I stopped making lists',
-      guest: 'Frances Okafor',
-      blurb: 'A productivity writer rethinks productivity. There’s a long bit in the middle about cooking dinner without a recipe.',
-      duration: '58:11',
-    },
-    {
-      num: 76, date: 'Apr 28',
-      title: 'How a piano gets old',
-      guest: 'Henry Park',
-      blurb: 'A piano tuner on the slow, intimate work of listening to instruments — and people — change over time.',
-      duration: '49:46',
-    },
-    {
-      num: 75, date: 'Apr 21',
-      title: 'Letters I never sent',
-      guest: 'Aisling Doyle',
-      blurb: 'A poet reads three letters out loud for the first time. We sit with each one for a while afterward.',
-      duration: '52:30',
-    },
-    {
-      num: 74, date: 'Apr 14',
-      title: 'On being thirty-four and lonely',
-      guest: 'Sasha Marin',
-      blurb: 'An honest conversation about adult friendship, the weather in March, and learning to call people first.',
-      duration: '1:01:07',
-    },
-    {
-      num: 73, date: 'Apr 7',
-      title: 'The bakery on the corner',
-      guest: 'June Whitaker',
-      blurb: 'Forty years of opening the shop at 4am. June talks about flour, regulars, and the day she almost sold up.',
-      duration: '47:18',
-    },
+      num: 2,
+      theme: 'Communities of one',
+      status: 'season 2 · complete',
+      episodes: [
+        {
+          num: 3, date: 'Oct 28', duration: '36:51',
+          title: 'The last phone book',
+          intro: '“I half-heard that somebody, somewhere, is still printing the white pages. Not for nostalgia. Because somebody else, somewhere else, still needs them.”',
+        },
+        {
+          num: 2, date: 'Sep 30', duration: '42:09',
+          title: 'The town that voted to sleep',
+          intro: '“Apparently a village in the Pyrenees holds an annual vote on what time everyone should go to bed. I had to find out what happens if you vote no.”',
+        },
+        {
+          num: 1, date: 'Sep 2', duration: '39:27',
+          title: 'Letters to the dead letter office',
+          intro: '“Years ago a postal worker mentioned, almost in passing, the room where unmailable letters go to die. I couldn’t shake it. So I flew to Atlanta.”',
+        },
+      ]
+    }
   ];
 
   const rowsEl = document.getElementById('rows');
-  rowsEl.innerHTML = episodes.map(e => `
-    <article class="episode-row reveal" data-title="${e.title}" data-num="${e.num}" data-guest="${e.guest}">
-      <div class="row-num">№ ${e.num}</div>
-      <div class="row-body">
-        <h3 class="row-title">${e.title}</h3>
-        <div class="row-guest">with ${e.guest}</div>
-        <p class="row-blurb">${e.blurb}</p>
-      </div>
-      <div class="row-meta">
-        ${e.date} · ${e.duration}
-        <div class="listen">▸ listen</div>
-      </div>
-    </article>
+  rowsEl.innerHTML = seasons.map(season => `
+    <div class="season-head reveal">
+      <h3>Season ${season.num}</h3>
+      <span class="season-title">${season.theme}</span>
+      <span class="season-status">${season.status}</span>
+    </div>
+    ${season.episodes.map(e => `
+      <article class="episode-row reveal"
+        data-title="${e.title}"
+        data-sub="Season ${season.num} · Episode ${e.num}">
+        <div class="row-num">S${season.num} · E${e.num}</div>
+        <div class="row-body">
+          <h3 class="row-title">${e.title}</h3>
+          <p class="row-blurb">${e.intro}</p>
+        </div>
+        <div class="row-meta">
+          ${e.date} · ${e.duration}
+          <div class="listen">▸ listen</div>
+        </div>
+      </article>
+    `).join('')}
   `).join('');
 
   document.querySelectorAll('.episode-row').forEach(row => {
     row.addEventListener('click', () => {
-      playEpisode(row.dataset.title, `№ ${row.dataset.num} · with ${row.dataset.guest}`);
+      playEpisode(row.dataset.title, row.dataset.sub);
     });
   });
 
   // ===== Player (simulated) =====
-  const TOTAL = 3863; // 1:04:23
+  const TOTAL = 2294; // 38:14
   let playing = false;
   let progress = 0;
   let timer = null;
@@ -1034,7 +1089,7 @@
       return;
     }
     msg.style.color = 'var(--sage)';
-    msg.textContent = `lovely. next Tuesday morning, ${email.split('@')[0]} — keep an eye on your inbox.`;
+    msg.textContent = `you’re in, ${email.split('@')[0]} — I’ll write you when season three wraps.`;
     document.getElementById('email').value = '';
   });
 
