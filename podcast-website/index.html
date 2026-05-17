@@ -730,7 +730,13 @@
   /* ===== Responsive ===== */
   @media (max-width: 900px) {
     .hero { grid-template-columns: 1fr; gap: 40px; padding-top: 50px; }
-    .episode-card { margin: 0; }
+    .episode-card {
+      margin: 0;
+      max-width: none;
+      width: 100%;
+      transform: rotate(0deg);
+    }
+    .episode-card:hover { transform: translateY(-3px); }
     .bio { grid-template-columns: 1fr; }
     .bio-portrait { margin: 0 auto 40px; }
     .top nav { display: none; }
@@ -764,22 +770,22 @@
       <li><a href="#letter">subscribe</a></li>
     </ul>
   </nav>
-  <span class="top-meta">Season three · in progress</span>
+  <span class="top-meta">Season one · out now</span>
 </header>
 
 <!-- ===== Hero ===== -->
 <section class="hero">
   <div class="hero-left">
-    <div class="kicker">A seasonal podcast, recorded in San Francisco</div>
+    <div class="kicker">Season one is here — six episodes on Timothy Dexter</div>
     <h1>Half a story is a <em>beginning</em>.</h1>
     <p class="lede">
-      <span class="drop">H</span>alfheard is a podcast about the stories I only caught the tail end of — overheard at a bar, mentioned in a footnote, half-remembered by somebody’s grandmother — and then went looking for the rest of. Each season is a series of researched presentations on one theme. Written and recorded by Brian, in a small studio south of Market.
+      <span class="drop">H</span>alfheard is a podcast about the stories I only caught the tail end of and went looking for the rest of. Every season is one topic, told in four to six tightly-edited episodes — all released the same day, so you can listen straight through. Written and recorded by Brian, in a small studio south of Market.
     </p>
-    <p class="hero-meta">A new season every spring and fall · usually six to eight episodes · also on <a href="#">Apple</a>, <a href="#">Spotify</a>, and <a href="#">Overcast</a>.</p>
+    <p class="hero-meta">A new season twice a year · whole season drops at once · also on <a href="#">Apple</a>, <a href="#">Spotify</a>, and <a href="#">Overcast</a>.</p>
   </div>
 
   <aside class="episode-card reveal" aria-label="Latest episode">
-    <span class="stamp">Now playing</span>
+    <span class="stamp">Start here</span>
     <div class="ep-art">
       <svg viewBox="0 0 200 120" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
         <!-- ear listening / partial waveform -->
@@ -801,12 +807,12 @@
         </g>
       </svg>
     </div>
-    <div class="ep-num">Season 3 · Episode 3 — released May 12</div>
-    <h3 class="ep-name">The lighthouse that wasn’t empty</h3>
-    <p class="ep-guest">“I heard a lighthouse on the Oregon coast kept burning for eleven years after the Coast Guard left. I wanted to know who was paying for the kerosene.”</p>
+    <div class="ep-num">Season 1 · Episode 1 — out May 12</div>
+    <h3 class="ep-name">Lord Dexter of Chester Square</h3>
+    <p class="ep-guest">“I heard there was a man in colonial Massachusetts who called himself a lord, hired a private poet laureate, and made every business decision wrong on his way to becoming a millionaire. I assumed he was apocryphal. He was not.”</p>
     <div class="player">
       <div class="progress" id="progress"><div class="progress-fill" id="fill"></div></div>
-      <div class="times"><span id="now">0:00</span><span id="dur">38:14</span></div>
+      <div class="times"><span id="now">0:00</span><span id="dur">32:48</span></div>
       <div class="controls">
         <button class="ctrl" aria-label="Back 15 seconds">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>
@@ -828,10 +834,10 @@
   <div class="letter">
     <h2>A note from Brian</h2>
     <p>I’m the kind of person who hears half a story at a dinner party and then can’t sleep until I know the rest. <em>Halfheard</em> is what happens when I stop trying to fight it.</p>
-    <p>Every season I pick a theme and I chase six or eight of these stories down — calling people, reading old newspapers, getting on planes when I have to. Then I sit in my studio and tell you what I found. No co-host. No interviews. Just me, a microphone, and a story I couldn’t let go.</p>
+    <p>Every season I pick one figure or one mystery and I dig — for months. Then I write it up as a series of four to six short presentations and put the whole season out on the same morning, so you can binge it in a long afternoon or stretch it across a week. No co-host. No interviews. Just me, a microphone, and one story I couldn’t let go.</p>
     <p>Each episode opens the same way:</p>
-    <p style="font-style: italic; color: var(--terracotta); padding-left: 20px; border-left: 2px solid var(--rule);">“From a small studio in San Francisco — I’m Brian. You’re listening to <em>Halfheard</em>. These are the stories I only caught half of, and went looking for the rest.”</p>
-    <p>Then I tell you what I’ve been chasing. Thanks for listening.</p>
+    <p style="font-style: italic; color: var(--terracotta); padding-left: 20px; border-left: 2px solid var(--rule);">“From a small studio in San Francisco — I’m Brian, and you’re listening to <em>Halfheard</em>. This season, six episodes on Timothy Dexter — the most improbable rich man in early American history.”</p>
+    <p>And then I tell you what I found. Thanks for listening.</p>
     <span class="signoff">— Brian</span>
     <div class="signoff-line">San Francisco · May 2026</div>
   </div>
@@ -840,21 +846,21 @@
 <!-- ===== Episode index ===== -->
 <section id="episodes">
   <div class="index-head">
-    <h2>The <em>seasons</em></h2>
-    <span class="aside">newest first · each episode is a self-contained presentation</span>
+    <h2>Season <em>one</em></h2>
+    <span class="aside">six episodes · best heard in order</span>
   </div>
 
   <div id="rows"></div>
 
-  <p class="archive-link">earlier seasons are on the <a href="#">full archive page</a> →</p>
+  <p class="archive-link">future seasons will live <a href="#">over here</a> when they drop →</p>
 </section>
 
 <!-- ===== Pull quote ===== -->
 <section class="quote-section">
   <blockquote>
-    It turns out the lighthouse wasn’t haunted. It was a retired baker named Eleanor, and she had a perfectly reasonable explanation, if you don’t count the part with the goat.
+    He was either a genius pretending to be an idiot, or an idiot who got lucky six hundred and seventy-two consecutive times. The longer I looked, the less sure I got.
   </blockquote>
-  <div class="quote-attr">From episode S3·E3 — “The lighthouse that wasn’t empty”</div>
+  <div class="quote-attr">From episode S1·E3 — “Coals to Newcastle”</div>
 </section>
 
 <!-- ===== About / host ===== -->
@@ -907,8 +913,8 @@
 <!-- ===== Mini Player ===== -->
 <div class="mini" id="mini" aria-hidden="true">
   <div class="mini-meta">
-    <div class="mini-title" id="miniTitle">The lighthouse that wasn’t empty</div>
-    <div class="mini-sub" id="miniSub">Season 3 · Episode 3</div>
+    <div class="mini-title" id="miniTitle">Lord Dexter of Chester Square</div>
+    <div class="mini-sub" id="miniSub">Season 1 · Episode 1 — start here</div>
   </div>
   <div class="mini-progress"><div class="progress"><div class="progress-fill" id="miniFill"></div></div></div>
   <button class="play" id="miniPlayBtn" aria-label="Play or pause">
@@ -919,51 +925,44 @@
 
 <script>
   // ===== Episode data =====
-  // Each episode's "intro" is the line Brian says at the cold open, after
-  // the show open. They're written to start with a fragment of overheard
-  // information and end on the question that sent him chasing it.
+  // Each "intro" is the line Brian says right after the show open —
+  // fragment heard, dismissive reaction, capitulation. Episodes drop
+  // together, so we list them in show order (1 → 6).
   const seasons = [
     {
-      num: 3,
-      theme: 'Stories you almost didn’t hear',
-      status: 'season 3 · in progress',
+      num: 1,
+      theme: 'Timothy Dexter',
+      status: 'all 6 episodes available',
       episodes: [
         {
-          num: 3, date: 'May 12', duration: '38:14',
-          title: 'The lighthouse that wasn’t empty',
-          intro: '“I heard a lighthouse on the Oregon coast kept burning for eleven years after the Coast Guard left. I wanted to know who was paying for the kerosene.”',
+          num: 1, duration: '32:48',
+          title: 'Lord Dexter of Chester Square',
+          intro: '“I heard there was a man in colonial Massachusetts who called himself a lord, hired a private poet laureate, and made every business decision wrong on his way to becoming a millionaire. I assumed he was apocryphal. He was not.”',
         },
         {
-          num: 2, date: 'Apr 14', duration: '41:08',
-          title: 'Songs from a dead mall',
-          intro: '“Someone told me there’s a man in Phoenix who records the ambient hum of empty shopping malls. I thought it was a joke. Then I called him.”',
+          num: 2, duration: '29:14',
+          title: 'Warming pans for the Caribbean',
+          intro: '“Somebody once told me that a man shipped a fleet of bed-warming pans to the West Indies and somehow turned a profit. I thought it was a punchline. It is a tax record.”',
         },
         {
-          num: 1, date: 'Mar 17', duration: '44:22',
-          title: 'The library that burned twice',
-          intro: '“A friend’s grandmother swore that a library in eastern Pennsylvania burned down in 1973 — and then again, in nearly the same spot, twenty-three years later. I had to know if it was true.”',
-        },
-      ]
-    },
-    {
-      num: 2,
-      theme: 'Communities of one',
-      status: 'season 2 · complete',
-      episodes: [
-        {
-          num: 3, date: 'Oct 28', duration: '36:51',
-          title: 'The last phone book',
-          intro: '“I half-heard that somebody, somewhere, is still printing the white pages. Not for nostalgia. Because somebody else, somewhere else, still needs them.”',
+          num: 3, duration: '34:02',
+          title: 'Coals to Newcastle',
+          intro: '“There’s an expression — selling coal to Newcastle — that means doing something so obviously pointless you must be a fool. I had heard, in passing, that someone actually did it. And got rich. I wanted the receipts.”',
         },
         {
-          num: 2, date: 'Sep 30', duration: '42:09',
-          title: 'The town that voted to sleep',
-          intro: '“Apparently a village in the Pyrenees holds an annual vote on what time everyone should go to bed. I had to find out what happens if you vote no.”',
+          num: 4, duration: '36:21',
+          title: 'A Pickle for the Knowing Ones',
+          intro: '“A friend mentioned, almost as a joke, a 19th-century memoir written entirely without punctuation — whose second edition included a page of commas and periods, with a note instructing the reader to ‘salt and pepper as they please.’ I had to find a copy.”',
         },
         {
-          num: 1, date: 'Sep 2', duration: '39:27',
-          title: 'Letters to the dead letter office',
-          intro: '“Years ago a postal worker mentioned, almost in passing, the room where unmailable letters go to die. I couldn’t shake it. So I flew to Atlanta.”',
+          num: 5, duration: '31:55',
+          title: 'Forty wooden men',
+          intro: '“I half-heard that a Massachusetts merchant once built a mansion guarded by forty life-sized wooden statues — including one of himself, holding a sign that read I am the first in the East. I wanted to know what happened to them in the storm of 1815.”',
+        },
+        {
+          num: 6, duration: '40:12',
+          title: 'The funeral that wasn’t',
+          intro: '“Apparently a man in 1806 faked his own funeral to see who would show up. Apparently he then beat his wife for not weeping convincingly enough. Apparently this is a true story. I went to Newburyport.”',
         },
       ]
     }
@@ -986,7 +985,7 @@
           <p class="row-blurb">${e.intro}</p>
         </div>
         <div class="row-meta">
-          ${e.date} · ${e.duration}
+          ${e.duration}
           <div class="listen">▸ listen</div>
         </div>
       </article>
@@ -1000,7 +999,7 @@
   });
 
   // ===== Player (simulated) =====
-  const TOTAL = 2294; // 38:14
+  const TOTAL = 1968; // 32:48
   let playing = false;
   let progress = 0;
   let timer = null;
