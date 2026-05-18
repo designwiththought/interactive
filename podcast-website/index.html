@@ -6,17 +6,19 @@
 <title>Halfheard — a seasonal podcast about stories I only caught half of.</title>
 <style>
   :root {
-    --paper: #f4ecdb;
-    --paper-deep: #ebdfc2;
-    --paper-shadow: #ddcfa9;
-    --ink: #221b13;
-    --ink-soft: #5d4f3d;
-    --ink-faint: #8a7a64;
-    --terracotta: #b6532c;
-    --terracotta-deep: #8e3c1c;
-    --mustard: #c08a25;
-    --sage: #6a7b50;
-    --rule: #c9b994;
+    /* Warm dark theme — "studio at night". Variable names refer to roles
+       (the canvas, the text, accents) rather than literal colors. */
+    --paper: #1a130d;
+    --paper-deep: #241b13;
+    --paper-shadow: #090604;
+    --ink: #ede0c4;
+    --ink-soft: #b5a384;
+    --ink-faint: #7d6c4e;
+    --terracotta: #e07a52;
+    --terracotta-deep: #b85d3e;
+    --mustard: #e0a83e;
+    --sage: #87a06b;
+    --rule: #3a2d20;
     --radius: 4px;
   }
 
@@ -27,8 +29,8 @@
     font-family: Iowan Old Style, "Hoefler Text", Georgia, "Times New Roman", serif;
     background-color: var(--paper);
     background-image:
-      radial-gradient(rgba(120, 90, 50, 0.06) 1px, transparent 1px),
-      radial-gradient(rgba(120, 90, 50, 0.04) 1px, transparent 1px);
+      radial-gradient(rgba(237, 224, 196, 0.035) 1px, transparent 1px),
+      radial-gradient(rgba(237, 224, 196, 0.025) 1px, transparent 1px);
     background-size: 22px 22px, 13px 13px;
     background-position: 0 0, 11px 11px;
     color: var(--ink);
@@ -154,7 +156,7 @@
 
   /* ===== Featured episode card (paper / polaroid style) ===== */
   .episode-card {
-    background: var(--paper);
+    background: var(--paper-deep);
     padding: 22px;
     border: 1px solid var(--rule);
     box-shadow:
@@ -434,7 +436,7 @@
     max-width: 640px;
     font-style: italic;
     padding-left: 14px;
-    border-left: 2px solid var(--paper-shadow);
+    border-left: 2px solid var(--rule);
   }
 
   .row-meta {
@@ -515,7 +517,7 @@
     width: 240px;
     height: 280px;
     background:
-      radial-gradient(circle at 50% 35%, #d8a978 0 38%, transparent 39%),
+      radial-gradient(circle at 50% 35%, #c9925f 0 38%, transparent 39%),
       linear-gradient(180deg, var(--mustard) 0 60%, var(--sage) 60% 100%);
     position: relative;
     transform: rotate(-1.5deg);
@@ -568,7 +570,7 @@
   }
 
   .postcard {
-    background: var(--paper);
+    background: var(--paper-deep);
     border: 1px solid var(--ink);
     padding: 36px 40px;
     position: relative;
@@ -682,8 +684,8 @@
   .mini {
     position: fixed;
     bottom: 0; left: 0; right: 0;
-    background: var(--ink);
-    color: var(--paper);
+    background: var(--paper-deep);
+    color: var(--ink);
     padding: 12px 6vw;
     display: flex;
     align-items: center;
@@ -691,7 +693,8 @@
     transform: translateY(100%);
     transition: transform 0.4s ease;
     z-index: 50;
-    box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+    border-top: 1px solid var(--rule);
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.35);
   }
   .mini.visible { transform: translateY(0); }
   .mini-meta { flex: 1; min-width: 0; }
@@ -703,16 +706,16 @@
   }
   .mini-sub {
     font-size: 12px;
-    color: rgba(244, 236, 219, 0.6);
+    color: var(--ink-soft);
     font-style: italic;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
   .mini .play {
-    background: var(--paper);
-    color: var(--ink);
-    border-color: var(--paper);
+    background: var(--ink);
+    color: var(--paper);
+    border-color: var(--ink);
     width: 38px; height: 38px;
   }
   .mini .play:hover {
@@ -724,7 +727,7 @@
     flex: 1.4;
     max-width: 360px;
   }
-  .mini-progress .progress { background: rgba(244, 236, 219, 0.15); }
+  .mini-progress .progress { background: rgba(237, 224, 196, 0.1); }
   .mini-progress .progress-fill { background: var(--mustard); }
 
   /* ===== Responsive ===== */
