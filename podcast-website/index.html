@@ -77,12 +77,21 @@
 
   /* ===== Top bar ===== */
   header.top {
-    border-bottom: 1px solid var(--rule);
+    position: sticky;
+    top: 0;
+    z-index: 40;
     padding: 16px 6vw;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: transparent;
+    background: color-mix(in srgb, var(--paper) 72%, transparent);
+    backdrop-filter: saturate(140%) blur(14px);
+    -webkit-backdrop-filter: saturate(140%) blur(14px);
+    border-bottom: 1px solid color-mix(in srgb, var(--rule) 60%, transparent);
+    box-shadow: 0 1px 0 color-mix(in srgb, var(--paper-shadow) 30%, transparent);
+  }
+  @supports not (backdrop-filter: blur(1px)) {
+    header.top { background: var(--paper); }
   }
 
   .wordmark {
