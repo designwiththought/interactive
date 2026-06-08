@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Halfheard — a seasonal podcast about stories I only caught half of.</title>
+<script>
+  // Apply saved theme before paint to avoid a flash. Default is dark.
+  (function () {
+    try {
+      if (localStorage.getItem('halfheard-theme') === 'light') {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    } catch (e) {}
+  })();
+</script>
+<style>
+  :root {
+    /* Warm dark theme — "studio at night" (default). Variable names refer
+       to roles (the canvas, the text, accents) rather than literal colors. */
+    --paper: #1a130d;
+    --paper-deep: #241b13;
+    --paper-shadow: #090604;
+    --ink: #ede0c4;
+    --ink-soft: #b5a384;
+    --ink-faint: #7d6c4e;
+    --terracotta: #e07a52;
+    --terracotta-deep: #b85d3e;
+    --mustard: #e0a83e;
+    --sage: #87a06b;
+    --rule: #3a2d20;
+    --dot-a: rgba(237, 224, 196, 0.035);
+    --dot-b: rgba(237, 224, 196, 0.025);
+    --track: rgba(237, 224, 196, 0.12);
+    --radius: 4px;
+  }
+
+  :root[data-theme="light"] {
+    /* Original cream paper theme. */
+    --paper: #f4ecdb;
+    --paper-deep: #ebdfc2;
+    --paper-shadow: #ddcfa9;
+    --ink: #221b13;
+    --ink-soft: #5d4f3d;
+    --ink-faint: #8a7a64;
+    --terracotta: #b6532c;
+    --terracotta-deep: #8e3c1c;
+    --mustard: #c08a25;
+    --sage: #6a7b50;
+    --rule: #c9b994;
+    --dot-a: rgba(120, 90, 50, 0.06);
+    --dot-b: rgba(120, 90, 50, 0.04);
+    --track: rgba(34, 27, 19, 0.12);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: "Iowan Old Style", "Hoefler Text", Georgia, "Times New Roman", serif;
+    background-color: var(--paper);
+    background-image:
+      radial-gradient(var(--dot-a) 1px, transparent 1px),
+      radial-gradient(var(--dot-b) 1px, transparent 1px);
+    background-size: 22px 22px, 13px 13px;
+    background-position: 0 0, 11px 11px;
+    color: var(--ink);
+    line-height: 1.55;
+    font-size: 17px;
+    -webkit-font-smoothing: antialiased;
+    padding-bottom: 90px;
+    transition: background-color 0.4s ease, color 0.4s ease;
+  }
+
+  ::selection { background: var(--mustard); color: var(--paper); }
+  a { color: inherit; }
+
+  /* ===== Top bar ===== */
+  header.top {
+    border-bottom: 1px solid var(--rule);
+    padding: 16px 6vw;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--paper);
+  }
+
+  .wordmark {
+    font-family: "Iowan Old Style", Georgia, serif;
+    font-weight: 700;
+    font-style: italic;
+    font-size: 22px;
+    letter-spacing: 0.5px;
+    text-decoration: none;
+  }
+  .wordmark .amp { color: var(--terracotta); font-style: italic; }
+
+  .top nav ul {
+    list-style: none;
+    display: flex;
+    gap: 26px;
+    align-items: center;
+  }
+  .top nav a {
+    color: var(--ink-soft);
+    text-decoration: none;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+    text-transform: lowercase;
+    border-bottom: 1px solid transparent;
+    padding-bottom: 2px;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .top nav a:hover { color: var(--terracotta); border-color: var(--terracotta); }
+
+  .top-right {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+  }
+  .top-meta {
+    font-size: 12px;
+    color: var(--ink-faint);
+    font-style: italic;
+    letter-spacing: 0.5px;
+  }
+  .theme-toggle {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1px solid var(--rule);
+    background: none;
+    color: var(--ink-soft);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: color 0.2s, border-color 0.2s, transform 0.3s;
+  }
+  .theme-toggle:hover {
+    color: var(--terracotta);
+    border-color: var(--terracotta);
+    transform: rotate(25deg);
+  }
+
+  /* ===== Hero ===== */
+  .hero {
+    padding: 80px 6vw 60px;
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 60px;
+    align-items: start;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .kicker {
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--terracotta);
+    margin-bottom: 22px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .kicker::before { content: ""; width: 24px; height: 1px; background: var(--terracotta); }
+
+  .hero h1 {
+    font-size: clamp(44px, 6.4vw, 86px);
+    line-height: 1.02;
+    letter-spacing: -1.5px;
+    font-weight: 600;
+    margin-bottom: 28px;
+  }
+  .hero h1 em {
+    font-family: "Iowan Old Style Italic", Georgia, serif;
+    color: var(--terracotta);
+    font-style: italic;
+    font-weight: 500;
+  }
+
+  .lede {
+    font-size: 19px;
+    color: var(--ink-soft);
+    max-width: 540px;
+    margin-bottom: 14px;
+  }
+  .lede .drop {
+    float: left;
+    font-size: 56px;
+    line-height: 0.9;
+    padding: 6px 8px 0 0;
+    font-weight: 700;
+    color: var(--terracotta);
+    font-family: Georgia, serif;
+  }
+
+  .hero-meta {
+    font-size: 14px;
+    color: var(--ink-faint);
+    font-style: italic;
+    margin-top: 24px;
+  }
+
+  /* ===== Featured episode card ===== */
+  .episode-card {
+    background: var(--paper-deep);
+    padding: 22px;
+    border: 1px solid var(--rule);
+    box-shadow:
+      6px 6px 0 var(--paper-shadow),
+      6px 6px 0 1px var(--rule);
+    transform: rotate(-1deg);
+    transition: transform 0.4s ease;
+    position: relative;
+    max-width: 380px;
+    margin-left: auto;
+  }
+  .episode-card:hover { transform: rotate(0deg) translateY(-3px); }
+
+  .stamp {
+    position: absolute;
+    top: -16px;
+    right: 16px;
+    background: var(--terracotta);
+    color: var(--paper);
+    font-size: 10px;
+    letter-spacing: 2px;
+    padding: 6px 12px;
+    text-transform: uppercase;
+    font-weight: 600;
+    transform: rotate(2deg);
+  }
+
+  .ep-art {
+    aspect-ratio: 4 / 3;
+    background:
+      radial-gradient(circle at 30% 40%, var(--mustard), transparent 55%),
+      radial-gradient(circle at 70% 70%, var(--sage), transparent 55%),
+      var(--terracotta);
+    margin-bottom: 18px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .ep-art svg { width: 60%; opacity: 0.9; }
+
+  .ep-num {
+    font-size: 11px;
+    color: var(--ink-faint);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .ep-name {
+    font-size: 24px;
+    line-height: 1.15;
+    letter-spacing: -0.5px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .ep-guest {
+    color: var(--ink-soft);
+    font-size: 14px;
+    font-style: italic;
+    margin-bottom: 16px;
+  }
+
+  /* ===== Player ===== */
+  .player { border-top: 1px dashed var(--rule); padding-top: 14px; }
+
+  .progress {
+    height: 4px;
+    background: var(--track);
+    margin-bottom: 8px;
+    cursor: pointer;
+    position: relative;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--terracotta);
+    width: 0;
+    transition: width 0.1s linear;
+  }
+
+  .times {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--ink-faint);
+    font-variant-numeric: tabular-nums;
+    margin-bottom: 12px;
+  }
+
+  .controls { display: flex; gap: 14px; align-items: center; justify-content: center; }
+
+  .ctrl, .play {
+    background: none;
+    border: 1px solid var(--ink);
+    color: var(--ink);
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.2s, color 0.2s;
+  }
+  .ctrl {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .play {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: var(--ink);
+    color: var(--paper);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .ctrl:hover { background: var(--ink); color: var(--paper); }
+  .play:hover { background: var(--terracotta); border-color: var(--terracotta); color: var(--paper); }
+
+  /* ===== Sections ===== */
+  section { padding: 70px 6vw; border-bottom: 1px solid var(--rule); }
+
+  .letter { max-width: 660px; margin: 0 auto; }
+  .letter h2 {
+    font-size: 14px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--terracotta);
+    margin-bottom: 28px;
+    text-align: center;
+  }
+  .letter p {
+    font-size: 19px;
+    line-height: 1.65;
+    color: var(--ink-soft);
+    margin-bottom: 22px;
+  }
+  .letter p em { color: var(--ink); }
+
+  .signoff {
+    font-family: "Snell Roundhand", "Apple Chancery", "Brush Script MT", cursive;
+    font-size: 36px;
+    color: var(--terracotta);
+    margin-top: 8px;
+    transform: rotate(-2deg);
+    display: inline-block;
+  }
+  .signoff-line { font-size: 14px; color: var(--ink-faint); font-style: italic; margin-top: 4px; }
+
+  /* ===== Episode index ===== */
+  .index-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .index-head h2 { font-size: clamp(32px, 4vw, 44px); font-weight: 600; letter-spacing: -1px; }
+  .index-head h2 em { font-style: italic; color: var(--terracotta); }
+  .index-head .aside { color: var(--ink-faint); font-style: italic; font-size: 14px; }
+
+  .season-head {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin: 40px 0 4px;
+    padding-bottom: 14px;
+    flex-wrap: wrap;
+  }
+  .season-head:first-child { margin-top: 0; }
+  .season-head h3 {
+    font-size: 13px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--terracotta);
+    font-weight: 600;
+  }
+  .season-head .season-title {
+    font-size: 22px;
+    font-style: italic;
+    font-weight: 500;
+    letter-spacing: -0.3px;
+    color: var(--ink);
+  }
+  .season-head .season-status {
+    margin-left: auto;
+    color: var(--ink-faint);
+    font-style: italic;
+    font-size: 13px;
+  }
+
+  .episode-row {
+    display: grid;
+    grid-template-columns: 80px 1fr auto;
+    gap: 24px;
+    align-items: baseline;
+    padding: 22px 0;
+    border-top: 1px solid var(--rule);
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .episode-row:last-child { border-bottom: 1px solid var(--rule); }
+  .episode-row:hover {
+    background: linear-gradient(180deg, transparent 0, rgba(184, 93, 60, 0.06) 100%);
+  }
+  .episode-row:hover .row-title { color: var(--terracotta); }
+
+  .row-num {
+    font-family: "Iowan Old Style", Georgia, serif;
+    font-style: italic;
+    font-size: 24px;
+    color: var(--ink-faint);
+    font-variant-numeric: oldstyle-nums;
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .row-body { min-width: 0; }
+  .row-title {
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+    margin-bottom: 8px;
+    transition: color 0.2s;
+  }
+  .row-blurb {
+    color: var(--ink-soft);
+    font-size: 15px;
+    line-height: 1.55;
+    max-width: 640px;
+    font-style: italic;
+    padding-left: 14px;
+    border-left: 2px solid var(--rule);
+  }
+
+  .row-meta {
+    text-align: right;
+    color: var(--ink-faint);
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .row-meta .listen {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+    color: var(--terracotta);
+    font-style: italic;
+    font-size: 14px;
+  }
+
+  .archive-link { text-align: center; margin-top: 36px; font-style: italic; color: var(--ink-soft); }
+  .archive-link a {
+    color: var(--terracotta);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+  }
+
+  /* ===== Pull quote ===== */
+  .quote-section { background: var(--paper-deep); padding: 100px 6vw; text-align: center; }
+  blockquote {
+    font-size: clamp(26px, 3.6vw, 40px);
+    line-height: 1.25;
+    letter-spacing: -0.5px;
+    font-style: italic;
+    max-width: 820px;
+    margin: 0 auto 24px;
+    color: var(--ink);
+    position: relative;
+  }
+  blockquote::before {
+    content: "“";
+    position: absolute;
+    top: -40px;
+    left: -10px;
+    font-size: 120px;
+    color: var(--terracotta);
+    opacity: 0.3;
+    line-height: 1;
+    font-family: Georgia, serif;
+  }
+  .quote-attr { color: var(--ink-faint); font-size: 14px; letter-spacing: 1.5px; text-transform: uppercase; }
+
+  /* ===== Host bio ===== */
+  .bio {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 50px;
+    align-items: start;
+    max-width: 860px;
+    margin: 0 auto;
+  }
+  .bio-portrait {
+    width: 240px;
+    height: 280px;
+    background:
+      radial-gradient(circle at 50% 35%, #c9925f 0 38%, transparent 39%),
+      linear-gradient(180deg, var(--mustard) 0 60%, var(--sage) 60% 100%);
+    position: relative;
+    transform: rotate(-1.5deg);
+    box-shadow: 6px 6px 0 var(--paper-shadow);
+    border: 1px solid var(--rule);
+  }
+  .bio-portrait::after {
+    content: "Brian in the studio — May ’26";
+    position: absolute;
+    bottom: -36px;
+    left: 0; right: 0;
+    text-align: center;
+    font-size: 12px;
+    color: var(--ink-faint);
+    font-style: italic;
+  }
+  .bio h2 {
+    font-size: 14px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--terracotta);
+    margin-bottom: 16px;
+  }
+  .bio h3 { font-size: 28px; margin-bottom: 14px; letter-spacing: -0.5px; font-weight: 600; }
+  .bio p { color: var(--ink-soft); margin-bottom: 14px; font-size: 16px; }
+  .bio p em { color: var(--ink); }
+  .bio-links { margin-top: 20px; font-size: 14px; color: var(--ink-faint); }
+  .bio-links a { color: var(--terracotta); margin-right: 14px; }
+
+  /* ===== Subscribe / postcard ===== */
+  .postcard-wrap { max-width: 720px; margin: 0 auto; }
+  .postcard {
+    background: var(--paper-deep);
+    border: 1px solid var(--ink);
+    padding: 36px 40px;
+    position: relative;
+    box-shadow: 8px 8px 0 var(--paper-shadow);
+  }
+  .postcard::before {
+    content: "";
+    position: absolute;
+    top: 14px; right: 14px;
+    width: 56px; height: 70px;
+    border: 1px solid var(--ink);
+    background: repeating-linear-gradient(45deg, var(--terracotta) 0 4px, var(--paper) 4px 8px);
+    opacity: 0.7;
+  }
+  .postcard h2 { font-size: 32px; font-weight: 600; letter-spacing: -0.5px; margin-bottom: 6px; max-width: 480px; }
+  .postcard h2 em { color: var(--terracotta); font-style: italic; }
+  .postcard p { color: var(--ink-soft); margin-bottom: 24px; max-width: 480px; }
+
+  form.signup { display: flex; gap: 12px; flex-wrap: wrap; align-items: stretch; }
+  form.signup input {
+    flex: 1;
+    min-width: 220px;
+    border: none;
+    border-bottom: 1px solid var(--ink);
+    background: transparent;
+    padding: 10px 4px;
+    font-family: inherit;
+    font-size: 17px;
+    color: var(--ink);
+    font-style: italic;
+    outline: none;
+  }
+  form.signup input::placeholder { color: var(--ink-faint); font-style: italic; }
+  form.signup button {
+    background: var(--ink);
+    color: var(--paper);
+    border: none;
+    padding: 12px 26px;
+    font-family: inherit;
+    font-size: 14px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  form.signup button:hover { background: var(--terracotta); }
+  .msg { margin-top: 14px; font-style: italic; color: var(--sage); min-height: 18px; font-size: 14px; }
+
+  /* ===== Masthead ===== */
+  footer.masthead { padding: 50px 6vw 40px; text-align: center; color: var(--ink-soft); font-size: 14px; line-height: 1.7; }
+  footer.masthead .mast {
+    font-family: "Iowan Old Style", Georgia, serif;
+    font-style: italic;
+    font-size: 28px;
+    color: var(--ink);
+    margin-bottom: 12px;
+  }
+  footer.masthead .mast .amp { color: var(--terracotta); }
+  footer.masthead nav { margin: 16px 0; }
+  footer.masthead nav a { color: var(--ink); margin: 0 8px; text-decoration: none; border-bottom: 1px solid var(--rule); }
+  footer.masthead nav a:hover { color: var(--terracotta); border-color: var(--terracotta); }
+  footer.masthead .small { font-size: 12px; color: var(--ink-faint); font-style: italic; margin-top: 18px; }
+
+  /* ===== Mini player ===== */
+  .mini {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: var(--paper-deep);
+    color: var(--ink);
+    padding: 12px 6vw;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    transform: translateY(100%);
+    transition: transform 0.4s ease;
+    z-index: 50;
+    border-top: 1px solid var(--rule);
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.35);
+  }
+  .mini.visible { transform: translateY(0); }
+  .mini-meta { flex: 1; min-width: 0; }
+  .mini-title { font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mini-sub {
+    font-size: 12px;
+    color: var(--ink-soft);
+    font-style: italic;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .mini .play { background: var(--ink); color: var(--paper); border-color: var(--ink); width: 38px; height: 38px; }
+  .mini .play:hover { background: var(--terracotta); border-color: var(--terracotta); color: var(--paper); }
+  .mini-progress { flex: 1.4; max-width: 360px; }
+  .mini-progress .progress-fill { background: var(--mustard); }
+
+  /* ===== Responsive ===== */
+  @media (max-width: 900px) {
+    .hero { grid-template-columns: 1fr; gap: 40px; padding-top: 50px; }
+    .episode-card {
+      margin: 0;
+      max-width: none;
+      width: 100%;
+      transform: rotate(0deg);
+    }
+    .episode-card:hover { transform: translateY(-3px); }
+    .bio { grid-template-columns: 1fr; }
+    .bio-portrait { margin: 0 auto 40px; }
+    .top nav { display: none; }
+    .top-meta { display: none; }
+    .mini-progress { display: none; }
+    .postcard::before { display: none; }
+    .episode-row { grid-template-columns: 48px 1fr; }
+    .row-meta { grid-column: 2; text-align: left; padding-top: 6px; }
+    .row-num { font-size: 20px; text-align: left; }
+  }
+
+  /* ===== Reveal ===== */
+  .reveal { opacity: 0; transform: translateY(16px); transition: opacity 0.8s ease, transform 0.8s ease; }
+  .reveal.in { opacity: 1; transform: translateY(0); }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; }
+    .reveal { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <a class="wordmark" href="#">Half<span class="amp">·</span>heard</a>
+  <nav aria-label="Primary">
+    <ul>
+      <li><a href="#episodes">seasons</a></li>
+      <li><a href="#about">about</a></li>
+      <li><a href="#letter">subscribe</a></li>
+    </ul>
+  </nav>
+  <div class="top-right">
+    <span class="top-meta">Season one · out now</span>
+    <button class="theme-toggle" id="themeToggle" aria-label="Switch between light and dark theme" title="Toggle theme">
+      <svg id="iconSun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="4"/>
+        <path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>
+      </svg>
+      <svg id="iconMoon" width="15" height="15" viewBox="0 0 24 24" fill="currentColor" style="display:none;" aria-hidden="true">
+        <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<!-- ===== Hero ===== -->
+<section class="hero">
+  <div class="hero-left">
+    <div class="kicker">Season one is here — six episodes on Timothy Dexter</div>
+    <h1>Half a story is a <em>beginning</em>.</h1>
+    <p class="lede">
+      <span class="drop">H</span>alfheard is a podcast about the stories I only caught the tail end of and went looking for the rest of. Every season is one topic, told in four to six tightly-edited episodes — all released the same day, so you can listen straight through. Written and recorded by Brian, in a small studio south of Market.
+    </p>
+    <p class="hero-meta">A new season twice a year · whole season drops at once · also on <a href="#">Apple</a>, <a href="#">Spotify</a>, and <a href="#">Overcast</a>.</p>
+  </div>
+
+  <aside class="episode-card reveal" aria-label="Where to start">
+    <span class="stamp">Start here</span>
+    <div class="ep-art">
+      <svg viewBox="0 0 200 120" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M55 60 Q55 30 85 30 Q120 30 120 60 Q120 75 105 80 Q95 84 95 92" stroke="#221b13" stroke-width="6" fill="none" stroke-linecap="round"/>
+        <circle cx="85" cy="58" r="6" fill="#221b13"/>
+        <g stroke="#221b13" stroke-width="3" stroke-linecap="round">
+          <line x1="140" y1="60" x2="140" y2="60">
+            <animate attributeName="y1" values="50;30;50" dur="1.6s" repeatCount="indefinite"/>
+            <animate attributeName="y2" values="70;90;70" dur="1.6s" repeatCount="indefinite"/>
+          </line>
+          <line x1="155" y1="60" x2="155" y2="60">
+            <animate attributeName="y1" values="40;20;40" dur="1.6s" repeatCount="indefinite" begin="0.2s"/>
+            <animate attributeName="y2" values="80;100;80" dur="1.6s" repeatCount="indefinite" begin="0.2s"/>
+          </line>
+          <line x1="170" y1="60" x2="170" y2="60">
+            <animate attributeName="y1" values="50;35;50" dur="1.6s" repeatCount="indefinite" begin="0.4s"/>
+            <animate attributeName="y2" values="70;85;70" dur="1.6s" repeatCount="indefinite" begin="0.4s"/>
+          </line>
+        </g>
+      </svg>
+    </div>
+    <div class="ep-num">Season 1 · Episode 1 — out May 12</div>
+    <h3 class="ep-name">Lord Dexter of Chester Square</h3>
+    <p class="ep-guest">“I heard there was a man in colonial Massachusetts who called himself a lord, hired a private poet laureate, and made every business decision wrong on his way to becoming a millionaire. I assumed he was apocryphal. He was not.”</p>
+    <div class="player">
+      <div class="progress" id="progress"><div class="progress-fill" id="fill"></div></div>
+      <div class="times"><span id="now">0:00</span><span id="dur">32:48</span></div>
+      <div class="controls">
+        <button class="ctrl" aria-label="Back 15 seconds">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>
+        </button>
+        <button class="play" id="playBtn" aria-label="Play or pause">
+          <svg id="playIcon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          <svg id="pauseIcon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="display:none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+        </button>
+        <button class="ctrl" aria-label="Forward 30 seconds">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="transform:scaleX(-1);"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>
+        </button>
+      </div>
+    </div>
+  </aside>
+</section>
+
+<!-- ===== Letter from the host ===== -->
+<section id="letter">
+  <div class="letter">
+    <h2>A note from Brian</h2>
+    <p>I’m the kind of person who hears half a story at a dinner party and then can’t sleep until I know the rest. <em>Halfheard</em> is what happens when I stop trying to fight it.</p>
+    <p>Every season I pick one figure or one mystery and I dig — for months. Then I write it up as a series of four to six short presentations and put the whole season out on the same morning, so you can binge it in a long afternoon or stretch it across a week. No co-host. No interviews. Just me, a microphone, and one story I couldn’t let go.</p>
+    <p>Each episode opens the same way:</p>
+    <p style="font-style: italic; color: var(--terracotta); padding-left: 20px; border-left: 2px solid var(--rule);">“From a small studio in San Francisco — I’m Brian, and you’re listening to <em>Halfheard</em>. This season, six episodes on Timothy Dexter — the most improbable rich man in early American history.”</p>
+    <p>And then I tell you what I found. Thanks for listening.</p>
+    <span class="signoff">— Brian</span>
+    <div class="signoff-line">San Francisco · May 2026</div>
+  </div>
+</section>
+
+<!-- ===== Episode index ===== -->
+<section id="episodes">
+  <div class="index-head">
+    <h2>Season <em>one</em></h2>
+    <span class="aside">six episodes · best heard in order</span>
+  </div>
+
+  <div id="rows"></div>
+
+  <p class="archive-link">future seasons will live <a href="#">over here</a> when they drop →</p>
+</section>
+
+<!-- ===== Pull quote ===== -->
+<section class="quote-section">
+  <blockquote>
+    He was either a genius pretending to be an idiot, or an idiot who got lucky six hundred and seventy-two consecutive times. The longer I looked, the less sure I got.
+  </blockquote>
+  <div class="quote-attr">From episode S1·E3 — “Coals to Newcastle”</div>
+</section>
+
+<!-- ===== About / host ===== -->
+<section id="about">
+  <div class="bio">
+    <div class="bio-portrait reveal" aria-hidden="true"></div>
+    <div>
+      <h2>About the host</h2>
+      <h3>Brian</h3>
+      <p>Brian is a writer and former newsroom researcher who spent a decade trying to fact-check stories that nobody had bothered to fact-check yet. He grew up half-listening to his grandfather’s shortwave radio, which is probably where the trouble started.</p>
+      <p>He lives in San Francisco and records <em>Halfheard</em> from a small studio south of Market — usually at night, usually with the window open, usually after he should be in bed.</p>
+      <div class="bio-links">
+        <a href="#">Email Brian</a>
+        <a href="#">Suggest a story</a>
+        <a href="#">Field notes</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Subscribe (postcard) ===== -->
+<section>
+  <div class="postcard-wrap">
+    <div class="postcard reveal">
+      <h2>A short <em>dispatch</em> between seasons.</h2>
+      <p>Three or four times a year — usually when a new season drops, plus a “stuff I couldn’t fit in” note in between. No spam, never on a Monday.</p>
+      <form class="signup" id="signup" novalidate>
+        <input type="email" id="email" placeholder="your email, in your own handwriting if it were possible" />
+        <button type="submit">send it</button>
+      </form>
+      <div class="msg" id="msg" aria-live="polite"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Masthead ===== -->
+<footer class="masthead">
+  <div class="mast">Half<span class="amp">·</span>heard</div>
+  <div>written and recorded in a small studio in San Francisco</div>
+  <nav>
+    <a href="#">apple podcasts</a>·
+    <a href="#">spotify</a>·
+    <a href="#">overcast</a>·
+    <a href="#">pocket casts</a>·
+    <a href="#">rss</a>
+  </nav>
+  <div class="small">&copy; <span id="year"></span> Brian. Stories chased to the best of one person’s ability. Corrections welcome.</div>
+</footer>
+
+<!-- ===== Mini Player ===== -->
+<div class="mini" id="mini" aria-hidden="true">
+  <div class="mini-meta">
+    <div class="mini-title" id="miniTitle">Lord Dexter of Chester Square</div>
+    <div class="mini-sub" id="miniSub">Season 1 · Episode 1 — start here</div>
+  </div>
+  <div class="mini-progress"><div class="progress"><div class="progress-fill" id="miniFill"></div></div></div>
+  <button class="play" id="miniPlayBtn" aria-label="Play or pause">
+    <svg id="miniPlayIcon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+    <svg id="miniPauseIcon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="display:none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+  </button>
+</div>
+
+<script>
+  // ===== Theme toggle =====
+  const docEl = document.documentElement;
+  const themeToggle = document.getElementById('themeToggle');
+  const iconSun = document.getElementById('iconSun');
+  const iconMoon = document.getElementById('iconMoon');
+
+  function syncThemeIcon() {
+    const light = docEl.getAttribute('data-theme') === 'light';
+    iconSun.style.display = light ? 'none' : 'block';   // dark mode → offer sun
+    iconMoon.style.display = light ? 'block' : 'none';  // light mode → offer moon
+  }
+  syncThemeIcon();
+
+  themeToggle.addEventListener('click', () => {
+    const light = docEl.getAttribute('data-theme') === 'light';
+    if (light) {
+      docEl.removeAttribute('data-theme');
+      try { localStorage.setItem('halfheard-theme', 'dark'); } catch (e) {}
+    } else {
+      docEl.setAttribute('data-theme', 'light');
+      try { localStorage.setItem('halfheard-theme', 'light'); } catch (e) {}
+    }
+    syncThemeIcon();
+  });
+
+  // ===== Episode data =====
+  // Each "intro" is the line Brian says right after the show open —
+  // fragment heard, dismissive reaction, capitulation. Episodes drop
+  // together, so we list them in show order (1 → 6).
+  const seasons = [
+    {
+      num: 1,
+      theme: 'Timothy Dexter',
+      status: 'all 6 episodes available',
+      episodes: [
+        {
+          num: 1, duration: '32:48',
+          title: 'Lord Dexter of Chester Square',
+          intro: '“I heard there was a man in colonial Massachusetts who called himself a lord, hired a private poet laureate, and made every business decision wrong on his way to becoming a millionaire. I assumed he was apocryphal. He was not.”',
+        },
+        {
+          num: 2, duration: '29:14',
+          title: 'Warming pans for the Caribbean',
+          intro: '“Somebody once told me that a man shipped a fleet of bed-warming pans to the West Indies and somehow turned a profit. I thought it was a punchline. It is a tax record.”',
+        },
+        {
+          num: 3, duration: '34:02',
+          title: 'Coals to Newcastle',
+          intro: '“There’s an expression — selling coal to Newcastle — that means doing something so obviously pointless you must be a fool. I had heard, in passing, that someone actually did it. And got rich. I wanted the receipts.”',
+        },
+        {
+          num: 4, duration: '36:21',
+          title: 'A Pickle for the Knowing Ones',
+          intro: '“A friend mentioned, almost as a joke, a 19th-century memoir written entirely without punctuation — whose second edition included a page of commas and periods, with a note telling the reader to ‘salt and pepper as they please.’ I had to find a copy.”',
+        },
+        {
+          num: 5, duration: '31:55',
+          title: 'Forty wooden men',
+          intro: '“I half-heard that a Massachusetts merchant once built a mansion guarded by forty life-sized wooden statues — including one of himself, holding a sign that read I am the first in the East. I wanted to know what happened to them in the storm of 1815.”',
+        },
+        {
+          num: 6, duration: '40:12',
+          title: 'The funeral that wasn’t',
+          intro: '“Apparently a man in 1806 faked his own funeral to see who would show up. Apparently he then beat his wife for not weeping convincingly enough. Apparently this is a true story. I went to Newburyport.”',
+        },
+      ]
+    }
+  ];
+
+  const rowsEl = document.getElementById('rows');
+  rowsEl.innerHTML = seasons.map(season => `
+    <div class="season-head reveal">
+      <h3>Season ${season.num}</h3>
+      <span class="season-title">${season.theme}</span>
+      <span class="season-status">${season.status}</span>
+    </div>
+    ${season.episodes.map(e => `
+      <article class="episode-row reveal"
+        data-title="${e.title}"
+        data-sub="Season ${season.num} · Episode ${e.num}">
+        <div class="row-num">S${season.num} · E${e.num}</div>
+        <div class="row-body">
+          <h3 class="row-title">${e.title}</h3>
+          <p class="row-blurb">${e.intro}</p>
+        </div>
+        <div class="row-meta">
+          ${e.duration}
+          <div class="listen">▸ listen</div>
+        </div>
+      </article>
+    `).join('')}
+  `).join('');
+
+  document.querySelectorAll('.episode-row').forEach(row => {
+    row.addEventListener('click', () => {
+      playEpisode(row.dataset.title, row.dataset.sub);
+    });
+  });
+
+  // ===== Player (simulated) =====
+  const TOTAL = 1968; // 32:48
+  let playing = false;
+  let progress = 0;
+  let timer = null;
+
+  const playBtn = document.getElementById('playBtn');
+  const playIcon = document.getElementById('playIcon');
+  const pauseIcon = document.getElementById('pauseIcon');
+  const fill = document.getElementById('fill');
+  const now = document.getElementById('now');
+  const dur = document.getElementById('dur');
+  const progressBar = document.getElementById('progress');
+
+  const mini = document.getElementById('mini');
+  const miniPlayBtn = document.getElementById('miniPlayBtn');
+  const miniPlayIcon = document.getElementById('miniPlayIcon');
+  const miniPauseIcon = document.getElementById('miniPauseIcon');
+  const miniFill = document.getElementById('miniFill');
+  const miniTitle = document.getElementById('miniTitle');
+  const miniSub = document.getElementById('miniSub');
+
+  function fmt(s) {
+    const h = Math.floor(s / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    const ss = Math.floor(s % 60).toString().padStart(2, '0');
+    return h > 0 ? `${h}:${m.toString().padStart(2, '0')}:${ss}` : `${m}:${ss}`;
+  }
+
+  function setIcons() {
+    playIcon.style.display = playing ? 'none' : 'block';
+    pauseIcon.style.display = playing ? 'block' : 'none';
+    miniPlayIcon.style.display = playing ? 'none' : 'block';
+    miniPauseIcon.style.display = playing ? 'block' : 'none';
+  }
+
+  function paint() {
+    const pct = (progress / TOTAL) * 100;
+    fill.style.width = pct + '%';
+    miniFill.style.width = pct + '%';
+    now.textContent = fmt(progress);
+  }
+
+  function toggle() {
+    playing = !playing;
+    setIcons();
+    mini.classList.add('visible');
+    mini.setAttribute('aria-hidden', 'false');
+    if (playing) {
+      timer = setInterval(() => {
+        progress = Math.min(progress + 1, TOTAL);
+        paint();
+        if (progress >= TOTAL) { playing = false; setIcons(); clearInterval(timer); }
+      }, 1000);
+    } else {
+      clearInterval(timer);
+    }
+  }
+
+  function playEpisode(title, sub) {
+    miniTitle.textContent = title;
+    miniSub.textContent = sub;
+    progress = 0;
+    paint();
+    if (!playing) toggle();
+  }
+
+  playBtn.addEventListener('click', toggle);
+  miniPlayBtn.addEventListener('click', toggle);
+  progressBar.addEventListener('click', (e) => {
+    const r = progressBar.getBoundingClientRect();
+    progress = Math.floor(TOTAL * ((e.clientX - r.left) / r.width));
+    paint();
+  });
+
+  dur.textContent = fmt(TOTAL);
+  paint();
+  setIcons();
+
+  // ===== Signup =====
+  document.getElementById('signup').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const email = document.getElementById('email').value.trim();
+    const msg = document.getElementById('msg');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      msg.style.color = 'var(--terracotta)';
+      msg.textContent = 'hmm — that doesn’t look like a real address.';
+      return;
+    }
+    msg.style.color = 'var(--sage)';
+    msg.textContent = `you’re in, ${email.split('@')[0]} — I’ll write you when season one wraps.`;
+    document.getElementById('email').value = '';
+  });
+
+  // ===== Reveal =====
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(en => {
+      if (en.isIntersecting) {
+        en.target.classList.add('in');
+        io.unobserve(en.target);
+      }
+    });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+  document.getElementById('year').textContent = new Date().getFullYear();
+</script>
+</body>
+</html>
