@@ -80,15 +80,21 @@
     position: sticky;
     top: 0;
     z-index: 40;
-    padding: 16px 6vw;
+    padding: 26px 6vw;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: color-mix(in srgb, var(--paper) 72%, transparent);
-    backdrop-filter: saturate(140%) blur(14px);
-    -webkit-backdrop-filter: saturate(140%) blur(14px);
-    border-bottom: 1px solid color-mix(in srgb, var(--rule) 60%, transparent);
-    box-shadow: 0 1px 0 color-mix(in srgb, var(--paper-shadow) 30%, transparent);
+    background: color-mix(in srgb, var(--paper) 55%, transparent);
+    backdrop-filter: saturate(180%) brightness(1.35) blur(18px);
+    -webkit-backdrop-filter: saturate(180%) brightness(1.35) blur(18px);
+    border-bottom: 1px solid color-mix(in srgb, var(--ink) 18%, transparent);
+    box-shadow:
+      0 1px 0 color-mix(in srgb, var(--ink) 8%, transparent),
+      0 8px 24px -12px color-mix(in srgb, var(--paper-shadow) 80%, transparent);
+  }
+  :root[data-theme="light"] header.top {
+    backdrop-filter: saturate(160%) brightness(1.08) blur(18px);
+    -webkit-backdrop-filter: saturate(160%) brightness(1.08) blur(18px);
   }
   @supports not (backdrop-filter: blur(1px)) {
     header.top { background: var(--paper); }
