@@ -16,22 +16,25 @@
 </script>
 <style>
   :root {
-    /* Warm dark theme — "studio at night" (default). Variable names refer
-       to roles (the canvas, the text, accents) rather than literal colors. */
-    --paper: #1a130d;
-    --paper-deep: #241b13;
-    --paper-shadow: #090604;
-    --ink: #ede0c4;
-    --ink-soft: #b5a384;
-    --ink-faint: #7d6c4e;
-    --terracotta: #e07a52;
-    --terracotta-deep: #b85d3e;
-    --mustard: #e0a83e;
-    --sage: #87a06b;
-    --rule: #3a2d20;
-    --dot-a: rgba(237, 224, 196, 0.06);
-    --dot-b: rgba(237, 224, 196, 0.018);
-    --track: rgba(237, 224, 196, 0.12);
+    /* Ink-blue night studio (default). The canvas reads cool — a deep,
+       blue-leaning near-black — but the ink and accents glow warm so
+       the page still feels intimate, not clinical. Variable names are
+       roles (canvas, text, accents) rather than literal colors so the
+       light theme can override them without churn. */
+    --paper: #0e1319;
+    --paper-deep: #161d26;
+    --paper-shadow: #05080c;
+    --ink: #f1e4c8;
+    --ink-soft: #b6a98e;
+    --ink-faint: #6f6855;
+    --terracotta: #ff8a5b;
+    --terracotta-deep: #e26a3d;
+    --mustard: #f0b94a;
+    --sage: #8fb29a;
+    --rule: #26313f;
+    --dot-a: rgba(241, 228, 200, 0.06);
+    --dot-b: rgba(241, 228, 200, 0.018);
+    --track: rgba(241, 228, 200, 0.12);
     --radius: 4px;
   }
 
@@ -453,7 +456,7 @@
   }
   .episode-row:last-child { border-bottom: 1px solid var(--rule); }
   .episode-row:hover {
-    background: linear-gradient(180deg, transparent 0, rgba(184, 93, 60, 0.06) 100%);
+    background: linear-gradient(180deg, transparent 0, color-mix(in srgb, var(--terracotta) 9%, transparent) 100%);
   }
   .episode-row:hover .row-title { color: var(--terracotta); }
 
