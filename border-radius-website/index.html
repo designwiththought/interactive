@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Border Radius — a weekly dispatch on what’s up with Figma.</title>
+<script>
+  // Apply saved theme before paint to avoid a flash. Default is dark.
+  (function () {
+    try {
+      if (localStorage.getItem('borderradius-theme') === 'light') {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    } catch (e) {}
+  })();
+</script>
+<style>
+  :root {
+    /* "Late-night canvas" — a dark design-tool theme (default). Names refer
+       to roles (the surface, the text, the brand accents). The accent ramp
+       borrows Figma's five-dot palette: red, orange, purple, blue, green. */
+    --surface: #14151a;
+    --surface-raised: #1d1f27;
+    --surface-sunk: #0c0d11;
+    --ink: #eef0f5;
+    --ink-soft: #a3a8b8;
+    --ink-faint: #6b7180;
+    --c-red: #ff5a4d;
+    --c-orange: #ff8a5c;
+    --c-purple: #a259ff;
+    --c-blue: #2ec5ff;
+    --c-green: #25d089;
+    --accent: var(--c-purple);
+    --accent-2: var(--c-blue);
+    --rule: #2a2d38;
+    --grid: rgba(238, 240, 245, 0.035);
+    --track: rgba(238, 240, 245, 0.12);
+    --radius: 12px;
+    --radius-lg: 20px;
+  }
+
+  :root[data-theme="light"] {
+    /* "Daylight canvas" — the light theme. */
+    --surface: #f5f6f9;
+    --surface-raised: #ffffff;
+    --surface-sunk: #e7e9f0;
+    --ink: #14151a;
+    --ink-soft: #50556a;
+    --ink-faint: #8a8fa3;
+    --c-red: #f24e1e;
+    --c-orange: #ff7262;
+    --c-purple: #8a3ffc;
+    --c-blue: #0aa9e6;
+    --c-green: #0ab877;
+    --accent: var(--c-purple);
+    --accent-2: var(--c-blue);
+    --rule: #d9dce6;
+    --grid: rgba(20, 21, 26, 0.05);
+    --track: rgba(20, 21, 26, 0.12);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--surface);
+    /* Faint grid — the Figma canvas feel. */
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 32px 32px, 32px 32px;
+    color: var(--ink);
+    line-height: 1.55;
+    font-size: 17px;
+    -webkit-font-smoothing: antialiased;
+    padding-bottom: 90px;
+    transition: background-color 0.4s ease, color 0.4s ease;
+  }
+
+  ::selection { background: var(--accent); color: #fff; }
+  a { color: inherit; }
+
+  /* ===== Top bar ===== */
+  header.top {
+    border-bottom: 1px solid var(--rule);
+    padding: 16px 6vw;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: color-mix(in srgb, var(--surface) 88%, transparent);
+    backdrop-filter: blur(8px);
+    position: sticky;
+    top: 0;
+    z-index: 40;
+  }
+
+  .wordmark {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+    font-size: 20px;
+    letter-spacing: -0.4px;
+    text-decoration: none;
+  }
+  /* The logo: a square whose corner is literally rounded. */
+  .wordmark .glyph {
+    width: 26px;
+    height: 26px;
+    border: 3px solid var(--accent);
+    border-radius: 0 var(--radius) 0 var(--radius);
+    flex-shrink: 0;
+    transition: border-radius 0.4s cubic-bezier(.16,1,.3,1), border-color 0.3s;
+  }
+  .wordmark:hover .glyph { border-radius: var(--radius); border-color: var(--accent-2); }
+  .wordmark .r { color: var(--accent); }
+
+  .top nav ul {
+    list-style: none;
+    display: flex;
+    gap: 26px;
+    align-items: center;
+  }
+  .top nav a {
+    color: var(--ink-soft);
+    text-decoration: none;
+    font-size: 14px;
+    letter-spacing: 0.2px;
+    border-bottom: 1px solid transparent;
+    padding-bottom: 2px;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .top nav a:hover { color: var(--accent); border-color: var(--accent); }
+
+  .top-right { display: flex; align-items: center; gap: 18px; }
+  .top-meta {
+    font-size: 12px;
+    color: var(--ink-faint);
+    letter-spacing: 0.3px;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .top-meta .live-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--c-green);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--c-green) 70%, transparent);
+    animation: pulse 2.2s infinite;
+  }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--c-green) 60%, transparent); }
+    70% { box-shadow: 0 0 0 7px transparent; }
+    100% { box-shadow: 0 0 0 0 transparent; }
+  }
+  .theme-toggle {
+    width: 34px; height: 34px;
+    border-radius: 10px;
+    border: 1px solid var(--rule);
+    background: none;
+    color: var(--ink-soft);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: color 0.2s, border-color 0.2s, transform 0.3s;
+  }
+  .theme-toggle:hover { color: var(--accent); border-color: var(--accent); transform: rotate(18deg); }
+
+  /* ===== Hero ===== */
+  .hero {
+    padding: 80px 6vw 64px;
+    display: grid;
+    grid-template-columns: 1.35fr 1fr;
+    gap: 60px;
+    align-items: center;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .kicker {
+    font-size: 12px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 22px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .kicker::before { content: ""; width: 24px; height: 2px; border-radius: 2px; background: var(--accent); }
+
+  .hero h1 {
+    font-size: clamp(42px, 6vw, 80px);
+    line-height: 1.02;
+    letter-spacing: -2px;
+    font-weight: 800;
+    margin-bottom: 26px;
+  }
+  .hero h1 .grad {
+    background: linear-gradient(100deg, var(--c-purple), var(--c-blue) 50%, var(--c-green));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .lede {
+    font-size: 18px;
+    color: var(--ink-soft);
+    max-width: 540px;
+    margin-bottom: 24px;
+  }
+  .lede strong { color: var(--ink); font-weight: 600; }
+
+  .hero-cta { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    border: none; cursor: pointer;
+    font-family: inherit; font-size: 15px; font-weight: 600;
+    padding: 12px 22px;
+    border-radius: var(--radius);
+    text-decoration: none;
+    transition: transform 0.15s ease, background 0.2s, box-shadow 0.2s;
+  }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 24px color-mix(in srgb, var(--accent) 40%, transparent); }
+  .btn-ghost { background: transparent; color: var(--ink); border: 1px solid var(--rule); }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+  .hero-meta { font-size: 13px; color: var(--ink-faint); margin-top: 22px; }
+  .hero-meta a { color: var(--accent); text-decoration: none; border-bottom: 1px solid var(--rule); }
+  .hero-meta a:hover { border-color: var(--accent); }
+
+  /* ===== Featured tip card — the radius playground ===== */
+  .tip-card {
+    background: var(--surface-raised);
+    padding: 22px;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 24px 60px -24px var(--surface-sunk);
+    position: relative;
+    max-width: 420px;
+    margin-left: auto;
+    width: 100%;
+  }
+  .pill {
+    position: absolute;
+    top: -13px; left: 22px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    padding: 6px 12px;
+    text-transform: uppercase;
+    font-weight: 700;
+    border-radius: 999px;
+  }
+
+  /* The live preview surface */
+  .play-stage {
+    aspect-ratio: 5 / 3;
+    border-radius: var(--radius);
+    background:
+      radial-gradient(circle at 22% 24%, color-mix(in srgb, var(--c-purple) 40%, transparent), transparent 45%),
+      radial-gradient(circle at 80% 78%, color-mix(in srgb, var(--c-blue) 38%, transparent), transparent 45%),
+      var(--surface-sunk);
+    margin: 8px 0 18px;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+    position: relative;
+  }
+  .play-shape {
+    width: 46%;
+    aspect-ratio: 1;
+    background: linear-gradient(135deg, var(--c-purple), var(--c-blue));
+    border-radius: 24px;
+    box-shadow: 0 12px 30px -8px color-mix(in srgb, var(--c-blue) 50%, transparent);
+    transition: border-radius 0.08s linear;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .play-shape span {
+    font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.92);
+    font-variant-numeric: tabular-nums; letter-spacing: 0.3px;
+  }
+
+  .tip-eyebrow {
+    font-size: 11px; color: var(--ink-faint);
+    letter-spacing: 1.2px; text-transform: uppercase;
+    margin-bottom: 6px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .tip-eyebrow .num { color: var(--accent); font-weight: 700; }
+  .tip-name { font-size: 21px; line-height: 1.2; letter-spacing: -0.5px; font-weight: 700; margin-bottom: 8px; }
+  .tip-blurb { color: var(--ink-soft); font-size: 14px; margin-bottom: 16px; }
+
+  .slider-row { border-top: 1px dashed var(--rule); padding-top: 16px; }
+  .slider-label {
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-size: 12px; color: var(--ink-faint); margin-bottom: 8px;
+    font-variant-numeric: tabular-nums;
+  }
+  .slider-label code {
+    font-family: "SF Mono", "JetBrains Mono", ui-monospace, Menlo, monospace;
+    color: var(--ink-soft);
+  }
+  .slider-label b { color: var(--accent); }
+  input[type="range"] {
+    -webkit-appearance: none; appearance: none;
+    width: 100%; height: 4px; border-radius: 4px;
+    background: var(--track); outline: none; cursor: pointer; margin-bottom: 14px;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 18px; height: 18px; border-radius: 50%;
+    background: var(--accent); border: 3px solid var(--surface-raised);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 18px; height: 18px; border-radius: 50%;
+    background: var(--accent); border: 3px solid var(--surface-raised); cursor: pointer;
+  }
+
+  .copy-row { display: flex; gap: 10px; align-items: center; }
+  .code-out {
+    flex: 1; min-width: 0;
+    font-family: "SF Mono", "JetBrains Mono", ui-monospace, Menlo, monospace;
+    font-size: 13px; color: var(--ink-soft);
+    background: var(--surface-sunk);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 9px 12px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .code-out .prop { color: var(--c-blue); }
+  .code-out .val { color: var(--c-green); }
+  .copy-btn {
+    border: 1px solid var(--rule); background: var(--surface);
+    color: var(--ink); cursor: pointer;
+    border-radius: 8px; padding: 9px 14px;
+    font-family: inherit; font-size: 13px; font-weight: 600;
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
+    flex-shrink: 0;
+  }
+  .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .copy-btn.done { background: var(--c-green); border-color: var(--c-green); color: #fff; }
+
+  /* ===== Sections ===== */
+  section { padding: 72px 6vw; border-bottom: 1px solid var(--rule); }
+
+  .letter { max-width: 660px; margin: 0 auto; }
+  .letter h2 {
+    font-size: 13px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 26px; text-align: center; font-weight: 600;
+  }
+  .letter p { font-size: 18px; line-height: 1.7; color: var(--ink-soft); margin-bottom: 20px; }
+  .letter p strong { color: var(--ink); font-weight: 600; }
+  .letter .callout {
+    color: var(--ink);
+    padding: 16px 20px;
+    border-left: 3px solid var(--accent);
+    background: color-mix(in srgb, var(--accent) 8%, transparent);
+    border-radius: 0 var(--radius) var(--radius) 0;
+    font-size: 16px;
+  }
+  .letter kbd {
+    font-family: "SF Mono", ui-monospace, Menlo, monospace;
+    font-size: 0.82em;
+    background: var(--surface-raised);
+    border: 1px solid var(--rule);
+    border-bottom-width: 2px;
+    border-radius: 6px;
+    padding: 2px 7px;
+    color: var(--ink);
+    white-space: nowrap;
+  }
+  .signoff { font-weight: 700; font-size: 20px; color: var(--ink); margin-top: 6px; }
+  .signoff-line { font-size: 14px; color: var(--ink-faint); margin-top: 4px; }
+
+  /* ===== Tip index ===== */
+  .index-head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin-bottom: 30px; flex-wrap: wrap; gap: 16px;
+  }
+  .index-head h2 { font-size: clamp(30px, 4vw, 44px); font-weight: 800; letter-spacing: -1.2px; }
+  .index-head h2 .grad {
+    background: linear-gradient(100deg, var(--c-purple), var(--c-blue));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .index-head .aside { color: var(--ink-faint); font-size: 14px; }
+
+  .vol-head {
+    display: flex; align-items: center; gap: 14px;
+    margin: 40px 0 4px; padding-bottom: 12px; flex-wrap: wrap;
+  }
+  .vol-head:first-child { margin-top: 0; }
+  .vol-head .vol-tag {
+    font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase;
+    color: #fff; font-weight: 700; padding: 4px 10px; border-radius: 999px;
+  }
+  .vol-head h3 { font-size: 20px; font-weight: 700; letter-spacing: -0.4px; color: var(--ink); }
+  .vol-head .vol-status { margin-left: auto; color: var(--ink-faint); font-size: 13px; }
+
+  .tip-row {
+    display: grid;
+    grid-template-columns: 64px 1fr auto;
+    gap: 22px; align-items: baseline;
+    padding: 20px 0;
+    border-top: 1px solid var(--rule);
+    cursor: pointer;
+    transition: background 0.2s, padding-left 0.2s;
+  }
+  .tip-row:last-child { border-bottom: 1px solid var(--rule); }
+  .tip-row:hover {
+    background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 7%, transparent), transparent 70%);
+    padding-left: 10px;
+  }
+  .tip-row:hover .row-title { color: var(--accent); }
+
+  .row-num {
+    font-weight: 800; font-size: 22px; color: var(--ink-faint);
+    font-variant-numeric: tabular-nums; letter-spacing: -1px; white-space: nowrap;
+  }
+  .row-body { min-width: 0; }
+  .row-title { font-size: 19px; font-weight: 700; letter-spacing: -0.3px; margin-bottom: 7px; transition: color 0.2s; }
+  .row-blurb {
+    color: var(--ink-soft); font-size: 15px; line-height: 1.55;
+    max-width: 640px; padding-left: 14px; border-left: 2px solid var(--rule);
+  }
+  .row-blurb kbd {
+    font-family: "SF Mono", ui-monospace, Menlo, monospace;
+    font-size: 0.8em; background: var(--surface-raised);
+    border: 1px solid var(--rule); border-radius: 5px; padding: 1px 6px; color: var(--ink);
+    white-space: nowrap;
+  }
+  .row-meta { text-align: right; color: var(--ink-faint); font-size: 13px; white-space: nowrap; }
+  .row-meta .read {
+    display: inline-flex; align-items: center; gap: 6px; margin-top: 8px;
+    color: var(--accent); font-weight: 600; font-size: 14px;
+  }
+
+  .archive-link { text-align: center; margin-top: 34px; color: var(--ink-soft); font-size: 15px; }
+  .archive-link a { color: var(--accent); text-decoration: none; border-bottom: 1px solid var(--rule); }
+  .archive-link a:hover { border-color: var(--accent); }
+
+  /* ===== Pull quote ===== */
+  .quote-section { background: var(--surface-raised); padding: 100px 6vw; text-align: center; }
+  blockquote {
+    font-size: clamp(26px, 3.6vw, 40px);
+    line-height: 1.28; letter-spacing: -0.6px; font-weight: 700;
+    max-width: 860px; margin: 0 auto 24px; color: var(--ink); position: relative;
+  }
+  blockquote .grad {
+    background: linear-gradient(100deg, var(--c-purple), var(--c-blue), var(--c-green));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  blockquote::before {
+    content: "{ }";
+    display: block;
+    font-family: "SF Mono", ui-monospace, Menlo, monospace;
+    font-size: 40px; font-weight: 400;
+    color: var(--accent); opacity: 0.5; margin-bottom: 18px;
+  }
+  .quote-attr { color: var(--ink-faint); font-size: 14px; letter-spacing: 1px; text-transform: uppercase; }
+
+  /* ===== About / editor ===== */
+  .bio {
+    display: grid; grid-template-columns: 220px 1fr; gap: 50px;
+    align-items: center; max-width: 860px; margin: 0 auto;
+  }
+  .bio-avatar {
+    width: 220px; height: 220px; border-radius: var(--radius-lg);
+    background:
+      radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--c-orange) 90%, #fff) 0 30%, transparent 31%),
+      linear-gradient(150deg, var(--c-purple), var(--c-blue) 55%, var(--c-green));
+    position: relative;
+    box-shadow: 0 24px 50px -20px color-mix(in srgb, var(--c-purple) 60%, transparent);
+    border: 1px solid var(--rule);
+    overflow: hidden;
+  }
+  .bio-avatar::after {
+    content: ""; position: absolute; left: 50%; bottom: -18%;
+    width: 56%; height: 56%; transform: translateX(-50%);
+    background: color-mix(in srgb, var(--c-orange) 90%, #fff);
+    border-radius: 50% 50% 0 0;
+  }
+  .bio h2 { font-size: 13px; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); margin-bottom: 14px; font-weight: 600; }
+  .bio h3 { font-size: 27px; margin-bottom: 12px; letter-spacing: -0.6px; font-weight: 800; }
+  .bio p { color: var(--ink-soft); margin-bottom: 13px; font-size: 16px; }
+  .bio p strong { color: var(--ink); font-weight: 600; }
+  .bio-links { margin-top: 18px; font-size: 14px; display: flex; gap: 14px; flex-wrap: wrap; }
+  .bio-links a { color: var(--accent); text-decoration: none; border-bottom: 1px solid var(--rule); }
+  .bio-links a:hover { border-color: var(--accent); }
+
+  /* ===== Subscribe ===== */
+  .subscribe-wrap { max-width: 720px; margin: 0 auto; }
+  .subscribe {
+    background: var(--surface-raised);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-lg);
+    padding: 40px 44px;
+    position: relative;
+    overflow: hidden;
+  }
+  .subscribe::before {
+    content: ""; position: absolute; top: -60px; right: -60px;
+    width: 200px; height: 200px;
+    background: conic-gradient(from 180deg, var(--c-purple), var(--c-blue), var(--c-green), var(--c-orange), var(--c-purple));
+    filter: blur(40px); opacity: 0.35; border-radius: 50%;
+  }
+  .subscribe > * { position: relative; }
+  .subscribe h2 { font-size: 30px; font-weight: 800; letter-spacing: -0.8px; margin-bottom: 8px; max-width: 460px; }
+  .subscribe h2 .grad {
+    background: linear-gradient(100deg, var(--c-purple), var(--c-blue));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .subscribe p { color: var(--ink-soft); margin-bottom: 24px; max-width: 460px; }
+  form.signup { display: flex; gap: 12px; flex-wrap: wrap; align-items: stretch; }
+  form.signup input {
+    flex: 1; min-width: 220px;
+    border: 1px solid var(--rule);
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 13px 16px;
+    font-family: inherit; font-size: 16px; color: var(--ink);
+    outline: none; transition: border-color 0.2s;
+  }
+  form.signup input::placeholder { color: var(--ink-faint); }
+  form.signup input:focus { border-color: var(--accent); }
+  form.signup button {
+    background: var(--accent); color: #fff; border: none;
+    border-radius: var(--radius);
+    padding: 13px 26px; font-family: inherit; font-size: 15px; font-weight: 600;
+    cursor: pointer; transition: transform 0.15s, box-shadow 0.2s;
+  }
+  form.signup button:hover { transform: translateY(-2px); box-shadow: 0 10px 24px color-mix(in srgb, var(--accent) 40%, transparent); }
+  .msg { margin-top: 14px; color: var(--c-green); min-height: 18px; font-size: 14px; }
+
+  /* ===== Footer ===== */
+  footer.masthead { padding: 50px 6vw 40px; text-align: center; color: var(--ink-soft); font-size: 14px; line-height: 1.7; }
+  footer.masthead .mast {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-weight: 800; font-size: 24px; color: var(--ink); margin-bottom: 12px; letter-spacing: -0.5px;
+  }
+  footer.masthead .mast .glyph {
+    width: 22px; height: 22px; border: 3px solid var(--accent);
+    border-radius: 0 var(--radius) 0 var(--radius);
+  }
+  footer.masthead nav { margin: 16px 0; }
+  footer.masthead nav a { color: var(--ink); margin: 0 8px; text-decoration: none; border-bottom: 1px solid var(--rule); }
+  footer.masthead nav a:hover { color: var(--accent); border-color: var(--accent); }
+  footer.masthead .small { font-size: 12px; color: var(--ink-faint); margin-top: 18px; }
+
+  /* ===== Responsive ===== */
+  @media (max-width: 900px) {
+    .hero { grid-template-columns: 1fr; gap: 44px; padding-top: 50px; }
+    .tip-card { margin: 0; max-width: none; }
+    .bio { grid-template-columns: 1fr; text-align: center; }
+    .bio-avatar { margin: 0 auto; }
+    .bio-links { justify-content: center; }
+    .top nav { display: none; }
+    .top-meta { display: none; }
+    .tip-row { grid-template-columns: 44px 1fr; }
+    .row-meta { grid-column: 2; text-align: left; padding-top: 6px; }
+    .row-num { font-size: 18px; }
+  }
+
+  /* ===== Reveal ===== */
+  .reveal { opacity: 0; transform: translateY(16px); transition: opacity 0.8s ease, transform 0.8s ease; }
+  .reveal.in { opacity: 1; transform: translateY(0); }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; }
+    html { scroll-behavior: auto; }
+    .reveal { opacity: 1; transform: none; transition: none; }
+    .play-shape { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <a class="wordmark" href="#">
+    <span class="glyph" aria-hidden="true"></span>
+    Bo<span class="r">r</span>der Radius
+  </a>
+  <nav aria-label="Primary">
+    <ul>
+      <li><a href="#tips">tips</a></li>
+      <li><a href="#about">about</a></li>
+      <li><a href="#subscribe">subscribe</a></li>
+    </ul>
+  </nav>
+  <div class="top-right">
+    <span class="top-meta"><span class="live-dot"></span>Issue 12 · out now</span>
+    <button class="theme-toggle" id="themeToggle" aria-label="Switch between light and dark theme" title="Toggle theme">
+      <svg id="iconSun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="4"/>
+        <path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>
+      </svg>
+      <svg id="iconMoon" width="15" height="15" viewBox="0 0 24 24" fill="currentColor" style="display:none;" aria-hidden="true">
+        <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<!-- ===== Hero ===== -->
+<section class="hero">
+  <div class="hero-left">
+    <div class="kicker">A weekly dispatch on what’s up with Figma</div>
+    <h1>Figma tips that <span class="grad">round off</span> the rough edges.</h1>
+    <p class="lede">
+      <strong>Border Radius</strong> is a short weekly read for people who live in Figma. One issue, a handful of sharp tips — auto layout, variables, components, the shortcuts you keep meaning to learn — plus a plain-English note on whatever Figma just shipped. No fluff, no 40-minute YouTube tutorial. Just the good corners.
+    </p>
+    <div class="hero-cta">
+      <a class="btn btn-primary" href="#subscribe">Get the weekly →</a>
+      <a class="btn btn-ghost" href="#tips">Browse the tips</a>
+    </div>
+    <p class="hero-meta">Free · read in three minutes · also on <a href="#">Bluesky</a>, <a href="#">Mastodon</a>, and <a href="#">RSS</a>.</p>
+  </div>
+
+  <aside class="tip-card reveal" aria-label="Featured tip — radius playground">
+    <span class="pill">Tip of the week</span>
+    <div class="play-stage">
+      <div class="play-shape" id="playShape"><span id="shapeVal">24px</span></div>
+    </div>
+    <div class="tip-eyebrow"><span>Issue 12 · the namesake</span><span class="num">#47</span></div>
+    <h3 class="tip-name">Type a radius once, reuse it everywhere</h3>
+    <p class="tip-blurb">Don’t eyeball corners. Save your radii as <b style="color:var(--accent)">number variables</b> so every card, button, and chip rounds the same. Drag below to feel it.</p>
+    <div class="slider-row">
+      <div class="slider-label">
+        <code>radius/lg</code>
+        <span><b id="sliderVal">24</b> px</span>
+      </div>
+      <input type="range" id="radiusSlider" min="0" max="80" value="24" aria-label="Border radius in pixels" />
+      <div class="copy-row">
+        <div class="code-out"><span class="prop">border-radius</span>: <span class="val" id="codeVal">24px</span>;</div>
+        <button class="copy-btn" id="copyBtn" aria-label="Copy CSS">Copy</button>
+      </div>
+    </div>
+  </aside>
+</section>
+
+<!-- ===== Letter from the editor ===== -->
+<section id="letter">
+  <div class="letter">
+    <h2>A note from the editor</h2>
+    <p>I’ve spent the better part of a decade inside Figma — first as a product designer, then as the person on the team everybody pinged with “wait, how do you do that again?” Eventually I started writing the answers down. <strong>Border Radius</strong> is that pile of answers, cleaned up and sent out once a week.</p>
+    <p>Every issue is built the same way: one <strong>tip of the week</strong> worth stealing immediately, three or four <strong>quick hits</strong>, and a short <strong>“what’s up with Figma”</strong> section where I translate the changelog into something you’d actually say out loud.</p>
+    <p class="callout">This week: a confession. I built buttons by hand for <em>years</em> before I trusted auto layout. Press <kbd>Shift</kbd> <kbd>A</kbd>, wrap your frame, and let it do the spacing. You will not go back.</p>
+    <p>No 90-minute deep dives, no “10 plugins that will change your life,” no autoplay. Just the corners I’ve rounded off so you don’t have to. Thanks for reading.</p>
+    <div class="signoff">— Brian</div>
+    <div class="signoff-line">Editor · Border Radius · June 2026</div>
+  </div>
+</section>
+
+<!-- ===== Tip index ===== -->
+<section id="tips">
+  <div class="index-head">
+    <h2>This week’s <span class="grad">issue</span></h2>
+    <span class="aside">issue 12 · best read top to bottom</span>
+  </div>
+
+  <div id="rows"></div>
+
+  <p class="archive-link">every back issue lives in the <a href="#">full archive</a> →</p>
+</section>
+
+<!-- ===== Pull quote ===== -->
+<section class="quote-section">
+  <blockquote>
+    The fastest designers I know aren’t faster at dragging rectangles. They’ve just <span class="grad">stopped doing things by hand</span> that the tool will do for them.
+  </blockquote>
+  <div class="quote-attr">From Issue 09 — “Stop nudging by one pixel”</div>
+</section>
+
+<!-- ===== About / editor ===== -->
+<section id="about">
+  <div class="bio">
+    <div class="bio-avatar reveal" aria-hidden="true"></div>
+    <div>
+      <h2>About the editor</h2>
+      <h3>Brian</h3>
+      <p>Brian is a product designer who has shipped design systems at two startups and one company large enough to have a “design ops” team. He has strong, slightly embarrassing opinions about <strong>nested components</strong> and <strong>variable modes</strong>.</p>
+      <p>He writes <strong>Border Radius</strong> on Sunday nights from a desk that is mostly cables, and reads every reply. If something here saved you ten minutes, that’s the whole job done.</p>
+      <div class="bio-links">
+        <a href="#">Email Brian</a>
+        <a href="#">Suggest a tip</a>
+        <a href="#">The archive</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Subscribe ===== -->
+<section id="subscribe">
+  <div class="subscribe-wrap">
+    <div class="subscribe reveal">
+      <h2>One sharp <span class="grad">Figma tip</span>, every week.</h2>
+      <p>Join designers who’d rather learn one good trick on a Tuesday than binge a tutorial that never ends. Free, no spam, unsubscribe in a click.</p>
+      <form class="signup" id="signup" novalidate>
+        <input type="email" id="email" placeholder="you@studio.com" aria-label="Email address" />
+        <button type="submit">Subscribe</button>
+      </form>
+      <div class="msg" id="msg" aria-live="polite"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Footer ===== -->
+<footer class="masthead">
+  <div class="mast"><span class="glyph" aria-hidden="true"></span>Border Radius</div>
+  <div>a weekly dispatch on what’s up with Figma</div>
+  <nav>
+    <a href="#">bluesky</a>·
+    <a href="#">mastodon</a>·
+    <a href="#">youtube</a>·
+    <a href="#">archive</a>·
+    <a href="#">rss</a>
+  </nav>
+  <div class="small">&copy; <span id="year"></span> Border Radius. Not affiliated with Figma — just a fan with shortcuts. Tips welcome.</div>
+</footer>
+
+<script>
+  // ===== Theme toggle =====
+  const docEl = document.documentElement;
+  const themeToggle = document.getElementById('themeToggle');
+  const iconSun = document.getElementById('iconSun');
+  const iconMoon = document.getElementById('iconMoon');
+
+  function syncThemeIcon() {
+    const light = docEl.getAttribute('data-theme') === 'light';
+    iconSun.style.display = light ? 'none' : 'block';   // dark mode → offer sun
+    iconMoon.style.display = light ? 'block' : 'none';  // light mode → offer moon
+  }
+  syncThemeIcon();
+
+  themeToggle.addEventListener('click', () => {
+    const light = docEl.getAttribute('data-theme') === 'light';
+    if (light) {
+      docEl.removeAttribute('data-theme');
+      try { localStorage.setItem('borderradius-theme', 'dark'); } catch (e) {}
+    } else {
+      docEl.setAttribute('data-theme', 'light');
+      try { localStorage.setItem('borderradius-theme', 'light'); } catch (e) {}
+    }
+    syncThemeIcon();
+  });
+
+  // ===== Radius playground =====
+  const slider = document.getElementById('radiusSlider');
+  const shape = document.getElementById('playShape');
+  const shapeVal = document.getElementById('shapeVal');
+  const sliderVal = document.getElementById('sliderVal');
+  const codeVal = document.getElementById('codeVal');
+  const copyBtn = document.getElementById('copyBtn');
+
+  function applyRadius(px) {
+    const v = px + 'px';
+    shape.style.borderRadius = v;
+    shapeVal.textContent = v;
+    sliderVal.textContent = px;
+    codeVal.textContent = v;
+  }
+  slider.addEventListener('input', () => applyRadius(slider.value));
+  applyRadius(slider.value);
+
+  copyBtn.addEventListener('click', async () => {
+    const css = `border-radius: ${slider.value}px;`;
+    try {
+      await navigator.clipboard.writeText(css);
+    } catch (e) { /* clipboard may be blocked; still show feedback */ }
+    copyBtn.textContent = 'Copied!';
+    copyBtn.classList.add('done');
+    setTimeout(() => { copyBtn.textContent = 'Copy'; copyBtn.classList.remove('done'); }, 1400);
+  });
+
+  // ===== Tip data =====
+  // Each issue is a set of tips grouped into "blocks": the headline tip,
+  // a few quick hits, and a "what's up with Figma" changelog note.
+  const blocks = [
+    {
+      tag: 'Tip of the week',
+      color: 'var(--c-purple)',
+      title: 'Auto layout',
+      status: 'the one that saves the most time',
+      tips: [
+        {
+          num: 47, read: '2 min',
+          title: 'Wrap anything in auto layout with Shift + A',
+          blurb: 'Select your layers, hit <kbd>Shift</kbd> <kbd>A</kbd>, and Figma frames them with real spacing and padding. Resize the frame and everything reflows — no more re-nudging six layers when one label gets longer.',
+        },
+        {
+          num: 48, read: '1 min',
+          title: 'Use “space between” for nav bars and toolbars',
+          blurb: 'In the auto-layout panel, switch alignment to <kbd>Space between</kbd>. Now your logo pins left and your buttons pin right, at any width, with zero spacer frames.',
+        },
+        {
+          num: 49, read: '2 min',
+          title: 'Min & max width turn one frame into a responsive one',
+          blurb: 'Set a min and max width on an auto-layout frame and it behaves like a real responsive container — great for testing how a card holds up from mobile to desktop without three separate copies.',
+        },
+      ]
+    },
+    {
+      tag: 'Quick hits',
+      color: 'var(--c-blue)',
+      title: 'Components & variables',
+      status: 'the system stuff',
+      tips: [
+        {
+          num: 50, read: '2 min',
+          title: 'Save your radii (and spacing) as number variables',
+          blurb: 'Define <kbd>radius/sm</kbd>, <kbd>radius/md</kbd>, <kbd>radius/lg</kbd> once and apply them everywhere. Change the value in one place and every corner in the file updates — this newsletter’s whole namesake, basically.',
+        },
+        {
+          num: 51, read: '3 min',
+          title: 'Variable modes are how you do light & dark for free',
+          blurb: 'Put your color tokens in a collection with a <kbd>Light</kbd> and <kbd>Dark</kbd> mode. Flip the mode on any frame and the whole thing re-themes — no duplicate screens, no detached styles.',
+        },
+        {
+          num: 52, read: '2 min',
+          title: 'Component properties beat a folder of variants',
+          blurb: 'For booleans like “has icon” or text like a button label, use component properties instead of spawning a variant for every combination. Fewer rows in the variant table, way less to maintain.',
+        },
+      ]
+    },
+    {
+      tag: 'What’s up with Figma',
+      color: 'var(--c-green)',
+      title: 'From the changelog',
+      status: 'translated to plain English',
+      tips: [
+        {
+          num: 53, read: '1 min',
+          title: 'Dev Mode now shows your variables as code',
+          blurb: 'If you map design variables to your codebase, Dev Mode can hand engineers the actual token name instead of a raw hex. Less “what blue is this,” more copy-paste. Worth a look if you own a design system.',
+        },
+        {
+          num: 54, read: '2 min',
+          title: 'Figma Make and the “describe it” workflow',
+          blurb: 'Figma’s been leaning into prompt-to-design and prompt-to-prototype. It won’t replace your craft, but it’s a genuinely fast way to rough out a flow before you refine it by hand. Treat it as a sketch, not a final.',
+        },
+      ]
+    }
+  ];
+
+  const rowsEl = document.getElementById('rows');
+  rowsEl.innerHTML = blocks.map(block => `
+    <div class="vol-head reveal">
+      <span class="vol-tag" style="background:${block.color}">${block.tag}</span>
+      <h3>${block.title}</h3>
+      <span class="vol-status">${block.status}</span>
+    </div>
+    ${block.tips.map(t => `
+      <article class="tip-row reveal"
+        tabindex="0"
+        data-title="${t.title}">
+        <div class="row-num">#${t.num}</div>
+        <div class="row-body">
+          <h3 class="row-title">${t.title}</h3>
+          <p class="row-blurb">${t.blurb}</p>
+        </div>
+        <div class="row-meta">
+          ${t.read}
+          <div class="read">read →</div>
+        </div>
+      </article>
+    `).join('')}
+  `).join('');
+
+  // Rows are decorative "read" links for now; clicking just gives feedback.
+  document.querySelectorAll('.tip-row').forEach(row => {
+    const open = () => {
+      const r = row.querySelector('.read');
+      if (!r) return;
+      const original = r.textContent;
+      r.textContent = 'saved →';
+      setTimeout(() => { r.textContent = original; }, 1200);
+    };
+    row.addEventListener('click', open);
+    row.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); }
+    });
+  });
+
+  // ===== Signup =====
+  document.getElementById('signup').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const email = document.getElementById('email').value.trim();
+    const msg = document.getElementById('msg');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      msg.style.color = 'var(--c-red)';
+      msg.textContent = 'Hmm — that doesn’t look like a real address.';
+      return;
+    }
+    msg.style.color = 'var(--c-green)';
+    msg.textContent = `You’re in, ${email.split('@')[0]} — issue 13 lands next Tuesday.`;
+    document.getElementById('email').value = '';
+  });
+
+  // ===== Reveal =====
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(en => {
+      if (en.isIntersecting) {
+        en.target.classList.add('in');
+        io.unobserve(en.target);
+      }
+    });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+  document.getElementById('year').textContent = new Date().getFullYear();
+</script>
+</body>
+</html>
