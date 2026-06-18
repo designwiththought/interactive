@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Pick a spacing scale and never freehand a gap again — Border Radius</title>
+<meta name="description" content="Commit to a small set of spacing values and use only those. Your layouts stop looking random and start feeling deliberate." />
+<script>
+  (function () {
+    try {
+      if (localStorage.getItem('borderradius-theme') === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+    } catch (e) {}
+  })();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+
+<svg class="filters" aria-hidden="true">
+  <filter id="torn" x="-3%" y="-30%" width="106%" height="160%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.014 0.11" numOctaves="4" seed="3" result="n"/>
+    <feDisplacementMap in="SourceGraphic" in2="n" scale="17" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+  <filter id="torn2" x="-5%" y="-30%" width="110%" height="160%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.02 0.13" numOctaves="4" seed="8" result="n"/>
+    <feDisplacementMap in="SourceGraphic" in2="n" scale="20" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+</svg>
+
+<header class="top">
+  <a class="wordmark" href="../index.html">
+    <span class="glyph" aria-hidden="true"></span>
+    Bo<span class="r">r</span>der Radius
+  </a>
+  <nav aria-label="Primary">
+    <ul>
+      <li><a href="../index.html#tips">tips</a></li>
+      <li><a href="../index.html#podcast">podcast</a></li>
+      <li><a href="../index.html#about">about</a></li>
+      <li><a href="../index.html#subscribe">subscribe</a></li>
+    </ul>
+  </nav>
+  <div class="top-right">
+    <span class="top-meta">
+      <svg class="reg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+        <circle cx="12" cy="12" r="6"/><path d="M12 1v6M12 17v6M1 12h6M17 12h6"/>
+      </svg>
+      TIP 03 · LAYOUT
+    </span>
+    <button class="theme-toggle" id="themeToggle" aria-label="Switch between light and dark theme" title="Toggle theme">
+      <svg id="iconSun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="4"/>
+        <path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>
+      </svg>
+      <svg id="iconMoon" width="15" height="15" viewBox="0 0 24 24" fill="currentColor" style="display:none;" aria-hidden="true">
+        <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<main class="article">
+  <a class="back" href="../index.html#tips"><span aria-hidden="true">←</span> all tips</a>
+
+  <div class="article-head">
+    <span class="chip" style="--c:var(--riso-blue)">Layout</span>
+    <h1>Pick a spacing scale and never freehand a gap again</h1>
+    <div class="article-meta"><span>Tip 03</span> · 3 min read · updated June 2026</div>
+  </div>
+
+  <div class="prose">
+    <p>Most layouts that feel “a little off” aren’t off in some mysterious way — they’re spaced with random numbers. A <code>13</code> here, a <code>22</code> there, a <code>7</code> because it looked right at 2am. A <strong>spacing scale</strong> takes that decision off your plate.</p>
+
+    <h2>The scale</h2>
+    <p>Pick a small set of values built on a base of <strong>4</strong> and use <em>only</em> those:</p>
+
+    <div class="scale-demo" aria-hidden="true">
+      <div class="step-box" style="height:18px">4</div>
+      <div class="step-box" style="height:30px">8</div>
+      <div class="step-box" style="height:42px">12</div>
+      <div class="step-box" style="height:54px">16</div>
+      <div class="step-box" style="height:74px">24</div>
+      <div class="step-box" style="height:96px">32</div>
+      <div class="step-box" style="height:124px">48</div>
+    </div>
+
+    <p>Why 4? It divides cleanly, it scales to common type sizes, and the steps are far enough apart that the difference between any two is <em>visible</em>. Eight versus twelve reads as a real change; eight versus nine is just noise.</p>
+
+    <h2>Put it to work</h2>
+    <ol class="steps">
+      <li>Add the values as <strong>number variables</strong> — <code>space/1 = 4</code> through <code>space/8 = 48</code> — the same way you’d store <a href="radius-variables.html">your radii</a>.</li>
+      <li>Bind <strong>gap</strong> and <strong>padding</strong> in your auto-layout frames to those tokens instead of typing numbers.</li>
+      <li>When something feels cramped, jump to the next step up — don’t invent a value in between.</li>
+    </ol>
+
+    <div class="callout">
+      <strong>The discipline is the point.</strong> The scale only works if you refuse the in-between numbers. “Close enough” values are exactly what make a layout feel sloppy.
+    </div>
+
+    <h2>What you get back</h2>
+    <p>Spacing decisions go from “what number?” to “which step?” — a much smaller question. Your work picks up a quiet consistency that reads as <em>polish</em>, and any two designers on the file reach for the same gaps without a meeting about it.</p>
+  </div>
+
+  <div class="article-foot">
+    <a href="auto-layout-shift-a.html"><span aria-hidden="true">←</span> Previous: Wrap anything in auto layout</a>
+    <a href="../index.html#tips">All tips <span aria-hidden="true">→</span></a>
+  </div>
+</main>
+
+<footer class="masthead">
+  <a class="mast" href="../index.html"><span class="glyph" aria-hidden="true"></span>Border Radius</a>
+  <div>design tips, sharp corners, and a podcast</div>
+  <div class="small">&copy; <span id="year"></span> Border Radius. Not affiliated with Figma — just a fan with shortcuts.</div>
+</footer>
+
+<script src="../app.js"></script>
+</body>
+</html>

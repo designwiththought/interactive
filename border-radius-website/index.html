@@ -17,703 +17,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
 <style>
-  :root {
-    /* "Cut & paste" — a torn-paper zine palette (default). The sheets sit on
-       a slightly deeper desk; inks are bold risograph versions of Figma's
-       five-color mark. */
-    --desk: #e2d4b8;
-    --paper: #f4edde;
-    --paper-deep: #ece0c8;
-    --paper-sunk: #dccdac;
-    --ink: #221d16;
-    --ink-soft: #5e5342;
-    --ink-faint: #93836a;
-    --riso-red: #d6453a;
-    --riso-orange: #e07b34;
-    --riso-purple: #6a45c4;
-    --riso-blue: #2456c6;
-    --riso-green: #2f9466;
-    --riso-yellow: #e3a92a;
-    --accent: var(--riso-purple);
-    --accent-2: var(--riso-blue);
-    --rule: #cdbd97;
-    --track: rgba(34, 29, 22, 0.16);
-    --sheet-shadow: rgba(70, 52, 22, 0.20);
-    --scrap-shadow: rgba(60, 44, 18, 0.30);
-    --radius: 10px;
-    --radius-lg: 16px;
-  }
-
-  :root[data-theme="dark"] {
-    /* "Cutting board at night" — the inky dark theme. */
-    --desk: #14110c;
-    --paper: #251f17;
-    --paper-deep: #2d261c;
-    --paper-sunk: #181309;
-    --ink: #ece1c8;
-    --ink-soft: #b4a585;
-    --ink-faint: #7e7056;
-    --riso-red: #e87060;
-    --riso-orange: #ea9a55;
-    --riso-purple: #ad8df2;
-    --riso-blue: #6e94ef;
-    --riso-green: #5fb98a;
-    --riso-yellow: #e4b955;
-    --accent: var(--riso-purple);
-    --accent-2: var(--riso-blue);
-    --rule: #3d3324;
-    --track: rgba(236, 225, 200, 0.14);
-    --sheet-shadow: rgba(0, 0, 0, 0.5);
-    --scrap-shadow: rgba(0, 0, 0, 0.6);
-  }
-
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  html { scroll-behavior: smooth; }
-
-  body {
-    font-family: "Geist", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    background-color: var(--desk);
-    color: var(--ink);
-    line-height: 1.55;
-    font-size: 18px;
-    -webkit-font-smoothing: antialiased;
-    padding-bottom: 90px;
-    transition: background-color 0.4s ease, color 0.4s ease;
-  }
-
-  /* Paper grain — a fixed speckle overlay so everything feels printed. */
-  body::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 60;
-    opacity: 0.5;
-    mix-blend-mode: multiply;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.45'/%3E%3C/svg%3E");
-  }
-  :root[data-theme="dark"] body::before { mix-blend-mode: screen; opacity: 0.4; }
-
-  /* Zero-size host for the torn-edge SVG filters. */
-  .filters { position: absolute; width: 0; height: 0; overflow: hidden; }
-
-  ::selection { background: var(--riso-yellow); color: var(--ink); }
-  a { color: inherit; }
-
-  .mono {
-    font-family: "Geist Mono", "SF Mono", ui-monospace, Menlo, monospace;
-  }
-  .eyebrow {
-    font-family: "Geist Mono", ui-monospace, monospace;
-    font-size: 13px; letter-spacing: 2px; text-transform: uppercase;
-    color: var(--accent);
-  }
-
-  /* A printed highlighter swipe — irregular, overprinted. */
-  .swipe {
-    background: color-mix(in srgb, var(--riso-yellow) 62%, transparent);
-    padding: 0.02em 0.16em;
-    box-decoration-break: clone;
-    -webkit-box-decoration-break: clone;
-    border-radius: 4px 11px 6px 13px / 11px 5px 13px 6px;
-  }
-
-  /* ===== Torn paper helpers ===== */
-  section { position: relative; padding: 78px 6vw; isolation: isolate; }
-  section::before {
-    content: "";
-    position: absolute;
-    inset: 7px 0;
-    z-index: -1;
-    background: var(--paper);
-    filter: url(#torn) drop-shadow(0 12px 18px var(--sheet-shadow));
-  }
-  section:nth-of-type(even)::before { background: var(--paper-deep); }
-  .hero::before { background: var(--paper-deep); }
-  .quote-section::before { background: var(--paper); filter: url(#torn2) drop-shadow(0 12px 18px var(--sheet-shadow)); }
-
-  /* A torn scrap of paper, e.g. a card. */
-  .scrap { position: relative; isolation: isolate; }
-  .scrap::before {
-    content: "";
-    position: absolute;
-    inset: -14px;
-    z-index: -1;
-    background: var(--scrap, var(--paper));
-    filter: url(#torn2) drop-shadow(0 16px 20px var(--scrap-shadow));
-  }
-
-  /* A strip of translucent tape, torn at both ends. */
-  .tape {
-    position: absolute;
-    z-index: 3;
-    width: 104px; height: 28px;
-    background:
-      repeating-linear-gradient(90deg,
-        color-mix(in srgb, var(--riso-blue) 26%, transparent) 0 7px,
-        color-mix(in srgb, var(--riso-blue) 16%, transparent) 7px 14px);
-    opacity: 0.85;
-    filter: url(#torn);
-    box-shadow: 0 2px 3px rgba(0,0,0,0.1);
-  }
-
-  /* ===== Top bar ===== */
-  header.top {
-    padding: 16px 6vw;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: sticky;
-    top: 0;
-    z-index: 40;
-    background: var(--desk);
-  }
-
-  .wordmark {
-    display: inline-flex;
-    align-items: center;
-    gap: 11px;
-    font-weight: 700;
-    font-size: 21px;
-    letter-spacing: -0.5px;
-    text-decoration: none;
-  }
-  /* The logo: a square whose corner is literally, inkily rounded. */
-  .wordmark .glyph {
-    width: 24px;
-    height: 24px;
-    border: 3px solid var(--accent);
-    border-radius: 0 var(--radius) 0 var(--radius);
-    flex-shrink: 0;
-    transition: border-radius 0.4s cubic-bezier(.16,1,.3,1), border-color 0.3s;
-  }
-  .wordmark:hover .glyph { border-radius: var(--radius); border-color: var(--accent-2); }
-  .wordmark .r { color: var(--accent); }
-
-  .top nav ul { list-style: none; display: flex; gap: 24px; align-items: center; }
-  .top nav a {
-    font-family: "Geist Mono", ui-monospace, monospace;
-    color: var(--ink-soft);
-    text-decoration: none;
-    font-size: 13px;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-    border-bottom: 2px solid transparent;
-    padding-bottom: 2px;
-    transition: color 0.2s, border-color 0.2s;
-  }
-  .top nav a:hover { color: var(--accent); border-color: var(--accent); }
-
-  .top-right { display: flex; align-items: center; gap: 18px; }
-  .top-meta {
-    font-family: "Geist Mono", ui-monospace, monospace;
-    font-size: 12px;
-    color: var(--ink-faint);
-    letter-spacing: 0.3px;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .top-meta .reg { width: 12px; height: 12px; flex-shrink: 0; color: var(--riso-red); }
-  .theme-toggle {
-    width: 34px; height: 34px;
-    border-radius: 9px;
-    border: 1px solid var(--rule);
-    background: none;
-    color: var(--ink-soft);
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
-    transition: color 0.2s, border-color 0.2s, transform 0.3s;
-  }
-  .theme-toggle:hover { color: var(--accent); border-color: var(--accent); transform: rotate(18deg); }
-
-  /* ===== Hero ===== */
-  .hero {
-    display: grid;
-    grid-template-columns: 1.35fr 1fr;
-    gap: 60px;
-    align-items: center;
-    padding-top: 70px;
-    padding-bottom: 70px;
-  }
-
-  .kicker {
-    font-family: "Geist Mono", ui-monospace, monospace;
-    font-size: 12px;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    color: var(--accent);
-    margin-bottom: 22px;
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .kicker::before { content: ""; width: 24px; height: 2px; border-radius: 2px; background: var(--accent); }
-
-  .hero h1 {
-    font-size: clamp(44px, 6.4vw, 84px);
-    line-height: 1.0;
-    letter-spacing: -2.5px;
-    font-weight: 700;
-    margin-bottom: 26px;
-  }
-
-  .lede {
-    font-size: 19px;
-    color: var(--ink-soft);
-    max-width: 540px;
-    margin-bottom: 24px;
-  }
-  .lede strong { color: var(--ink); font-weight: 600; }
-
-  .hero-cta { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; }
-  .btn {
-    display: inline-flex; align-items: center; gap: 8px;
-    cursor: pointer;
-    font-family: inherit; font-size: 15px; font-weight: 600;
-    padding: 12px 22px;
-    border-radius: var(--radius);
-    text-decoration: none;
-    transition: transform 0.15s ease, box-shadow 0.2s, background 0.2s, color 0.2s;
-  }
-  .btn-primary {
-    background: var(--accent); color: #fff;
-    box-shadow: 0 8px 16px -6px color-mix(in srgb, var(--accent) 70%, transparent);
-  }
-  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 22px -6px color-mix(in srgb, var(--accent) 70%, transparent); }
-  .btn-ghost { background: transparent; color: var(--ink); border: 1.5px solid var(--ink); }
-  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
-  .hero-meta {
-    font-family: "Geist Mono", ui-monospace, monospace;
-    font-size: 13px; color: var(--ink-faint); margin-top: 22px;
-  }
-  .hero-meta a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
-
-  /* ===== Featured tip card — the radius playground (torn scrap) ===== */
-  .tip-card {
-    --scrap: var(--paper);
-    padding: 22px;
-    transform: rotate(-1.2deg);
-    transition: transform 0.4s ease;
-    position: relative;
-    max-width: 420px;
-    margin-left: auto;
-    width: 100%;
-  }
-  .tip-card:hover { transform: rotate(0deg) translateY(-3px); }
-  .tip-card .tape { top: -16px; left: 50%; transform: translateX(-50%) rotate(-2deg); }
-  .pill {
-    display: inline-block;
-    background: var(--riso-red);
-    color: #fff;
-    font-family: "Geist Mono", ui-monospace, monospace;
-    font-size: 10px;
-    letter-spacing: 1.5px;
-    padding: 5px 11px;
-    text-transform: uppercase;
-    font-weight: 500;
-    border-radius: 4px;
-    transform: rotate(-1.5deg);
-    margin-bottom: 14px;
-  }
-
-  .play-stage {
-    aspect-ratio: 5 / 3;
-    background: var(--paper-sunk);
-    margin: 0 0 18px;
-    display: flex; align-items: center; justify-content: center;
-    overflow: hidden;
-    position: relative;
-    border-radius: 6px;
-  }
-  /* A riso "overprint": two inked blobs whose overlap multiplies. */
-  .play-shape {
-    width: 46%;
-    aspect-ratio: 1;
-    background: var(--riso-red);
-    border-radius: 24px;
-    transition: border-radius 0.08s linear;
-    display: flex; align-items: center; justify-content: center;
-    position: relative;
-    overflow: hidden;
-  }
-  .play-shape::before {
-    content: "";
-    position: absolute;
-    width: 86%; height: 86%;
-    right: -22%; top: -22%;
-    border-radius: 50%;
-    background: var(--riso-blue);
-    mix-blend-mode: multiply;
-  }
-  .play-shape span {
-    position: relative;
-    background: var(--paper);
-    color: var(--ink);
-    font-family: "Geist Mono", ui-monospace, monospace;
-    font-size: 11px; font-weight: 500;
-    padding: 2px 8px;
-    border-radius: 999px;
-    font-variant-numeric: tabular-nums;
-  }
-
-  .tip-eyebrow {
-    font-family: "Geist Mono", ui-monospace, monospace;
-    font-size: 11px; color: var(--ink-faint);
-    letter-spacing: 1px; text-transform: uppercase;
-    margin-bottom: 6px;
-    display: flex; justify-content: space-between; align-items: center;
-  }
-  .tip-eyebrow .num { color: var(--accent); font-weight: 500; }
-  .tip-name { font-size: 22px; line-height: 1.16; letter-spacing: -0.6px; font-weight: 700; margin-bottom: 8px; }
-  .tip-blurb { color: var(--ink-soft); font-size: 14px; margin-bottom: 16px; }
-  .tip-blurb b { font-weight: 600; }
-
-  .slider-row { border-top: 1px dashed var(--rule); padding-top: 16px; }
-  .slider-label {
-    display: flex; justify-content: space-between; align-items: baseline;
-    font-family: "Geist Mono", ui-monospace, monospace;
-    font-size: 12px; color: var(--ink-faint); margin-bottom: 8px;
-    font-variant-numeric: tabular-nums;
-  }
-  .slider-label b { color: var(--accent); }
-  input[type="range"] {
-    -webkit-appearance: none; appearance: none;
-    width: 100%; height: 3px; border-radius: 3px;
-    background: var(--track); outline: none; cursor: pointer; margin-bottom: 14px;
-  }
-  input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none; appearance: none;
-    width: 18px; height: 18px; border-radius: 50%;
-    background: var(--accent); border: 2px solid var(--paper);
-    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-  }
-  input[type="range"]::-moz-range-thumb {
-    width: 18px; height: 18px; border-radius: 50%;
-    background: var(--accent); border: 2px solid var(--paper); cursor: pointer;
-  }
-
-  .copy-row { display: flex; gap: 10px; align-items: center; }
-  .code-out {
-    flex: 1; min-width: 0;
-    font-family: "Geist Mono", ui-monospace, Menlo, monospace;
-    font-size: 13px; color: var(--ink-soft);
-    background: var(--paper-sunk);
-    border-radius: 6px;
-    padding: 9px 12px;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  }
-  .code-out .prop { color: var(--riso-blue); }
-  .code-out .val { color: var(--riso-green); }
-  .copy-btn {
-    border: 1.5px solid var(--ink); background: transparent;
-    color: var(--ink); cursor: pointer;
-    border-radius: 6px; padding: 9px 14px;
-    font-family: "Geist Mono", ui-monospace, monospace; font-size: 12px; font-weight: 500;
-    text-transform: uppercase; letter-spacing: 0.5px;
-    transition: background 0.2s, color 0.2s, border-color 0.2s;
-    flex-shrink: 0;
-  }
-  .copy-btn:hover { background: var(--ink); color: var(--paper); }
-  .copy-btn.done { background: var(--riso-green); border-color: var(--riso-green); color: #fff; }
-
-  /* ===== Letter ===== */
-  .letter { max-width: 660px; margin: 0 auto; }
-  .letter h2 { margin-bottom: 26px; text-align: center; }
-  .letter p { font-size: 19px; line-height: 1.66; color: var(--ink-soft); margin-bottom: 20px; }
-  .letter p strong { color: var(--ink); font-weight: 600; }
-  .letter p em { color: var(--ink); font-style: normal; font-weight: 600; }
-  .letter .callout {
-    color: var(--ink);
-    padding: 18px 22px;
-    border-left: 4px solid var(--accent);
-    background: color-mix(in srgb, var(--accent) 9%, transparent);
-    border-radius: 0 var(--radius) var(--radius) 0;
-    font-size: 17px;
-  }
-  .letter kbd {
-    font-family: "Geist Mono", ui-monospace, Menlo, monospace;
-    font-size: 0.76em;
-    background: var(--paper-deep);
-    border: 1px solid var(--rule);
-    border-bottom-width: 2px;
-    border-radius: 5px;
-    padding: 2px 7px;
-    color: var(--ink);
-    white-space: nowrap;
-  }
-  .signoff { font-weight: 700; font-size: 21px; color: var(--ink); margin-top: 8px; display: inline-block; }
-  .signoff-line {
-    font-family: "Geist Mono", ui-monospace, monospace;
-    font-size: 13px; color: var(--ink-faint); margin-top: 6px; letter-spacing: 0.3px;
-  }
-
-  /* ===== Tip index (one flat list) ===== */
-  .index-head {
-    display: flex; justify-content: space-between; align-items: baseline;
-    margin-bottom: 14px; flex-wrap: wrap; gap: 16px;
-  }
-  .index-head h2 { font-size: clamp(32px, 4vw, 48px); font-weight: 700; letter-spacing: -1.5px; }
-  .index-head .aside {
-    font-family: "Geist Mono", ui-monospace, monospace;
-    color: var(--ink-faint); font-size: 13px;
-  }
-
-  .tip-row {
-    display: grid;
-    grid-template-columns: 52px 1fr auto;
-    gap: 22px; align-items: baseline;
-    padding: 22px 0;
-    border-top: 1.5px solid var(--rule);
-    cursor: pointer;
-    transition: background 0.2s, padding-left 0.2s;
-  }
-  .tip-row:first-of-type { border-top: 2px solid var(--ink); }
-  .tip-row:last-child { border-bottom: 1.5px solid var(--rule); }
-  .tip-row:hover {
-    background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 8%, transparent), transparent 75%);
-    padding-left: 10px;
-  }
-  .tip-row:hover .row-title { color: var(--accent); }
-
-  .row-num {
-    font-family: "Geist Mono", ui-monospace, monospace;
-    font-weight: 500; font-size: 16px; color: var(--ink-faint);
-    font-variant-numeric: tabular-nums; white-space: nowrap; padding-top: 5px;
-  }
-  .row-body { min-width: 0; }
-  .chip {
-    display: inline-block;
-    font-family: "Geist Mono", ui-monospace, monospace;
-    font-size: 10px; letter-spacing: 1px; text-transform: uppercase; font-weight: 500;
-    color: var(--c, var(--accent));
-    background: color-mix(in srgb, var(--c, var(--accent)) 14%, transparent);
-    border: 1px solid color-mix(in srgb, var(--c, var(--accent)) 40%, transparent);
-    padding: 2px 8px; border-radius: 999px;
-    margin-bottom: 10px;
-  }
-  .row-title { font-size: 20px; font-weight: 700; letter-spacing: -0.4px; margin-bottom: 7px; transition: color 0.2s; }
-  .row-blurb {
-    color: var(--ink-soft); font-size: 15px; line-height: 1.55;
-    max-width: 660px;
-  }
-  .row-blurb kbd {
-    font-family: "Geist Mono", ui-monospace, Menlo, monospace;
-    font-size: 0.76em; background: var(--paper-deep);
-    border: 1px solid var(--rule); border-radius: 4px; padding: 1px 6px; color: var(--ink);
-    white-space: nowrap;
-  }
-  .row-meta {
-    font-family: "Geist Mono", ui-monospace, monospace;
-    text-align: right; color: var(--ink-faint); font-size: 12px; white-space: nowrap;
-    font-variant-numeric: tabular-nums;
-  }
-  .row-meta .read {
-    display: inline-flex; align-items: center; gap: 6px; margin-top: 8px;
-    color: var(--accent); font-weight: 500; font-size: 13px;
-  }
-
-  .archive-link {
-    font-family: "Geist Mono", ui-monospace, monospace;
-    text-align: center; margin-top: 34px; color: var(--ink-soft); font-size: 14px;
-  }
-  .archive-link a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
-
-  /* ===== Podcast ===== */
-  .pod {
-    display: grid; grid-template-columns: 1.25fr 1fr; gap: 52px;
-    align-items: center; max-width: 980px; margin: 0 auto;
-  }
-  .pod h2 { margin-bottom: 14px; }
-  .pod h3 { font-size: clamp(28px, 3.4vw, 40px); font-weight: 700; letter-spacing: -1px; margin-bottom: 16px; }
-  .pod p { color: var(--ink-soft); font-size: 17px; line-height: 1.6; margin-bottom: 16px; max-width: 520px; }
-  .pod p strong { color: var(--ink); font-weight: 600; }
-  .listen { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 22px; }
-  .listen-chip {
-    font-family: "Geist Mono", ui-monospace, monospace;
-    font-size: 12px; letter-spacing: 0.3px;
-    color: var(--ink); text-decoration: none;
-    border: 1.5px solid var(--ink);
-    border-radius: 999px; padding: 7px 14px;
-    transition: background 0.2s, color 0.2s, border-color 0.2s;
-  }
-  .listen-chip:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
-
-  .pod-episode {
-    --scrap: var(--paper);
-    padding: 24px; position: relative;
-    transform: rotate(1deg);
-    max-width: 380px; margin: 0 auto; width: 100%;
-  }
-  .pod-episode .tape { top: -15px; left: 24px; transform: rotate(-4deg); width: 92px; }
-  .pod-episode .ep-eyebrow {
-    font-family: "Geist Mono", ui-monospace, monospace;
-    font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--ink-faint);
-    margin-bottom: 14px;
-  }
-  .pod-episode .ep-eyebrow b { color: var(--accent); font-weight: 500; }
-  .ep-main { display: flex; gap: 16px; align-items: center; }
-  .ep-play {
-    width: 52px; height: 52px; flex-shrink: 0;
-    border-radius: 50%;
-    background: var(--accent); color: #fff;
-    border: none; cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 8px 16px -6px color-mix(in srgb, var(--accent) 70%, transparent);
-    transition: transform 0.15s;
-  }
-  .ep-play:hover { transform: scale(1.06); }
-  .ep-text { min-width: 0; }
-  .ep-title { font-size: 18px; font-weight: 700; letter-spacing: -0.4px; line-height: 1.2; margin-bottom: 4px; }
-  .ep-meta {
-    font-family: "Geist Mono", ui-monospace, monospace;
-    font-size: 12px; color: var(--ink-faint);
-  }
-  .ep-wave { display: flex; align-items: flex-end; gap: 3px; height: 22px; margin-top: 16px; }
-  .ep-wave i {
-    flex: 1; background: color-mix(in srgb, var(--accent) 45%, transparent);
-    border-radius: 2px; height: 30%;
-  }
-  .pod-episode.playing .ep-wave i { animation: wave 1s ease-in-out infinite; }
-  .ep-wave i:nth-child(3n) { animation-delay: 0.2s; }
-  .ep-wave i:nth-child(3n+1) { animation-delay: 0.4s; }
-  @keyframes wave { 0%,100% { height: 25%; } 50% { height: 100%; } }
-
-  /* ===== Pull quote ===== */
-  .quote-section { text-align: center; padding-top: 96px; padding-bottom: 96px; }
-  blockquote {
-    font-size: clamp(26px, 3.6vw, 42px);
-    line-height: 1.24; letter-spacing: -1px; font-weight: 700;
-    max-width: 860px; margin: 0 auto 22px; color: var(--ink); position: relative;
-  }
-  blockquote::before {
-    content: "”";
-    display: block;
-    font-size: 80px; line-height: 0.4; margin-bottom: 24px;
-    color: var(--accent); opacity: 0.45;
-  }
-  .quote-attr {
-    font-family: "Geist Mono", ui-monospace, monospace;
-    color: var(--ink-faint); font-size: 13px; letter-spacing: 1px; text-transform: uppercase;
-  }
-
-  /* ===== About / editor ===== */
-  .bio {
-    display: grid; grid-template-columns: 220px 1fr; gap: 54px;
-    align-items: center; max-width: 860px; margin: 0 auto;
-  }
-  .bio-avatar {
-    --scrap: var(--paper-sunk);
-    width: 220px; height: 250px;
-    background:
-      radial-gradient(circle at 50% 36%, color-mix(in srgb, var(--riso-orange) 88%, #fff) 0 30%, transparent 31%),
-      linear-gradient(155deg, var(--riso-purple) 0 56%, var(--riso-green) 56% 100%);
-    position: relative;
-    transform: rotate(-2deg);
-    border-radius: 4px;
-  }
-  .bio-avatar .tape { top: -14px; left: 50%; transform: translateX(-50%) rotate(2deg); width: 90px; }
-  .bio-avatar figcaption {
-    position: absolute;
-    bottom: -32px; left: 0; right: 0;
-    text-align: center;
-    font-family: "Geist Mono", ui-monospace, monospace;
-    font-size: 12px; color: var(--ink-faint);
-  }
-  .bio h2 { margin-bottom: 14px; }
-  .bio h3 { font-size: 30px; margin-bottom: 12px; letter-spacing: -0.8px; font-weight: 700; }
-  .bio p { color: var(--ink-soft); margin-bottom: 13px; font-size: 16px; }
-  .bio p strong { color: var(--ink); font-weight: 600; }
-  .bio-links {
-    font-family: "Geist Mono", ui-monospace, monospace;
-    margin-top: 18px; font-size: 13px; display: flex; gap: 16px; flex-wrap: wrap;
-  }
-  .bio-links a { color: var(--accent); text-decoration: none; border-bottom: 1px solid var(--rule); }
-  .bio-links a:hover { border-color: var(--accent); }
-
-  /* ===== Subscribe (torn scrap) ===== */
-  .subscribe-wrap { max-width: 680px; margin: 0 auto; }
-  .subscribe {
-    --scrap: var(--paper-deep);
-    padding: 40px 44px;
-    position: relative;
-    transform: rotate(0.6deg);
-  }
-  .subscribe .tape { top: -15px; right: 28px; transform: rotate(6deg); width: 96px; }
-  .subscribe h2 { font-size: 32px; font-weight: 700; letter-spacing: -1px; margin-bottom: 8px; max-width: 440px; }
-  .subscribe p { color: var(--ink-soft); margin-bottom: 24px; max-width: 460px; }
-  form.signup { display: flex; gap: 12px; flex-wrap: wrap; align-items: stretch; }
-  form.signup input {
-    flex: 1; min-width: 220px;
-    border: 1.5px solid var(--ink);
-    background: var(--paper);
-    border-radius: var(--radius);
-    padding: 13px 16px;
-    font-family: inherit; font-size: 16px; color: var(--ink);
-    outline: none; transition: border-color 0.2s;
-  }
-  form.signup input::placeholder { color: var(--ink-faint); }
-  form.signup input:focus { border-color: var(--accent); }
-  form.signup button {
-    background: var(--accent); color: #fff; border: none;
-    border-radius: var(--radius);
-    padding: 13px 26px; font-family: inherit; font-size: 14px; font-weight: 600;
-    letter-spacing: 0.3px;
-    cursor: pointer; transition: transform 0.15s, box-shadow 0.2s;
-    box-shadow: 0 8px 16px -6px color-mix(in srgb, var(--accent) 70%, transparent);
-  }
-  form.signup button:hover { transform: translateY(-2px); box-shadow: 0 12px 22px -6px color-mix(in srgb, var(--accent) 70%, transparent); }
-  .msg {
-    font-family: "Geist Mono", ui-monospace, monospace;
-    margin-top: 14px; color: var(--riso-green); min-height: 18px; font-size: 14px;
-  }
-
-  /* ===== Footer ===== */
-  footer.masthead { padding: 50px 6vw 40px; text-align: center; color: var(--ink-soft); font-size: 14px; line-height: 1.7; }
-  footer.masthead .mast {
-    display: inline-flex; align-items: center; gap: 11px;
-    font-weight: 700; font-size: 24px; color: var(--ink); margin-bottom: 12px; letter-spacing: -0.5px;
-  }
-  footer.masthead .mast .glyph {
-    width: 21px; height: 21px; border: 3px solid var(--accent);
-    border-radius: 0 var(--radius) 0 var(--radius);
-  }
-  footer.masthead nav { margin: 16px 0; font-family: "Geist Mono", ui-monospace, monospace; font-size: 13px; }
-  footer.masthead nav a { color: var(--ink); margin: 0 8px; text-decoration: none; border-bottom: 1px solid var(--rule); }
-  footer.masthead nav a:hover { color: var(--accent); border-color: var(--accent); }
-  footer.masthead .small {
-    font-family: "Geist Mono", ui-monospace, monospace;
-    font-size: 12px; color: var(--ink-faint); margin-top: 18px;
-  }
-
-  /* ===== Responsive ===== */
-  @media (max-width: 900px) {
-    .hero { grid-template-columns: 1fr; gap: 44px; padding-top: 40px; }
-    .tip-card { margin: 0; max-width: none; transform: rotate(0deg); }
-    .tip-card:hover { transform: translateY(-3px); }
-    .pod { grid-template-columns: 1fr; gap: 40px; }
-    .pod-episode { margin: 0; transform: rotate(0deg); }
-    .bio { grid-template-columns: 1fr; text-align: center; justify-items: center; }
-    .bio-avatar { margin: 0 auto 40px; }
-    .bio-links { justify-content: center; }
-    .top nav { display: none; }
-    .top-meta { display: none; }
-    .tip-row { grid-template-columns: 40px 1fr; }
-    .row-meta { grid-column: 2; text-align: left; padding-top: 6px; }
-  }
-
-  /* ===== Reveal ===== */
-  .reveal { opacity: 0; transform: translateY(16px); transition: opacity 0.8s ease, transform 0.8s ease; }
-  .reveal.in { opacity: 1; transform: translateY(0); }
-
-  @media (prefers-reduced-motion: reduce) {
-    * { animation: none !important; }
-    html { scroll-behavior: auto; }
-    .reveal { opacity: 1; transform: none; transition: none; }
-    .play-shape { transition: none; }
-  }
+  /* Featured shelf sits directly on the desk (no torn sheet of its own). */
+  .featured::before { display: none; }
 </style>
 </head>
 <body>
@@ -732,7 +39,7 @@
 </svg>
 
 <header class="top">
-  <a class="wordmark" href="#">
+  <a class="wordmark" href="index.html">
     <span class="glyph" aria-hidden="true"></span>
     Bo<span class="r">r</span>der Radius
   </a>
@@ -763,13 +70,13 @@
   </div>
 </header>
 
-<!-- ===== Hero ===== -->
+<!-- ===== Hero (compact intro) ===== -->
 <section class="hero">
-  <div class="hero-left">
+  <div class="hero-inner">
     <div class="kicker">A weekly read on design — heavy on Figma</div>
     <h1>Design tips that <span class="swipe">round off</span> the rough edges.</h1>
     <p class="lede">
-      <strong>Border Radius</strong> is a short weekly read — and a podcast — for people who sweat the details. Sharp tips on <strong>layout, type, design systems, and Figma</strong>, plus a plain-English note on whatever just shipped. No fluff, no 40-minute tutorial. Just the good corners.
+      <strong>Border Radius</strong> is a short weekly read — and a podcast — for people who sweat the details. Sharp tips on <strong>layout, type, design systems, and Figma</strong>, plus a plain-English note on whatever just shipped. No fluff. Just the good corners.
     </p>
     <div class="hero-cta">
       <a class="btn btn-primary" href="#subscribe">Get the weekly →</a>
@@ -777,48 +84,68 @@
     </div>
     <p class="hero-meta">Free · read in three minutes · also on <a href="#">Bluesky</a>, <a href="#">Mastodon</a>, and <a href="#">RSS</a>.</p>
   </div>
-
-  <aside class="tip-card scrap reveal" aria-label="Featured tip — radius playground">
-    <span class="tape" aria-hidden="true"></span>
-    <span class="pill">Tip of the week</span>
-    <div class="play-stage">
-      <div class="play-shape" id="playShape"><span id="shapeVal">24px</span></div>
-    </div>
-    <div class="tip-eyebrow"><span>The namesake</span><span class="num">Figma</span></div>
-    <h3 class="tip-name">Type a radius once, reuse it everywhere</h3>
-    <p class="tip-blurb">Don’t eyeball corners. Save your radii as <b style="color:var(--accent)">number variables</b> so every card, button, and chip rounds the same. Drag below to feel it.</p>
-    <div class="slider-row">
-      <div class="slider-label">
-        <span>radius/lg</span>
-        <span><b id="sliderVal">24</b> px</span>
-      </div>
-      <input type="range" id="radiusSlider" min="0" max="80" value="24" aria-label="Border radius in pixels" />
-      <div class="copy-row">
-        <div class="code-out"><span class="prop">border-radius</span>: <span class="val" id="codeVal">24px</span>;</div>
-        <button class="copy-btn" id="copyBtn" aria-label="Copy CSS">Copy</button>
-      </div>
-    </div>
-  </aside>
 </section>
 
-<!-- ===== Letter from the editor ===== -->
-<section id="letter">
-  <div class="letter">
-    <h2 class="eyebrow">A note from the editor</h2>
-    <p>I’ve spent the better part of a decade designing products — and somewhere along the way I became the person on the team everybody pinged with “wait, how do you do that again?” Eventually I started writing the answers down. <strong>Border Radius</strong> is that pile of answers, cleaned up and sent out once a week.</p>
-    <p>Some tips are about <strong>Figma</strong> specifically — auto layout, variables, the shortcuts you keep meaning to learn. Plenty are just about <strong>good design</strong>: spacing, type, color, and the habits that make the work go faster. And when there’s more to say, I say it out loud on the <strong>podcast</strong>.</p>
-    <p class="callout">This week: a confession. I built buttons by hand for <em>years</em> before I trusted auto layout. Press <kbd>Shift</kbd> <kbd>A</kbd>, wrap your frame, and let it do the spacing. You will not go back.</p>
-    <p>No 90-minute deep dives, no “10 plugins that will change your life,” no autoplay. Just the corners I’ve rounded off so you don’t have to. Thanks for reading.</p>
-    <span class="signoff">— Brian</span>
-    <div class="signoff-line">EDITOR · BORDER RADIUS · JUNE 2026</div>
+<!-- ===== Featured: latest tip + latest episode ===== -->
+<section class="featured">
+  <div class="sec-head">
+    <h2>Start here</h2>
+    <span class="sec-aside">the latest tip &amp; the latest episode</span>
+  </div>
+  <div class="featured-grid">
+
+    <aside class="tip-card scrap reveal" aria-label="Featured tip — radius playground">
+      <span class="tape" aria-hidden="true"></span>
+      <span class="pill">Latest tip</span>
+      <div class="play-stage">
+        <div class="play-shape" id="playShape"><span id="shapeVal">24px</span></div>
+      </div>
+      <div class="tip-eyebrow"><span>The namesake</span><span class="num">Figma</span></div>
+      <h3 class="tip-name"><a href="tips/radius-variables.html">Type a radius once, reuse it everywhere</a></h3>
+      <p class="tip-blurb">Don’t eyeball corners. Save your radii as <b style="color:var(--accent)">number variables</b> so every card, button, and chip rounds the same. Drag to feel it.</p>
+      <div class="slider-row">
+        <div class="slider-label">
+          <span>radius/lg</span>
+          <span><b id="sliderVal">24</b> px</span>
+        </div>
+        <input type="range" id="radiusSlider" min="0" max="80" value="24" aria-label="Border radius in pixels" />
+        <div class="copy-row">
+          <div class="code-out"><span class="prop">border-radius</span>: <span class="val" id="codeVal">24px</span>;</div>
+          <button class="copy-btn" id="copyBtn" aria-label="Copy CSS">Copy</button>
+        </div>
+      </div>
+      <div class="tip-card-foot">
+        <a class="tip-link" href="tips/radius-variables.html">Read the full tip <span class="arr">→</span></a>
+      </div>
+    </aside>
+
+    <aside class="pod-episode in-featured scrap reveal" aria-label="Latest episode">
+      <span class="tape" aria-hidden="true"></span>
+      <div class="ep-eyebrow">Latest episode · <b>Ep 14</b></div>
+      <div class="ep-main">
+        <button class="ep-play" id="epPlay" aria-label="Play or pause the latest episode">
+          <svg id="epPlayIcon" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          <svg id="epPauseIcon" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="display:none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+        </button>
+        <div class="ep-text">
+          <div class="ep-title">Design in grayscale first</div>
+          <div class="ep-meta">21 min · this week</div>
+        </div>
+      </div>
+      <div class="ep-wave" aria-hidden="true">
+        <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+      </div>
+      <div class="ep-foot"><a href="#podcast">All episodes &amp; where to listen <span aria-hidden="true">→</span></a></div>
+    </aside>
+
   </div>
 </section>
 
-<!-- ===== Tip index (one flat list) ===== -->
+<!-- ===== Tips list (one flat list) ===== -->
 <section id="tips">
-  <div class="index-head">
+  <div class="sec-head">
     <h2>The <span class="swipe">tips</span></h2>
-    <span class="aside">design, type, systems &amp; figma · best read top to bottom</span>
+    <span class="sec-aside">design, type, systems &amp; figma</span>
   </div>
 
   <div id="rows"></div>
@@ -842,23 +169,21 @@
       </div>
     </div>
 
-    <aside class="pod-episode scrap reveal" aria-label="Latest episode">
-      <span class="tape" aria-hidden="true"></span>
-      <div class="ep-eyebrow">Latest episode · <b>Ep 14</b></div>
-      <div class="ep-main">
-        <button class="ep-play" id="epPlay" aria-label="Play or pause the latest episode">
-          <svg id="epPlayIcon" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-          <svg id="epPauseIcon" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="display:none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-        </button>
-        <div class="ep-text">
-          <div class="ep-title">Design in grayscale first</div>
-          <div class="ep-meta">21 min · this week</div>
-        </div>
-      </div>
-      <div class="ep-wave" aria-hidden="true">
-        <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
-      </div>
-    </aside>
+    <div class="pod-recent">
+      <div class="ep-list-title">Recent episodes</div>
+      <a class="ep-row" href="#">
+        <div><div class="ep-row-title">Stop nudging by one pixel</div><div class="ep-row-sub">On letting the tool do the math.</div></div>
+        <div class="ep-row-len">Ep 13 · 19 min</div>
+      </a>
+      <a class="ep-row" href="#">
+        <div><div class="ep-row-title">A components talk I should’ve given sooner</div><div class="ep-row-sub">Properties vs. a wall of variants.</div></div>
+        <div class="ep-row-len">Ep 12 · 24 min</div>
+      </a>
+      <a class="ep-row" href="#">
+        <div><div class="ep-row-title">Naming things, the only hard problem</div><div class="ep-row-sub">Layers, tokens, and future-you.</div></div>
+        <div class="ep-row-len">Ep 11 · 18 min</div>
+      </a>
+    </div>
   </div>
 </section>
 
@@ -897,7 +222,7 @@
     <div class="subscribe scrap reveal">
       <span class="tape" aria-hidden="true"></span>
       <h2>One sharp <span class="swipe">design tip</span>, every week.</h2>
-      <p>Join designers who’d rather learn one good trick on a Tuesday than binge a tutorial that never ends. The newsletter and a heads-up when a new episode drops. Free, no spam, unsubscribe in a click.</p>
+      <p>Join designers who’d rather learn one good trick on a Tuesday than binge a tutorial that never ends. The newsletter, plus a heads-up when a new episode drops. Free, no spam, unsubscribe in a click.</p>
       <form class="signup" id="signup" novalidate>
         <input type="email" id="email" placeholder="you@studio.com" aria-label="Email address" />
         <button type="submit">Subscribe</button>
@@ -909,7 +234,7 @@
 
 <!-- ===== Footer ===== -->
 <footer class="masthead">
-  <div class="mast"><span class="glyph" aria-hidden="true"></span>Border Radius</div>
+  <a class="mast" href="index.html"><span class="glyph" aria-hidden="true"></span>Border Radius</a>
   <div>design tips, sharp corners, and a podcast</div>
   <nav>
     <a href="#">bluesky</a>·
@@ -922,71 +247,8 @@
 </footer>
 
 <script>
-  // ===== Theme toggle =====
-  const docEl = document.documentElement;
-  const themeToggle = document.getElementById('themeToggle');
-  const iconSun = document.getElementById('iconSun');
-  const iconMoon = document.getElementById('iconMoon');
-
-  function syncThemeIcon() {
-    const dark = docEl.getAttribute('data-theme') === 'dark';
-    iconSun.style.display = dark ? 'block' : 'none';   // dark mode → offer sun
-    iconMoon.style.display = dark ? 'none' : 'block';  // light mode → offer moon
-  }
-  syncThemeIcon();
-
-  themeToggle.addEventListener('click', () => {
-    const dark = docEl.getAttribute('data-theme') === 'dark';
-    if (dark) {
-      docEl.removeAttribute('data-theme');
-      try { localStorage.setItem('borderradius-theme', 'light'); } catch (e) {}
-    } else {
-      docEl.setAttribute('data-theme', 'dark');
-      try { localStorage.setItem('borderradius-theme', 'dark'); } catch (e) {}
-    }
-    syncThemeIcon();
-  });
-
-  // ===== Radius playground =====
-  const slider = document.getElementById('radiusSlider');
-  const shape = document.getElementById('playShape');
-  const shapeVal = document.getElementById('shapeVal');
-  const sliderVal = document.getElementById('sliderVal');
-  const codeVal = document.getElementById('codeVal');
-  const copyBtn = document.getElementById('copyBtn');
-
-  function applyRadius(px) {
-    const v = px + 'px';
-    shape.style.borderRadius = v;
-    shapeVal.textContent = v;
-    sliderVal.textContent = px;
-    codeVal.textContent = v;
-  }
-  slider.addEventListener('input', () => applyRadius(slider.value));
-  applyRadius(slider.value);
-
-  copyBtn.addEventListener('click', async () => {
-    const css = `border-radius: ${slider.value}px;`;
-    try {
-      await navigator.clipboard.writeText(css);
-    } catch (e) { /* clipboard may be blocked; still show feedback */ }
-    copyBtn.textContent = 'Copied!';
-    copyBtn.classList.add('done');
-    setTimeout(() => { copyBtn.textContent = 'Copy'; copyBtn.classList.remove('done'); }, 1400);
-  });
-
-  // ===== Podcast episode (simulated play toggle) =====
-  const epPlay = document.getElementById('epPlay');
-  const epPlayIcon = document.getElementById('epPlayIcon');
-  const epPauseIcon = document.getElementById('epPauseIcon');
-  const epCard = document.querySelector('.pod-episode');
-  epPlay.addEventListener('click', () => {
-    const playing = epCard.classList.toggle('playing');
-    epPlayIcon.style.display = playing ? 'none' : 'block';
-    epPauseIcon.style.display = playing ? 'block' : 'none';
-  });
-
   // ===== Tip data — one flat list: general design tips + Figma tips. =====
+  // Tips with a `slug` link to their own page; the rest are plain rows.
   const chipColors = {
     'Figma':   'var(--riso-purple)',
     'Layout':  'var(--riso-blue)',
@@ -999,24 +261,24 @@
 
   const tips = [
     {
-      tag: 'Figma', read: '2 min',
-      title: 'Wrap anything in auto layout with Shift + A',
-      blurb: 'Select your layers, hit <kbd>Shift</kbd> <kbd>A</kbd>, and Figma frames them with real spacing and padding. Resize the frame and everything reflows — no more re-nudging six layers when one label gets longer.',
+      tag: 'Figma', read: '2 min', slug: 'radius-variables',
+      title: 'Type a radius once, reuse it everywhere',
+      blurb: 'Save your radii as <kbd>number variables</kbd> — <code>radius/sm</code> … <code>radius/lg</code> — and apply them everywhere. Change one value and every corner in the file updates. The newsletter’s whole namesake.',
     },
     {
-      tag: 'Layout', read: '2 min',
+      tag: 'Figma', read: '2 min', slug: 'auto-layout-shift-a',
+      title: 'Wrap anything in auto layout with Shift + A',
+      blurb: 'Select your layers, hit <kbd>Shift</kbd> <kbd>A</kbd>, and Figma frames them with real spacing and padding. Resize and everything reflows — no more re-nudging six layers when one label gets longer.',
+    },
+    {
+      tag: 'Layout', read: '3 min', slug: 'spacing-scale',
       title: 'Pick a spacing scale and never freehand a gap again',
-      blurb: 'Commit to a simple set — 4, 8, 12, 16, 24, 32 — and use only those. Your spacing stops looking random, and “does this feel off?” turns into a question you can actually answer.',
+      blurb: 'Commit to a simple set — 4, 8, 12, 16, 24, 32 — and use only those. Your spacing stops looking random, and “does this feel off?” becomes a question you can actually answer.',
     },
     {
       tag: 'Type', read: '2 min',
       title: 'Two typefaces is plenty — give each one a job',
       blurb: 'One for talking, one for labels and numbers. Most “designy” pages are just one good text face plus a mono used with restraint. Resist adding a third for flavor.',
-    },
-    {
-      tag: 'Figma', read: '2 min',
-      title: 'Save your radii and spacing as number variables',
-      blurb: 'Define <kbd>radius/sm</kbd>, <kbd>radius/md</kbd>, <kbd>radius/lg</kbd> once and apply them everywhere. Change a value in one place and every corner in the file updates — this newsletter’s whole namesake, basically.',
     },
     {
       tag: 'Color', read: '3 min',
@@ -1043,19 +305,13 @@
       title: 'Name layers like someone has to read them (they do)',
       blurb: '“Frame 47” helps no one. Thirty seconds of naming as you go makes your file searchable, your components legible, and your future self a lot less annoyed.',
     },
-    {
-      tag: 'Figma', read: '1 min',
-      title: 'Dev Mode now shows your variables as code',
-      blurb: 'If you map design variables to your codebase, Dev Mode can hand engineers the real token name instead of a raw hex. Less “what blue is this,” more copy-paste — worth it if you own a system.',
-    },
   ];
 
   const rowsEl = document.getElementById('rows');
   rowsEl.innerHTML = tips.map((t, i) => {
     const color = chipColors[t.tag] || 'var(--accent)';
     const n = String(i + 1).padStart(2, '0');
-    return `
-      <article class="tip-row reveal" tabindex="0" data-title="${t.title}">
+    const inner = `
         <div class="row-num">${n}</div>
         <div class="row-body">
           <span class="chip" style="--c:${color}">${t.tag}</span>
@@ -1063,54 +319,14 @@
           <p class="row-blurb">${t.blurb}</p>
         </div>
         <div class="row-meta">
-          ${t.read}
-          <div class="read">read →</div>
-        </div>
-      </article>`;
+          <span>${t.read}</span>
+          <span class="row-arrow" aria-hidden="true">→</span>
+        </div>`;
+    return t.slug
+      ? `<a class="tip-row reveal" href="tips/${t.slug}.html">${inner}</a>`
+      : `<article class="tip-row static reveal">${inner}</article>`;
   }).join('');
-
-  // Rows are decorative "read" links for now; clicking just gives feedback.
-  document.querySelectorAll('.tip-row').forEach(row => {
-    const open = () => {
-      const r = row.querySelector('.read');
-      if (!r) return;
-      const original = r.textContent;
-      r.textContent = 'saved →';
-      setTimeout(() => { r.textContent = original; }, 1200);
-    };
-    row.addEventListener('click', open);
-    row.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); }
-    });
-  });
-
-  // ===== Signup =====
-  document.getElementById('signup').addEventListener('submit', (e) => {
-    e.preventDefault();
-    const email = document.getElementById('email').value.trim();
-    const msg = document.getElementById('msg');
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      msg.style.color = 'var(--riso-red)';
-      msg.textContent = 'Hmm — that doesn’t look like a real address.';
-      return;
-    }
-    msg.style.color = 'var(--riso-green)';
-    msg.textContent = `You’re in, ${email.split('@')[0]} — the next issue lands Tuesday.`;
-    document.getElementById('email').value = '';
-  });
-
-  // ===== Reveal =====
-  const io = new IntersectionObserver((entries) => {
-    entries.forEach(en => {
-      if (en.isIntersecting) {
-        en.target.classList.add('in');
-        io.unobserve(en.target);
-      }
-    });
-  }, { threshold: 0.12 });
-  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
-
-  document.getElementById('year').textContent = new Date().getFullYear();
 </script>
+<script src="app.js"></script>
 </body>
 </html>
