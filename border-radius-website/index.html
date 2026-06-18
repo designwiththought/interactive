@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Border Radius — a weekly dispatch on what’s up with Figma.</title>
+<title>Border Radius — design tips, sharp corners, and a podcast.</title>
 <script>
   // Apply saved theme before paint to avoid a flash. Default is warm paper.
   (function () {
@@ -16,7 +16,7 @@
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
     /* "Cut & paste" — a torn-paper zine palette (default). The sheets sit on
@@ -72,7 +72,7 @@
   html { scroll-behavior: smooth; }
 
   body {
-    font-family: "DM Sans", "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-family: "Geist", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     background-color: var(--desk);
     color: var(--ink);
     line-height: 1.55;
@@ -101,8 +101,13 @@
   ::selection { background: var(--riso-yellow); color: var(--ink); }
   a { color: inherit; }
 
-  mono, .mono {
-    font-family: "DM Mono", "SF Mono", ui-monospace, Menlo, monospace;
+  .mono {
+    font-family: "Geist Mono", "SF Mono", ui-monospace, Menlo, monospace;
+  }
+  .eyebrow {
+    font-family: "Geist Mono", ui-monospace, monospace;
+    font-size: 13px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--accent);
   }
 
   /* A printed highlighter swipe — irregular, overprinted. */
@@ -115,7 +120,6 @@
   }
 
   /* ===== Torn paper helpers ===== */
-  /* A full-width section rendered as a torn sheet stacked on the desk. */
   section { position: relative; padding: 78px 6vw; isolation: isolate; }
   section::before {
     content: "";
@@ -187,9 +191,9 @@
   .wordmark:hover .glyph { border-radius: var(--radius); border-color: var(--accent-2); }
   .wordmark .r { color: var(--accent); }
 
-  .top nav ul { list-style: none; display: flex; gap: 26px; align-items: center; }
+  .top nav ul { list-style: none; display: flex; gap: 24px; align-items: center; }
   .top nav a {
-    font-family: "DM Mono", ui-monospace, monospace;
+    font-family: "Geist Mono", ui-monospace, monospace;
     color: var(--ink-soft);
     text-decoration: none;
     font-size: 13px;
@@ -203,7 +207,7 @@
 
   .top-right { display: flex; align-items: center; gap: 18px; }
   .top-meta {
-    font-family: "DM Mono", ui-monospace, monospace;
+    font-family: "Geist Mono", ui-monospace, monospace;
     font-size: 12px;
     color: var(--ink-faint);
     letter-spacing: 0.3px;
@@ -211,7 +215,6 @@
     align-items: center;
     gap: 8px;
   }
-  /* A printer's registration mark instead of a glowing status dot. */
   .top-meta .reg { width: 12px; height: 12px; flex-shrink: 0; color: var(--riso-red); }
   .theme-toggle {
     width: 34px; height: 34px;
@@ -237,7 +240,7 @@
   }
 
   .kicker {
-    font-family: "DM Mono", ui-monospace, monospace;
+    font-family: "Geist Mono", ui-monospace, monospace;
     font-size: 12px;
     letter-spacing: 1.5px;
     text-transform: uppercase;
@@ -263,13 +266,13 @@
     max-width: 540px;
     margin-bottom: 24px;
   }
-  .lede strong { color: var(--ink); font-weight: 700; }
+  .lede strong { color: var(--ink); font-weight: 600; }
 
   .hero-cta { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; }
   .btn {
     display: inline-flex; align-items: center; gap: 8px;
     cursor: pointer;
-    font-family: inherit; font-size: 15px; font-weight: 700;
+    font-family: inherit; font-size: 15px; font-weight: 600;
     padding: 12px 22px;
     border-radius: var(--radius);
     text-decoration: none;
@@ -283,7 +286,7 @@
   .btn-ghost { background: transparent; color: var(--ink); border: 1.5px solid var(--ink); }
   .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
   .hero-meta {
-    font-family: "DM Mono", ui-monospace, monospace;
+    font-family: "Geist Mono", ui-monospace, monospace;
     font-size: 13px; color: var(--ink-faint); margin-top: 22px;
   }
   .hero-meta a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
@@ -305,7 +308,7 @@
     display: inline-block;
     background: var(--riso-red);
     color: #fff;
-    font-family: "DM Mono", ui-monospace, monospace;
+    font-family: "Geist Mono", ui-monospace, monospace;
     font-size: 10px;
     letter-spacing: 1.5px;
     padding: 5px 11px;
@@ -316,7 +319,6 @@
     margin-bottom: 14px;
   }
 
-  /* The live preview surface */
   .play-stage {
     aspect-ratio: 5 / 3;
     background: var(--paper-sunk);
@@ -350,7 +352,7 @@
     position: relative;
     background: var(--paper);
     color: var(--ink);
-    font-family: "DM Mono", ui-monospace, monospace;
+    font-family: "Geist Mono", ui-monospace, monospace;
     font-size: 11px; font-weight: 500;
     padding: 2px 8px;
     border-radius: 999px;
@@ -358,7 +360,7 @@
   }
 
   .tip-eyebrow {
-    font-family: "DM Mono", ui-monospace, monospace;
+    font-family: "Geist Mono", ui-monospace, monospace;
     font-size: 11px; color: var(--ink-faint);
     letter-spacing: 1px; text-transform: uppercase;
     margin-bottom: 6px;
@@ -367,12 +369,12 @@
   .tip-eyebrow .num { color: var(--accent); font-weight: 500; }
   .tip-name { font-size: 22px; line-height: 1.16; letter-spacing: -0.6px; font-weight: 700; margin-bottom: 8px; }
   .tip-blurb { color: var(--ink-soft); font-size: 14px; margin-bottom: 16px; }
-  .tip-blurb b { font-weight: 700; }
+  .tip-blurb b { font-weight: 600; }
 
   .slider-row { border-top: 1px dashed var(--rule); padding-top: 16px; }
   .slider-label {
     display: flex; justify-content: space-between; align-items: baseline;
-    font-family: "DM Mono", ui-monospace, monospace;
+    font-family: "Geist Mono", ui-monospace, monospace;
     font-size: 12px; color: var(--ink-faint); margin-bottom: 8px;
     font-variant-numeric: tabular-nums;
   }
@@ -396,7 +398,7 @@
   .copy-row { display: flex; gap: 10px; align-items: center; }
   .code-out {
     flex: 1; min-width: 0;
-    font-family: "DM Mono", ui-monospace, Menlo, monospace;
+    font-family: "Geist Mono", ui-monospace, Menlo, monospace;
     font-size: 13px; color: var(--ink-soft);
     background: var(--paper-sunk);
     border-radius: 6px;
@@ -409,7 +411,7 @@
     border: 1.5px solid var(--ink); background: transparent;
     color: var(--ink); cursor: pointer;
     border-radius: 6px; padding: 9px 14px;
-    font-family: "DM Mono", ui-monospace, monospace; font-size: 12px; font-weight: 500;
+    font-family: "Geist Mono", ui-monospace, monospace; font-size: 12px; font-weight: 500;
     text-transform: uppercase; letter-spacing: 0.5px;
     transition: background 0.2s, color 0.2s, border-color 0.2s;
     flex-shrink: 0;
@@ -419,14 +421,10 @@
 
   /* ===== Letter ===== */
   .letter { max-width: 660px; margin: 0 auto; }
-  .letter h2 {
-    font-family: "DM Mono", ui-monospace, monospace;
-    font-size: 13px; letter-spacing: 2px; text-transform: uppercase;
-    color: var(--accent); margin-bottom: 26px; text-align: center;
-  }
+  .letter h2 { margin-bottom: 26px; text-align: center; }
   .letter p { font-size: 19px; line-height: 1.66; color: var(--ink-soft); margin-bottom: 20px; }
-  .letter p strong { color: var(--ink); font-weight: 700; }
-  .letter p em { color: var(--ink); font-style: normal; font-weight: 700; }
+  .letter p strong { color: var(--ink); font-weight: 600; }
+  .letter p em { color: var(--ink); font-style: normal; font-weight: 600; }
   .letter .callout {
     color: var(--ink);
     padding: 18px 22px;
@@ -436,7 +434,7 @@
     font-size: 17px;
   }
   .letter kbd {
-    font-family: "DM Mono", ui-monospace, Menlo, monospace;
+    font-family: "Geist Mono", ui-monospace, Menlo, monospace;
     font-size: 0.76em;
     background: var(--paper-deep);
     border: 1px solid var(--rule);
@@ -448,48 +446,31 @@
   }
   .signoff { font-weight: 700; font-size: 21px; color: var(--ink); margin-top: 8px; display: inline-block; }
   .signoff-line {
-    font-family: "DM Mono", ui-monospace, monospace;
+    font-family: "Geist Mono", ui-monospace, monospace;
     font-size: 13px; color: var(--ink-faint); margin-top: 6px; letter-spacing: 0.3px;
   }
 
-  /* ===== Tip index ===== */
+  /* ===== Tip index (one flat list) ===== */
   .index-head {
     display: flex; justify-content: space-between; align-items: baseline;
-    margin-bottom: 30px; flex-wrap: wrap; gap: 16px;
+    margin-bottom: 14px; flex-wrap: wrap; gap: 16px;
   }
   .index-head h2 { font-size: clamp(32px, 4vw, 48px); font-weight: 700; letter-spacing: -1.5px; }
   .index-head .aside {
-    font-family: "DM Mono", ui-monospace, monospace;
+    font-family: "Geist Mono", ui-monospace, monospace;
     color: var(--ink-faint); font-size: 13px;
-  }
-
-  .vol-head {
-    display: flex; align-items: center; gap: 14px;
-    margin: 44px 0 6px; padding-bottom: 12px; flex-wrap: wrap;
-  }
-  .vol-head:first-child { margin-top: 0; }
-  .vol-head .vol-tag {
-    font-family: "DM Mono", ui-monospace, monospace;
-    font-size: 11px; letter-spacing: 1px; text-transform: uppercase;
-    color: #fff; font-weight: 500; padding: 5px 12px;
-    border-radius: 5px;
-    transform: rotate(-1.5deg);
-  }
-  .vol-head h3 { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; color: var(--ink); }
-  .vol-head .vol-status {
-    font-family: "DM Mono", ui-monospace, monospace;
-    margin-left: auto; color: var(--ink-faint); font-size: 12px;
   }
 
   .tip-row {
     display: grid;
-    grid-template-columns: 64px 1fr auto;
+    grid-template-columns: 52px 1fr auto;
     gap: 22px; align-items: baseline;
-    padding: 20px 0;
+    padding: 22px 0;
     border-top: 1.5px solid var(--rule);
     cursor: pointer;
     transition: background 0.2s, padding-left 0.2s;
   }
+  .tip-row:first-of-type { border-top: 2px solid var(--ink); }
   .tip-row:last-child { border-bottom: 1.5px solid var(--rule); }
   .tip-row:hover {
     background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 8%, transparent), transparent 75%);
@@ -498,24 +479,34 @@
   .tip-row:hover .row-title { color: var(--accent); }
 
   .row-num {
-    font-family: "DM Mono", ui-monospace, monospace;
-    font-weight: 500; font-size: 18px; color: var(--ink-faint);
-    font-variant-numeric: tabular-nums; white-space: nowrap; padding-top: 3px;
+    font-family: "Geist Mono", ui-monospace, monospace;
+    font-weight: 500; font-size: 16px; color: var(--ink-faint);
+    font-variant-numeric: tabular-nums; white-space: nowrap; padding-top: 5px;
   }
   .row-body { min-width: 0; }
+  .chip {
+    display: inline-block;
+    font-family: "Geist Mono", ui-monospace, monospace;
+    font-size: 10px; letter-spacing: 1px; text-transform: uppercase; font-weight: 500;
+    color: var(--c, var(--accent));
+    background: color-mix(in srgb, var(--c, var(--accent)) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--c, var(--accent)) 40%, transparent);
+    padding: 2px 8px; border-radius: 999px;
+    margin-bottom: 10px;
+  }
   .row-title { font-size: 20px; font-weight: 700; letter-spacing: -0.4px; margin-bottom: 7px; transition: color 0.2s; }
   .row-blurb {
     color: var(--ink-soft); font-size: 15px; line-height: 1.55;
-    max-width: 640px; padding-left: 14px; border-left: 2px solid var(--rule);
+    max-width: 660px;
   }
   .row-blurb kbd {
-    font-family: "DM Mono", ui-monospace, Menlo, monospace;
+    font-family: "Geist Mono", ui-monospace, Menlo, monospace;
     font-size: 0.76em; background: var(--paper-deep);
     border: 1px solid var(--rule); border-radius: 4px; padding: 1px 6px; color: var(--ink);
     white-space: nowrap;
   }
   .row-meta {
-    font-family: "DM Mono", ui-monospace, monospace;
+    font-family: "Geist Mono", ui-monospace, monospace;
     text-align: right; color: var(--ink-faint); font-size: 12px; white-space: nowrap;
     font-variant-numeric: tabular-nums;
   }
@@ -525,10 +516,70 @@
   }
 
   .archive-link {
-    font-family: "DM Mono", ui-monospace, monospace;
+    font-family: "Geist Mono", ui-monospace, monospace;
     text-align: center; margin-top: 34px; color: var(--ink-soft); font-size: 14px;
   }
   .archive-link a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+
+  /* ===== Podcast ===== */
+  .pod {
+    display: grid; grid-template-columns: 1.25fr 1fr; gap: 52px;
+    align-items: center; max-width: 980px; margin: 0 auto;
+  }
+  .pod h2 { margin-bottom: 14px; }
+  .pod h3 { font-size: clamp(28px, 3.4vw, 40px); font-weight: 700; letter-spacing: -1px; margin-bottom: 16px; }
+  .pod p { color: var(--ink-soft); font-size: 17px; line-height: 1.6; margin-bottom: 16px; max-width: 520px; }
+  .pod p strong { color: var(--ink); font-weight: 600; }
+  .listen { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 22px; }
+  .listen-chip {
+    font-family: "Geist Mono", ui-monospace, monospace;
+    font-size: 12px; letter-spacing: 0.3px;
+    color: var(--ink); text-decoration: none;
+    border: 1.5px solid var(--ink);
+    border-radius: 999px; padding: 7px 14px;
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
+  }
+  .listen-chip:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  .pod-episode {
+    --scrap: var(--paper);
+    padding: 24px; position: relative;
+    transform: rotate(1deg);
+    max-width: 380px; margin: 0 auto; width: 100%;
+  }
+  .pod-episode .tape { top: -15px; left: 24px; transform: rotate(-4deg); width: 92px; }
+  .pod-episode .ep-eyebrow {
+    font-family: "Geist Mono", ui-monospace, monospace;
+    font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--ink-faint);
+    margin-bottom: 14px;
+  }
+  .pod-episode .ep-eyebrow b { color: var(--accent); font-weight: 500; }
+  .ep-main { display: flex; gap: 16px; align-items: center; }
+  .ep-play {
+    width: 52px; height: 52px; flex-shrink: 0;
+    border-radius: 50%;
+    background: var(--accent); color: #fff;
+    border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 8px 16px -6px color-mix(in srgb, var(--accent) 70%, transparent);
+    transition: transform 0.15s;
+  }
+  .ep-play:hover { transform: scale(1.06); }
+  .ep-text { min-width: 0; }
+  .ep-title { font-size: 18px; font-weight: 700; letter-spacing: -0.4px; line-height: 1.2; margin-bottom: 4px; }
+  .ep-meta {
+    font-family: "Geist Mono", ui-monospace, monospace;
+    font-size: 12px; color: var(--ink-faint);
+  }
+  .ep-wave { display: flex; align-items: flex-end; gap: 3px; height: 22px; margin-top: 16px; }
+  .ep-wave i {
+    flex: 1; background: color-mix(in srgb, var(--accent) 45%, transparent);
+    border-radius: 2px; height: 30%;
+  }
+  .pod-episode.playing .ep-wave i { animation: wave 1s ease-in-out infinite; }
+  .ep-wave i:nth-child(3n) { animation-delay: 0.2s; }
+  .ep-wave i:nth-child(3n+1) { animation-delay: 0.4s; }
+  @keyframes wave { 0%,100% { height: 25%; } 50% { height: 100%; } }
 
   /* ===== Pull quote ===== */
   .quote-section { text-align: center; padding-top: 96px; padding-bottom: 96px; }
@@ -544,7 +595,7 @@
     color: var(--accent); opacity: 0.45;
   }
   .quote-attr {
-    font-family: "DM Mono", ui-monospace, monospace;
+    font-family: "Geist Mono", ui-monospace, monospace;
     color: var(--ink-faint); font-size: 13px; letter-spacing: 1px; text-transform: uppercase;
   }
 
@@ -568,18 +619,15 @@
     position: absolute;
     bottom: -32px; left: 0; right: 0;
     text-align: center;
-    font-family: "DM Mono", ui-monospace, monospace;
+    font-family: "Geist Mono", ui-monospace, monospace;
     font-size: 12px; color: var(--ink-faint);
   }
-  .bio h2 {
-    font-family: "DM Mono", ui-monospace, monospace;
-    font-size: 13px; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); margin-bottom: 14px;
-  }
+  .bio h2 { margin-bottom: 14px; }
   .bio h3 { font-size: 30px; margin-bottom: 12px; letter-spacing: -0.8px; font-weight: 700; }
   .bio p { color: var(--ink-soft); margin-bottom: 13px; font-size: 16px; }
-  .bio p strong { color: var(--ink); font-weight: 700; }
+  .bio p strong { color: var(--ink); font-weight: 600; }
   .bio-links {
-    font-family: "DM Mono", ui-monospace, monospace;
+    font-family: "Geist Mono", ui-monospace, monospace;
     margin-top: 18px; font-size: 13px; display: flex; gap: 16px; flex-wrap: wrap;
   }
   .bio-links a { color: var(--accent); text-decoration: none; border-bottom: 1px solid var(--rule); }
@@ -611,14 +659,14 @@
   form.signup button {
     background: var(--accent); color: #fff; border: none;
     border-radius: var(--radius);
-    padding: 13px 26px; font-family: inherit; font-size: 14px; font-weight: 700;
+    padding: 13px 26px; font-family: inherit; font-size: 14px; font-weight: 600;
     letter-spacing: 0.3px;
     cursor: pointer; transition: transform 0.15s, box-shadow 0.2s;
     box-shadow: 0 8px 16px -6px color-mix(in srgb, var(--accent) 70%, transparent);
   }
   form.signup button:hover { transform: translateY(-2px); box-shadow: 0 12px 22px -6px color-mix(in srgb, var(--accent) 70%, transparent); }
   .msg {
-    font-family: "DM Mono", ui-monospace, monospace;
+    font-family: "Geist Mono", ui-monospace, monospace;
     margin-top: 14px; color: var(--riso-green); min-height: 18px; font-size: 14px;
   }
 
@@ -632,11 +680,11 @@
     width: 21px; height: 21px; border: 3px solid var(--accent);
     border-radius: 0 var(--radius) 0 var(--radius);
   }
-  footer.masthead nav { margin: 16px 0; font-family: "DM Mono", ui-monospace, monospace; font-size: 13px; }
+  footer.masthead nav { margin: 16px 0; font-family: "Geist Mono", ui-monospace, monospace; font-size: 13px; }
   footer.masthead nav a { color: var(--ink); margin: 0 8px; text-decoration: none; border-bottom: 1px solid var(--rule); }
   footer.masthead nav a:hover { color: var(--accent); border-color: var(--accent); }
   footer.masthead .small {
-    font-family: "DM Mono", ui-monospace, monospace;
+    font-family: "Geist Mono", ui-monospace, monospace;
     font-size: 12px; color: var(--ink-faint); margin-top: 18px;
   }
 
@@ -645,12 +693,14 @@
     .hero { grid-template-columns: 1fr; gap: 44px; padding-top: 40px; }
     .tip-card { margin: 0; max-width: none; transform: rotate(0deg); }
     .tip-card:hover { transform: translateY(-3px); }
+    .pod { grid-template-columns: 1fr; gap: 40px; }
+    .pod-episode { margin: 0; transform: rotate(0deg); }
     .bio { grid-template-columns: 1fr; text-align: center; justify-items: center; }
     .bio-avatar { margin: 0 auto 40px; }
     .bio-links { justify-content: center; }
     .top nav { display: none; }
     .top-meta { display: none; }
-    .tip-row { grid-template-columns: 44px 1fr; }
+    .tip-row { grid-template-columns: 40px 1fr; }
     .row-meta { grid-column: 2; text-align: left; padding-top: 6px; }
   }
 
@@ -689,6 +739,7 @@
   <nav aria-label="Primary">
     <ul>
       <li><a href="#tips">tips</a></li>
+      <li><a href="#podcast">podcast</a></li>
       <li><a href="#about">about</a></li>
       <li><a href="#subscribe">subscribe</a></li>
     </ul>
@@ -715,10 +766,10 @@
 <!-- ===== Hero ===== -->
 <section class="hero">
   <div class="hero-left">
-    <div class="kicker">A weekly dispatch on what’s up with Figma</div>
-    <h1>Figma tips that <span class="swipe">round off</span> the rough edges.</h1>
+    <div class="kicker">A weekly read on design — heavy on Figma</div>
+    <h1>Design tips that <span class="swipe">round off</span> the rough edges.</h1>
     <p class="lede">
-      <strong>Border Radius</strong> is a short weekly read for people who live in Figma. One issue, a handful of sharp tips — <strong>auto layout, variables, components</strong>, the shortcuts you keep meaning to learn — plus a plain-English note on whatever Figma just shipped. No fluff, no 40-minute tutorial. Just the good corners.
+      <strong>Border Radius</strong> is a short weekly read — and a podcast — for people who sweat the details. Sharp tips on <strong>layout, type, design systems, and Figma</strong>, plus a plain-English note on whatever just shipped. No fluff, no 40-minute tutorial. Just the good corners.
     </p>
     <div class="hero-cta">
       <a class="btn btn-primary" href="#subscribe">Get the weekly →</a>
@@ -733,7 +784,7 @@
     <div class="play-stage">
       <div class="play-shape" id="playShape"><span id="shapeVal">24px</span></div>
     </div>
-    <div class="tip-eyebrow"><span>Issue 12 · the namesake</span><span class="num">#47</span></div>
+    <div class="tip-eyebrow"><span>The namesake</span><span class="num">Figma</span></div>
     <h3 class="tip-name">Type a radius once, reuse it everywhere</h3>
     <p class="tip-blurb">Don’t eyeball corners. Save your radii as <b style="color:var(--accent)">number variables</b> so every card, button, and chip rounds the same. Drag below to feel it.</p>
     <div class="slider-row">
@@ -753,9 +804,9 @@
 <!-- ===== Letter from the editor ===== -->
 <section id="letter">
   <div class="letter">
-    <h2>A note from the editor</h2>
-    <p>I’ve spent the better part of a decade inside Figma — first as a product designer, then as the person on the team everybody pinged with “wait, how do you do that again?” Eventually I started writing the answers down. <strong>Border Radius</strong> is that pile of answers, cleaned up and sent out once a week.</p>
-    <p>Every issue is built the same way: one <strong>tip of the week</strong> worth stealing immediately, three or four <strong>quick hits</strong>, and a short <strong>“what’s up with Figma”</strong> section where I translate the changelog into something you’d actually say out loud.</p>
+    <h2 class="eyebrow">A note from the editor</h2>
+    <p>I’ve spent the better part of a decade designing products — and somewhere along the way I became the person on the team everybody pinged with “wait, how do you do that again?” Eventually I started writing the answers down. <strong>Border Radius</strong> is that pile of answers, cleaned up and sent out once a week.</p>
+    <p>Some tips are about <strong>Figma</strong> specifically — auto layout, variables, the shortcuts you keep meaning to learn. Plenty are just about <strong>good design</strong>: spacing, type, color, and the habits that make the work go faster. And when there’s more to say, I say it out loud on the <strong>podcast</strong>.</p>
     <p class="callout">This week: a confession. I built buttons by hand for <em>years</em> before I trusted auto layout. Press <kbd>Shift</kbd> <kbd>A</kbd>, wrap your frame, and let it do the spacing. You will not go back.</p>
     <p>No 90-minute deep dives, no “10 plugins that will change your life,” no autoplay. Just the corners I’ve rounded off so you don’t have to. Thanks for reading.</p>
     <span class="signoff">— Brian</span>
@@ -763,16 +814,52 @@
   </div>
 </section>
 
-<!-- ===== Tip index ===== -->
+<!-- ===== Tip index (one flat list) ===== -->
 <section id="tips">
   <div class="index-head">
-    <h2>This week’s <span class="swipe">issue</span></h2>
-    <span class="aside">issue 12 · best read top to bottom</span>
+    <h2>The <span class="swipe">tips</span></h2>
+    <span class="aside">design, type, systems &amp; figma · best read top to bottom</span>
   </div>
 
   <div id="rows"></div>
 
-  <p class="archive-link">every back issue lives in the <a href="#">full archive</a> →</p>
+  <p class="archive-link">every tip ever lives in the <a href="#">full archive</a> →</p>
+</section>
+
+<!-- ===== Podcast ===== -->
+<section id="podcast">
+  <div class="pod">
+    <div class="pod-intro">
+      <h2 class="eyebrow">What’s the podcast?</h2>
+      <h3>Border Radius, out loud.</h3>
+      <p>Same idea as the newsletter, with a microphone. Every other Thursday I take <strong>one design idea</strong> — a Figma trick, a layout principle, a hard-won process lesson — and talk it all the way through in about twenty minutes. Solo most weeks, with a guest designer when I can twist an arm.</p>
+      <p>No ads, no meandering. Subscribe wherever you listen:</p>
+      <div class="listen">
+        <a class="listen-chip" href="#">Apple Podcasts</a>
+        <a class="listen-chip" href="#">Spotify</a>
+        <a class="listen-chip" href="#">Overcast</a>
+        <a class="listen-chip" href="#">RSS</a>
+      </div>
+    </div>
+
+    <aside class="pod-episode scrap reveal" aria-label="Latest episode">
+      <span class="tape" aria-hidden="true"></span>
+      <div class="ep-eyebrow">Latest episode · <b>Ep 14</b></div>
+      <div class="ep-main">
+        <button class="ep-play" id="epPlay" aria-label="Play or pause the latest episode">
+          <svg id="epPlayIcon" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          <svg id="epPauseIcon" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="display:none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+        </button>
+        <div class="ep-text">
+          <div class="ep-title">Design in grayscale first</div>
+          <div class="ep-meta">21 min · this week</div>
+        </div>
+      </div>
+      <div class="ep-wave" aria-hidden="true">
+        <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+      </div>
+    </aside>
+  </div>
 </section>
 
 <!-- ===== Pull quote ===== -->
@@ -780,7 +867,7 @@
   <blockquote>
     The fastest designers I know aren’t faster at dragging rectangles. They’ve just <span class="swipe">stopped doing things by hand</span> that the tool will do for them.
   </blockquote>
-  <div class="quote-attr">From Issue 09 — “Stop nudging by one pixel”</div>
+  <div class="quote-attr">From the podcast — Ep 09, “Stop nudging by one pixel”</div>
 </section>
 
 <!-- ===== About / editor ===== -->
@@ -791,10 +878,10 @@
       <figcaption>At the desk — Sunday night</figcaption>
     </figure>
     <div>
-      <h2>About the editor</h2>
+      <h2 class="eyebrow">About the editor</h2>
       <h3>Brian</h3>
       <p>Brian is a product designer who has shipped design systems at two startups and one company large enough to have a “design ops” team. He has strong, slightly embarrassing opinions about <strong>nested components</strong> and <strong>variable modes</strong>.</p>
-      <p>He writes <strong>Border Radius</strong> on Sunday nights from a desk that is mostly cables, and reads every reply. If something here saved you ten minutes, that’s the whole job done.</p>
+      <p>He writes <strong>Border Radius</strong> on Sunday nights and records the podcast whenever the room is quiet enough. If something here saved you ten minutes, that’s the whole job done.</p>
       <div class="bio-links">
         <a href="#">Email Brian</a>
         <a href="#">Suggest a tip</a>
@@ -809,8 +896,8 @@
   <div class="subscribe-wrap">
     <div class="subscribe scrap reveal">
       <span class="tape" aria-hidden="true"></span>
-      <h2>One sharp <span class="swipe">Figma tip</span>, every week.</h2>
-      <p>Join designers who’d rather learn one good trick on a Tuesday than binge a tutorial that never ends. Free, no spam, unsubscribe in a click.</p>
+      <h2>One sharp <span class="swipe">design tip</span>, every week.</h2>
+      <p>Join designers who’d rather learn one good trick on a Tuesday than binge a tutorial that never ends. The newsletter and a heads-up when a new episode drops. Free, no spam, unsubscribe in a click.</p>
       <form class="signup" id="signup" novalidate>
         <input type="email" id="email" placeholder="you@studio.com" aria-label="Email address" />
         <button type="submit">Subscribe</button>
@@ -823,7 +910,7 @@
 <!-- ===== Footer ===== -->
 <footer class="masthead">
   <div class="mast"><span class="glyph" aria-hidden="true"></span>Border Radius</div>
-  <div>a weekly dispatch on what’s up with Figma</div>
+  <div>design tips, sharp corners, and a podcast</div>
   <nav>
     <a href="#">bluesky</a>·
     <a href="#">mastodon</a>·
@@ -888,89 +975,90 @@
     setTimeout(() => { copyBtn.textContent = 'Copy'; copyBtn.classList.remove('done'); }, 1400);
   });
 
-  // ===== Tip data =====
-  // Each issue is a set of tips grouped into "blocks": the headline tip,
-  // a few quick hits, and a "what's up with Figma" changelog note.
-  const blocks = [
+  // ===== Podcast episode (simulated play toggle) =====
+  const epPlay = document.getElementById('epPlay');
+  const epPlayIcon = document.getElementById('epPlayIcon');
+  const epPauseIcon = document.getElementById('epPauseIcon');
+  const epCard = document.querySelector('.pod-episode');
+  epPlay.addEventListener('click', () => {
+    const playing = epCard.classList.toggle('playing');
+    epPlayIcon.style.display = playing ? 'none' : 'block';
+    epPauseIcon.style.display = playing ? 'block' : 'none';
+  });
+
+  // ===== Tip data — one flat list: general design tips + Figma tips. =====
+  const chipColors = {
+    'Figma':   'var(--riso-purple)',
+    'Layout':  'var(--riso-blue)',
+    'Type':    'var(--riso-orange)',
+    'Color':   'var(--riso-red)',
+    'Systems': 'var(--riso-green)',
+    'Process': 'var(--riso-yellow)',
+    'Handoff': 'var(--riso-blue)',
+  };
+
+  const tips = [
     {
-      tag: 'Tip of the week',
-      color: 'var(--riso-purple)',
-      title: 'Auto layout',
-      status: 'the one that saves the most time',
-      tips: [
-        {
-          num: 47, read: '2 min',
-          title: 'Wrap anything in auto layout with Shift + A',
-          blurb: 'Select your layers, hit <kbd>Shift</kbd> <kbd>A</kbd>, and Figma frames them with real spacing and padding. Resize the frame and everything reflows — no more re-nudging six layers when one label gets longer.',
-        },
-        {
-          num: 48, read: '1 min',
-          title: 'Use “space between” for nav bars and toolbars',
-          blurb: 'In the auto-layout panel, switch alignment to <kbd>Space between</kbd>. Now your logo pins left and your buttons pin right, at any width, with zero spacer frames.',
-        },
-        {
-          num: 49, read: '2 min',
-          title: 'Min & max width turn one frame into a responsive one',
-          blurb: 'Set a min and max width on an auto-layout frame and it behaves like a real responsive container — great for testing how a card holds up from mobile to desktop without three separate copies.',
-        },
-      ]
+      tag: 'Figma', read: '2 min',
+      title: 'Wrap anything in auto layout with Shift + A',
+      blurb: 'Select your layers, hit <kbd>Shift</kbd> <kbd>A</kbd>, and Figma frames them with real spacing and padding. Resize the frame and everything reflows — no more re-nudging six layers when one label gets longer.',
     },
     {
-      tag: 'Quick hits',
-      color: 'var(--riso-blue)',
-      title: 'Components & variables',
-      status: 'the system stuff',
-      tips: [
-        {
-          num: 50, read: '2 min',
-          title: 'Save your radii (and spacing) as number variables',
-          blurb: 'Define <kbd>radius/sm</kbd>, <kbd>radius/md</kbd>, <kbd>radius/lg</kbd> once and apply them everywhere. Change the value in one place and every corner in the file updates — this newsletter’s whole namesake, basically.',
-        },
-        {
-          num: 51, read: '3 min',
-          title: 'Variable modes are how you do light & dark for free',
-          blurb: 'Put your color tokens in a collection with a <kbd>Light</kbd> and <kbd>Dark</kbd> mode. Flip the mode on any frame and the whole thing re-themes — no duplicate screens, no detached styles.',
-        },
-        {
-          num: 52, read: '2 min',
-          title: 'Component properties beat a folder of variants',
-          blurb: 'For booleans like “has icon” or text like a button label, use component properties instead of spawning a variant for every combination. Fewer rows in the variant table, way less to maintain.',
-        },
-      ]
+      tag: 'Layout', read: '2 min',
+      title: 'Pick a spacing scale and never freehand a gap again',
+      blurb: 'Commit to a simple set — 4, 8, 12, 16, 24, 32 — and use only those. Your spacing stops looking random, and “does this feel off?” turns into a question you can actually answer.',
     },
     {
-      tag: 'What’s up with Figma',
-      color: 'var(--riso-green)',
-      title: 'From the changelog',
-      status: 'translated to plain English',
-      tips: [
-        {
-          num: 53, read: '1 min',
-          title: 'Dev Mode now shows your variables as code',
-          blurb: 'If you map design variables to your codebase, Dev Mode can hand engineers the actual token name instead of a raw hex. Less “what blue is this,” more copy-paste. Worth a look if you own a design system.',
-        },
-        {
-          num: 54, read: '2 min',
-          title: 'Figma Make and the “describe it” workflow',
-          blurb: 'Figma’s been leaning into prompt-to-design and prompt-to-prototype. It won’t replace your craft, but it’s a genuinely fast way to rough out a flow before you refine it by hand. Treat it as a sketch, not a final.',
-        },
-      ]
-    }
+      tag: 'Type', read: '2 min',
+      title: 'Two typefaces is plenty — give each one a job',
+      blurb: 'One for talking, one for labels and numbers. Most “designy” pages are just one good text face plus a mono used with restraint. Resist adding a third for flavor.',
+    },
+    {
+      tag: 'Figma', read: '2 min',
+      title: 'Save your radii and spacing as number variables',
+      blurb: 'Define <kbd>radius/sm</kbd>, <kbd>radius/md</kbd>, <kbd>radius/lg</kbd> once and apply them everywhere. Change a value in one place and every corner in the file updates — this newsletter’s whole namesake, basically.',
+    },
+    {
+      tag: 'Color', read: '3 min',
+      title: 'Design it in grayscale first, add color last',
+      blurb: 'If the layout reads with no color, your hierarchy is real and not just propped up by a bright accent. Get it working in gray, then let color do the small, deliberate jobs.',
+    },
+    {
+      tag: 'Systems', read: '2 min',
+      title: 'Component properties beat a folder of variants',
+      blurb: 'For booleans like “has icon” or text like a button label, use component properties instead of spawning a variant for every combination. Fewer rows in the variant table, far less to maintain.',
+    },
+    {
+      tag: 'Process', read: '2 min',
+      title: 'Show the messy version early',
+      blurb: 'A rough frame shared on Monday gets you the feedback that saves the polished version on Friday. Hold work too long and you end up defending it instead of improving it.',
+    },
+    {
+      tag: 'Figma', read: '3 min',
+      title: 'Variable modes are how you do light & dark for free',
+      blurb: 'Put your color tokens in a collection with a <kbd>Light</kbd> and <kbd>Dark</kbd> mode. Flip the mode on any frame and the whole thing re-themes — no duplicate screens, no detached styles.',
+    },
+    {
+      tag: 'Handoff', read: '1 min',
+      title: 'Name layers like someone has to read them (they do)',
+      blurb: '“Frame 47” helps no one. Thirty seconds of naming as you go makes your file searchable, your components legible, and your future self a lot less annoyed.',
+    },
+    {
+      tag: 'Figma', read: '1 min',
+      title: 'Dev Mode now shows your variables as code',
+      blurb: 'If you map design variables to your codebase, Dev Mode can hand engineers the real token name instead of a raw hex. Less “what blue is this,” more copy-paste — worth it if you own a system.',
+    },
   ];
 
   const rowsEl = document.getElementById('rows');
-  rowsEl.innerHTML = blocks.map(block => `
-    <div class="vol-head reveal">
-      <span class="vol-tag" style="background:${block.color}">${block.tag}</span>
-      <h3>${block.title}</h3>
-      <span class="vol-status">${block.status}</span>
-    </div>
-    ${block.tips.map(t => `
-      <article class="tip-row reveal"
-        tabindex="0"
-        data-title="${t.title}">
-        <div class="row-num">#${t.num}</div>
+  rowsEl.innerHTML = tips.map((t, i) => {
+    const color = chipColors[t.tag] || 'var(--accent)';
+    const n = String(i + 1).padStart(2, '0');
+    return `
+      <article class="tip-row reveal" tabindex="0" data-title="${t.title}">
+        <div class="row-num">${n}</div>
         <div class="row-body">
+          <span class="chip" style="--c:${color}">${t.tag}</span>
           <h3 class="row-title">${t.title}</h3>
           <p class="row-blurb">${t.blurb}</p>
         </div>
@@ -978,9 +1066,8 @@
           ${t.read}
           <div class="read">read →</div>
         </div>
-      </article>
-    `).join('')}
-  `).join('');
+      </article>`;
+  }).join('');
 
   // Rows are decorative "read" links for now; clicking just gives feedback.
   document.querySelectorAll('.tip-row').forEach(row => {
@@ -1008,7 +1095,7 @@
       return;
     }
     msg.style.color = 'var(--riso-green)';
-    msg.textContent = `You’re in, ${email.split('@')[0]} — issue 13 lands next Tuesday.`;
+    msg.textContent = `You’re in, ${email.split('@')[0]} — the next issue lands Tuesday.`;
     document.getElementById('email').value = '';
   });
 
