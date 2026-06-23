@@ -1,0 +1,18 @@
+{
+  "name": "track",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "A tiny local diff tracker — a minimal git replacement that stores all history as diffs in one JSON file. No dependencies.",
+  "bin": {
+    "track": "bin/track.mjs"
+  },
+  "scripts": {
+    "track": "node bin/track.mjs",
+    "serve": "node bin/track.mjs serve",
+    "test": "node test/run.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
