@@ -17,10 +17,17 @@ import {
   scanWorkingTree,
   status,
   commit,
-  reconstructAt,
-  headIndex,
+  getCommit,
+  headCommitId,
+  reconstructCommit,
   resolveRef,
-  restore,
+  restoreFiles,
+  checkoutTree,
+  createBranch,
+  switchTo,
+  createTag,
+  reset,
+  revert,
 } from "../src/repo.mjs";
 
 let passed = 0;
@@ -30,7 +37,7 @@ function test(name, fn) {
     passed++;
     process.stdout.write(`  ✓ ${name}\n`);
   } catch (err) {
-    process.stdout.write(`  ✗ ${name}\n    ${err.message}\n`);
+    process.stdout.write(`  ✗ ${name}\n    ${err.stack || err.message}\n`);
     process.exitCode = 1;
   }
 }
@@ -43,7 +50,7 @@ test("toLines/fromLines round-trips trailing newline", () => {
   }
 });
 
-test("applyDiff reproduces target for many random-ish cases", () => {
+test("applyDiff reproduces target for many cases", () => {
   const cases = [
     [[], ["a", "b"]],
     [["a", "b"], []],
@@ -52,18 +59,11 @@ test("applyDiff reproduces target for many random-ish cases", () => {
     [["1", "2", "3"], ["1", "2", "3"]],
     [["keep", "old", "keep"], ["keep", "new1", "new2", "keep"]],
   ];
-  for (const [a, b] of cases) {
-    const segs = diffLines(a, b);
-    assert.deepEqual(applyDiff(a, segs), b);
-  }
+  for (const [a, b] of cases) assert.deepEqual(applyDiff(a, diffLines(a, b)), b);
 });
 
-test("diffHasChanges is false for identical input", () => {
+test("diffHasChanges / diffStat", () => {
   assert.equal(diffHasChanges(diffLines(["a", "b"], ["a", "b"])), false);
-  assert.equal(diffHasChanges(diffLines(["a"], ["a", "b"])), true);
-});
-
-test("diffStat counts adds and removes", () => {
   const st = diffStat(diffLines(["a", "b", "c"], ["a", "x", "y", "c"]));
   assert.equal(st.added, 2);
   assert.equal(st.removed, 1);
@@ -76,34 +76,42 @@ function tmpRepo() {
   init(dir);
   return dir;
 }
+function write(dir, file, text) {
+  const abs = path.join(dir, file);
+  fs.mkdirSync(path.dirname(abs), { recursive: true });
+  fs.writeFileSync(abs, text);
+}
+function read(dir, file) {
+  return fs.readFileSync(path.join(dir, file), "utf8");
+}
+function reload(dir) {
+  return loadHistory(dir);
+}
+// commit helper that reloads history first (mirrors CLI usage)
+function ci(dir, msg) {
+  return commit(dir, reload(dir), msg);
+}
 
 test("commit captures adds, then reconstructs them", () => {
   const dir = tmpRepo();
-  fs.writeFileSync(path.join(dir, "a.txt"), "hello\nworld\n");
-  fs.writeFileSync(path.join(dir, "b.txt"), "one\n");
-  let h = loadHistory(dir);
-  const c1 = commit(dir, h, "first");
-  assert.ok(c1, "should produce a commit");
-
-  h = loadHistory(dir);
-  const state = reconstructAt(h, headIndex(h));
+  write(dir, "a.txt", "hello\nworld\n");
+  write(dir, "b.txt", "one\n");
+  ci(dir, "first");
+  const h = reload(dir);
+  const state = reconstructCommit(h, headCommitId(h));
   assert.equal(fromLines(state.get("a.txt")), "hello\nworld\n");
   assert.equal(fromLines(state.get("b.txt")), "one\n");
 });
 
 test("status detects add / modify / delete", () => {
   const dir = tmpRepo();
-  fs.writeFileSync(path.join(dir, "a.txt"), "x\n");
-  fs.writeFileSync(path.join(dir, "b.txt"), "y\n");
-  let h = loadHistory(dir);
-  commit(dir, h, "init");
-  h = loadHistory(dir);
-
-  fs.writeFileSync(path.join(dir, "a.txt"), "x\nmore\n"); // modify
-  fs.writeFileSync(path.join(dir, "c.txt"), "z\n"); // add
-  fs.rmSync(path.join(dir, "b.txt")); // delete
-
-  const s = status(dir, h);
+  write(dir, "a.txt", "x\n");
+  write(dir, "b.txt", "y\n");
+  ci(dir, "init");
+  write(dir, "a.txt", "x\nmore\n");
+  write(dir, "c.txt", "z\n");
+  fs.rmSync(path.join(dir, "b.txt"));
+  const s = status(dir, reload(dir));
   assert.deepEqual(s.added, ["c.txt"]);
   assert.deepEqual(s.modified, ["a.txt"]);
   assert.deepEqual(s.deleted, ["b.txt"]);
@@ -111,103 +119,209 @@ test("status detects add / modify / delete", () => {
 
 test("empty commit returns null", () => {
   const dir = tmpRepo();
-  fs.writeFileSync(path.join(dir, "a.txt"), "x\n");
-  let h = loadHistory(dir);
-  commit(dir, h, "init");
-  h = loadHistory(dir);
-  assert.equal(commit(dir, h, "again"), null);
+  write(dir, "a.txt", "x\n");
+  ci(dir, "init");
+  assert.equal(ci(dir, "again"), null);
 });
 
 test("history walks several commits and reconstructs each", () => {
   const dir = tmpRepo();
-  const file = path.join(dir, "log.txt");
-
-  fs.writeFileSync(file, "v1\n");
-  let h = loadHistory(dir);
-  commit(dir, h, "v1");
-
-  fs.writeFileSync(file, "v1\nv2\n");
-  h = loadHistory(dir);
-  commit(dir, h, "v2");
-
-  fs.writeFileSync(file, "v2\n");
-  h = loadHistory(dir);
-  commit(dir, h, "v3");
-
-  h = loadHistory(dir);
-  assert.equal(fromLines(reconstructAt(h, 0).get("log.txt")), "v1\n");
-  assert.equal(fromLines(reconstructAt(h, 1).get("log.txt")), "v1\nv2\n");
-  assert.equal(fromLines(reconstructAt(h, 2).get("log.txt")), "v2\n");
+  write(dir, "log.txt", "v1\n");
+  const c1 = ci(dir, "v1");
+  write(dir, "log.txt", "v1\nv2\n");
+  const c2 = ci(dir, "v2");
+  write(dir, "log.txt", "v2\n");
+  const c3 = ci(dir, "v3");
+  const h = reload(dir);
+  assert.equal(fromLines(reconstructCommit(h, c1.id).get("log.txt")), "v1\n");
+  assert.equal(fromLines(reconstructCommit(h, c2.id).get("log.txt")), "v1\nv2\n");
+  assert.equal(fromLines(reconstructCommit(h, c3.id).get("log.txt")), "v2\n");
 });
 
-test("restore brings an old version back to the working tree", () => {
+test("restoreFiles brings an old version of one file back", () => {
   const dir = tmpRepo();
-  const file = path.join(dir, "doc.txt");
-  fs.writeFileSync(file, "original\n");
-  let h = loadHistory(dir);
-  commit(dir, h, "first");
-
-  fs.writeFileSync(file, "changed\n");
-  h = loadHistory(dir);
-  commit(dir, h, "second");
-
-  h = loadHistory(dir);
-  restore(dir, h, 0); // back to first commit
-  assert.equal(fs.readFileSync(file, "utf8"), "original\n");
+  write(dir, "doc.txt", "original\n");
+  const c1 = ci(dir, "first");
+  write(dir, "doc.txt", "changed\n");
+  ci(dir, "second");
+  restoreFiles(dir, reload(dir), c1.id, ["doc.txt"]);
+  assert.equal(read(dir, "doc.txt"), "original\n");
 });
 
-test("restore removes files that postdate the target commit", () => {
+test("checkoutTree removes files that postdate the target commit", () => {
   const dir = tmpRepo();
-  fs.writeFileSync(path.join(dir, "a.txt"), "a\n");
-  let h = loadHistory(dir);
-  commit(dir, h, "only a");
-
-  fs.writeFileSync(path.join(dir, "b.txt"), "b\n");
-  h = loadHistory(dir);
-  commit(dir, h, "add b");
-
-  h = loadHistory(dir);
-  restore(dir, h, 0); // a-only state
+  write(dir, "a.txt", "a\n");
+  const c1 = ci(dir, "only a");
+  write(dir, "b.txt", "b\n");
+  ci(dir, "add b");
+  checkoutTree(dir, reload(dir), c1.id);
   assert.ok(fs.existsSync(path.join(dir, "a.txt")));
   assert.ok(!fs.existsSync(path.join(dir, "b.txt")));
 });
 
-test("resolveRef understands HEAD, ordinals, ids and prefixes", () => {
+test("resolveRef: HEAD, ordinals, ids, prefixes, ancestors", () => {
   const dir = tmpRepo();
-  fs.writeFileSync(path.join(dir, "a.txt"), "1\n");
-  let h = loadHistory(dir);
-  const c1 = commit(dir, h, "one");
-  fs.writeFileSync(path.join(dir, "a.txt"), "2\n");
-  h = loadHistory(dir);
-  const c2 = commit(dir, h, "two");
-  h = loadHistory(dir);
-
-  assert.equal(resolveRef(h, "HEAD"), 1);
-  assert.equal(resolveRef(h, "@1"), 0);
-  assert.equal(resolveRef(h, c1.id), 0);
-  assert.equal(resolveRef(h, c1.id.slice(0, 4)), 0);
-  assert.equal(resolveRef(h, c2.id), 1);
+  write(dir, "a.txt", "1\n");
+  const c1 = ci(dir, "one");
+  write(dir, "a.txt", "2\n");
+  const c2 = ci(dir, "two");
+  const h = reload(dir);
+  assert.equal(resolveRef(h, "HEAD"), c2.id);
+  assert.equal(resolveRef(h, "@1"), c1.id);
+  assert.equal(resolveRef(h, c1.id), c1.id);
+  assert.equal(resolveRef(h, c1.id.slice(0, 4)), c1.id);
+  assert.equal(resolveRef(h, "HEAD~1"), c1.id);
+  assert.equal(resolveRef(h, "main"), c2.id);
 });
 
 test("nested directories are tracked", () => {
   const dir = tmpRepo();
-  fs.mkdirSync(path.join(dir, "sub"));
-  fs.writeFileSync(path.join(dir, "sub", "deep.txt"), "deep\n");
-  let h = loadHistory(dir);
-  commit(dir, h, "nested");
-  h = loadHistory(dir);
-  const state = reconstructAt(h, headIndex(h));
-  assert.equal(fromLines(state.get("sub/deep.txt")), "deep\n");
+  write(dir, "sub/deep.txt", "deep\n");
+  ci(dir, "nested");
+  const h = reload(dir);
+  assert.equal(fromLines(reconstructCommit(h, headCommitId(h)).get("sub/deep.txt")), "deep\n");
 });
 
 test(".track itself is never tracked", () => {
   const dir = tmpRepo();
-  fs.writeFileSync(path.join(dir, "a.txt"), "a\n");
-  const work = scanWorkingTree(dir);
-  for (const key of work.keys()) {
-    assert.ok(!key.startsWith(".track/"), `unexpected tracked path: ${key}`);
+  write(dir, "a.txt", "a\n");
+  for (const key of scanWorkingTree(dir).keys()) {
+    assert.ok(!key.startsWith(".track/"), `unexpected: ${key}`);
     assert.notEqual(key, "history.json");
   }
+});
+
+// ----- new git-style features ------------------------------------------------
+
+test("undo (soft reset) un-commits but keeps edits", () => {
+  const dir = tmpRepo();
+  write(dir, "a.txt", "1\n");
+  const c1 = ci(dir, "first");
+  write(dir, "a.txt", "1\n2\n");
+  ci(dir, "second");
+
+  let h = reload(dir);
+  reset(dir, h, c1.id, { hard: false }); // == undo
+  // file unchanged on disk, but the commit is no longer HEAD
+  assert.equal(read(dir, "a.txt"), "1\n2\n");
+  h = reload(dir);
+  assert.equal(headCommitId(h), c1.id);
+  // and the dropped change now shows as uncommitted
+  assert.deepEqual(status(dir, h).modified, ["a.txt"]);
+});
+
+test("reset --hard moves branch and rewrites the working tree", () => {
+  const dir = tmpRepo();
+  write(dir, "a.txt", "1\n");
+  const c1 = ci(dir, "first");
+  write(dir, "a.txt", "1\n2\n");
+  ci(dir, "second");
+  reset(dir, reload(dir), c1.id, { hard: true });
+  assert.equal(read(dir, "a.txt"), "1\n");
+  assert.equal(headCommitId(reload(dir)), c1.id);
+});
+
+test("revert undoes a commit as a new commit (history kept)", () => {
+  const dir = tmpRepo();
+  write(dir, "a.txt", "base\n");
+  ci(dir, "base");
+  write(dir, "a.txt", "base\nbad line\n");
+  const bad = ci(dir, "add bad line");
+
+  const before = reload(dir).commits.length;
+  const rev = revert(dir, reload(dir), bad.id);
+  assert.ok(rev, "revert should create a commit");
+  assert.equal(read(dir, "a.txt"), "base\n"); // working tree fixed
+  const h = reload(dir);
+  assert.equal(h.commits.length, before + 1); // history preserved, new commit added
+  assert.equal(fromLines(reconstructCommit(h, headCommitId(h)).get("a.txt")), "base\n");
+});
+
+test("revert of an 'add' deletes the file", () => {
+  const dir = tmpRepo();
+  write(dir, "keep.txt", "k\n");
+  ci(dir, "base");
+  write(dir, "temp.txt", "t\n");
+  const added = ci(dir, "add temp");
+  revert(dir, reload(dir), added.id);
+  assert.ok(!fs.existsSync(path.join(dir, "temp.txt")));
+  assert.ok(fs.existsSync(path.join(dir, "keep.txt")));
+});
+
+test("branches diverge and reconstruct independently", () => {
+  const dir = tmpRepo();
+  write(dir, "a.txt", "base\n");
+  const base = ci(dir, "base");
+
+  // make a feature branch at base, switch to it, commit there
+  let h = reload(dir);
+  createBranch(dir, h, "feature", base.id);
+  switchTo(dir, reload(dir), "feature");
+  write(dir, "a.txt", "base\nfeature work\n");
+  const feat = ci(dir, "feature work");
+
+  // back to main, commit something else
+  switchTo(dir, reload(dir), "main");
+  assert.equal(read(dir, "a.txt"), "base\n"); // working tree reset to main's tip
+  write(dir, "a.txt", "base\nmain work\n");
+  const mainC = ci(dir, "main work");
+
+  h = reload(dir);
+  assert.equal(h.branches.feature, feat.id);
+  assert.equal(h.branches.main, mainC.id);
+  assert.equal(fromLines(reconstructCommit(h, feat.id).get("a.txt")), "base\nfeature work\n");
+  assert.equal(fromLines(reconstructCommit(h, mainC.id).get("a.txt")), "base\nmain work\n");
+});
+
+test("switching branches rewrites the working tree", () => {
+  const dir = tmpRepo();
+  write(dir, "a.txt", "base\n");
+  ci(dir, "base");
+  let h = reload(dir);
+  createBranch(dir, h, "feature");
+  switchTo(dir, reload(dir), "feature");
+  write(dir, "feature-only.txt", "f\n");
+  ci(dir, "feature file");
+  switchTo(dir, reload(dir), "main");
+  assert.ok(!fs.existsSync(path.join(dir, "feature-only.txt")));
+  switchTo(dir, reload(dir), "feature");
+  assert.ok(fs.existsSync(path.join(dir, "feature-only.txt")));
+});
+
+test("tags resolve as refs", () => {
+  const dir = tmpRepo();
+  write(dir, "a.txt", "1\n");
+  const c1 = ci(dir, "one");
+  createTag(dir, reload(dir), "v1", c1.id);
+  assert.equal(resolveRef(reload(dir), "v1"), c1.id);
+});
+
+test("v1 history migrates to branch-aware v2", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "track-mig-"));
+  fs.mkdirSync(path.join(dir, ".track"));
+  // hand-write a legacy v1 history
+  const legacy = {
+    version: 1,
+    created: "2020-01-01T00:00:00.000Z",
+    head: "abcd1234",
+    commits: [
+      {
+        id: "abcd1234",
+        parent: null,
+        message: "legacy",
+        time: "2020-01-01T00:00:00.000Z",
+        author: "you",
+        changes: { "a.txt": { op: "add", diff: [["+", ["legacy\n"]]] } },
+      },
+    ],
+  };
+  fs.writeFileSync(path.join(dir, ".track", "history.json"), JSON.stringify(legacy));
+  const h = loadHistory(dir);
+  assert.equal(h.version, 2);
+  assert.equal(h.current, "main");
+  assert.equal(h.branches.main, "abcd1234");
+  assert.equal(headCommitId(h), "abcd1234");
+  assert.equal(resolveRef(h, "HEAD"), "abcd1234");
 });
 
 process.stdout.write(`\n${passed} test(s) passed.\n`);

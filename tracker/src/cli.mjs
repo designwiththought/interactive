@@ -5,10 +5,24 @@ import {
   findRoot,
   loadHistory,
   status,
+  statusAgainst,
+  isDirty,
   commit,
-  reconstructAt,
+  getCommit,
+  headCommitId,
+  reconstructCommit,
   resolveRef,
-  restore,
+  ancestry,
+  decorations,
+  restoreFiles,
+  checkoutTree,
+  createBranch,
+  deleteBranch,
+  switchTo,
+  createTag,
+  deleteTag,
+  reset,
+  revert,
   scanWorkingTree,
   fromLines,
 } from "./repo.mjs";
@@ -24,32 +38,52 @@ const dim = (s) => c("2", s);
 const bold = (s) => c("1", s);
 const yellow = (s) => c("33", s);
 const cyan = (s) => c("36", s);
+const magenta = (s) => c("35", s);
 
 function out(s = "") {
   process.stdout.write(s + "\n");
 }
-
 function die(msg) {
   process.stderr.write(red("error: ") + msg + "\n");
   process.exit(1);
 }
-
 function needRepo() {
   const root = findRoot();
   if (!root) die("not a track repo (run `track init` first)");
   return root;
 }
-
 function shortTime(iso) {
   return iso.replace("T", " ").replace(/\..+/, "");
 }
-
+function short(id) {
+  return id ? id.slice(0, 8) : "(none)";
+}
+function decoStr(history, id) {
+  const labels = decorations(history, id);
+  return labels.length ? " " + magenta("(" + labels.join(", ") + ")") : "";
+}
 function printDiffRows(rows) {
   for (const { sign, text } of rows) {
     if (sign === "+") out(green("+" + text));
     else if (sign === "-") out(red("-" + text));
     else out(dim(" " + text));
   }
+}
+// Print a labeled file diff between two line-arrays. Returns true if it differed.
+function printFileDiff(file, before, after) {
+  if (fromLines(before) === fromLines(after)) return false;
+  const label =
+    before.length === 0
+      ? green(`added: ${file}`)
+      : after.length === 0
+        ? red(`deleted: ${file}`)
+        : bold(`modified: ${file}`);
+  const segs = diffLines(before, after);
+  const st = diffStat(segs);
+  out(label + dim(`  +${st.added} -${st.removed}`));
+  printDiffRows(renderDiff(segs));
+  out("");
+  return true;
 }
 
 // ----- commands --------------------------------------------------------------
@@ -63,10 +97,13 @@ function cmdInit() {
 function cmdStatus() {
   const root = needRepo();
   const history = loadHistory(root);
-  const s = status(root, history);
-  const head = history.head ? history.head : "(none)";
-  out(`On commit ${cyan(head)}  ${dim(`(${history.commits.length} total)`)}`);
+  const head = headCommitId(history);
+  const where = history.current
+    ? `On branch ${cyan(history.current)}`
+    : `${yellow("HEAD detached")} at ${cyan(short(head))}`;
+  out(`${where}  ${dim(`(${short(head)})`)}`);
 
+  const s = status(root, history);
   if (!s.added.length && !s.modified.length && !s.deleted.length) {
     out(green("Working tree clean — nothing to commit."));
     return;
@@ -94,28 +131,31 @@ function cmdCommit(args) {
     out("Nothing to commit — working tree matches the last commit.");
     return;
   }
-  const fileCount = Object.keys(result.changes).length;
-  out(
-    `${green("✓")} committed ${cyan(result.id)}  ` +
-      dim(`(${fileCount} file${fileCount === 1 ? "" : "s"})`),
-  );
+  const n = Object.keys(result.changes).length;
+  const onto = history.current ? ` to ${cyan(history.current)}` : " (detached)";
+  out(`${green("✓")} committed ${cyan(result.id)}${onto}  ` + dim(`(${n} file${n === 1 ? "" : "s"})`));
   out("  " + result.message);
 }
 
 function cmdLog(args) {
   const root = needRepo();
   const history = loadHistory(root);
-  if (!history.commits.length) {
+  const oneline = args.includes("--oneline");
+  const all = args.includes("--all");
+
+  const list = all
+    ? [...history.commits]
+    : ancestry(history, headCommitId(history));
+  if (!list.length) {
     out("No commits yet.");
     return;
   }
-  const oneline = args.includes("--oneline");
-  // newest first
-  for (let i = history.commits.length - 1; i >= 0; i--) {
-    const cmt = history.commits[i];
-    const ordinal = dim(`@${i + 1}`);
+  for (let i = list.length - 1; i >= 0; i--) {
+    const cmt = list[i];
+    const ordinal = dim(`@${history.commits.indexOf(cmt) + 1}`);
+    const deco = decoStr(history, cmt.id);
     if (oneline) {
-      out(`${cyan(cmt.id)} ${ordinal} ${cmt.message}`);
+      out(`${cyan(cmt.id)}${deco} ${ordinal} ${cmt.message.split("\n")[0]}`);
       continue;
     }
     let added = 0;
@@ -127,11 +167,10 @@ function cmdLog(args) {
         removed += st.removed;
       }
     }
-    out(`${bold(cyan("commit " + cmt.id))} ${ordinal}`);
-    out(`  ${dim(shortTime(cmt.time))}  ` +
-      green(`+${added}`) + " " + red(`-${removed}`) +
+    out(`${bold(cyan("commit " + cmt.id))}${deco} ${ordinal}`);
+    out(`  ${dim(shortTime(cmt.time))}  ` + green(`+${added}`) + " " + red(`-${removed}`) +
       dim(`  ${Object.keys(cmt.changes).length} file(s)`));
-    out(`  ${cmt.message}`);
+    out(`  ${cmt.message.split("\n")[0]}`);
     if (i > 0) out("");
   }
 }
@@ -140,11 +179,12 @@ function cmdShow(args) {
   const root = needRepo();
   const history = loadHistory(root);
   const ref = args[0] || "HEAD";
-  const idx = resolveRef(history, ref);
-  if (idx < 0) die(`unknown commit: ${ref}`);
-  const cmt = history.commits[idx];
+  const id = resolveRef(history, ref);
+  if (!id) die(`unknown commit: ${ref}`);
+  const cmt = getCommit(history, id);
 
-  out(bold(cyan("commit " + cmt.id)) + dim(`  @${idx + 1}`));
+  out(bold(cyan("commit " + cmt.id)) + decoStr(history, cmt.id));
+  out(dim("  parent " + short(cmt.parent)));
   out(dim("  " + shortTime(cmt.time)));
   out("  " + cmt.message);
   out("");
@@ -161,72 +201,209 @@ function cmdShow(args) {
   }
 }
 
+// diff                → working tree vs HEAD
+// diff <ref>          → working tree vs <ref>
+// diff <refA> <refB>  → <refA> vs <refB>  (commit-to-commit)
 function cmdDiff(args) {
   const root = needRepo();
   const history = loadHistory(root);
-  // Compare working tree to a ref (default HEAD).
-  const ref = args[0] || "HEAD";
-  const idx = resolveRef(history, ref);
-  if (idx < 0 && ref.toLowerCase() !== "head") die(`unknown commit: ${ref}`);
+  const refs = args.filter((a) => !a.startsWith("-"));
 
-  const base = reconstructAt(history, idx);
-  const work = scanWorkingTree(root);
-
-  let any = false;
-  const allFiles = new Set([...base.keys(), ...work.keys()]);
-  for (const file of [...allFiles].sort()) {
-    const before = base.get(file) ?? [];
-    const after = work.get(file) ?? [];
-    if (fromLines(before) === fromLines(after)) continue;
-    any = true;
-    const label = !base.has(file)
-      ? green(`added: ${file}`)
-      : !work.has(file)
-        ? red(`deleted: ${file}`)
-        : bold(`modified: ${file}`);
-    const segs = diffLines(before, after);
-    const st = diffStat(segs);
-    out(label + dim(`  +${st.added} -${st.removed}`));
-    printDiffRows(renderDiff(segs));
-    out("");
+  let beforeState;
+  let afterState;
+  let label;
+  if (refs.length >= 2) {
+    const a = resolveRef(history, refs[0]);
+    const b = resolveRef(history, refs[1]);
+    if (!a && refs[0].toLowerCase() !== "head") die(`unknown commit: ${refs[0]}`);
+    if (!b && refs[1].toLowerCase() !== "head") die(`unknown commit: ${refs[1]}`);
+    beforeState = reconstructCommit(history, a);
+    afterState = reconstructCommit(history, b);
+    label = `${refs[0]} → ${refs[1]}`;
+  } else {
+    const ref = refs[0] || "HEAD";
+    const a = resolveRef(history, ref);
+    if (!a && ref.toLowerCase() !== "head") die(`unknown commit: ${ref}`);
+    beforeState = reconstructCommit(history, a);
+    afterState = scanWorkingTree(root);
+    label = `${ref} → working tree`;
   }
-  if (!any) out(green("No changes against " + ref + "."));
+
+  const files = [...new Set([...beforeState.keys(), ...afterState.keys()])].sort();
+  let any = false;
+  for (const file of files) {
+    if (printFileDiff(file, beforeState.get(file) ?? [], afterState.get(file) ?? []))
+      any = true;
+  }
+  if (!any) out(green(`No changes (${label}).`));
 }
 
 function cmdLs(args) {
   const root = needRepo();
   const history = loadHistory(root);
   const ref = args[0] || "HEAD";
-  const idx = resolveRef(history, ref);
-  if (idx < 0 && history.commits.length) {
-    if (ref.toLowerCase() !== "head") die(`unknown commit: ${ref}`);
-  }
-  const state = reconstructAt(history, idx);
-  const files = [...state.keys()].sort();
-  if (!files.length) {
-    out(dim("(no tracked files at this commit)"));
-    return;
-  }
-  for (const f of files) out(f);
+  const id = resolveRef(history, ref);
+  if (!id && ref.toLowerCase() !== "head") die(`unknown commit: ${ref}`);
+  const files = [...reconstructCommit(history, id).keys()].sort();
+  if (!files.length) out(dim("(no tracked files at this commit)"));
+  else for (const f of files) out(f);
 }
 
+// restore <ref> [file...]  — overwrite file(s) from a commit (HEAD unchanged).
+// With no files, restores the whole tree to that commit's state.
 function cmdRestore(args) {
   const root = needRepo();
   const history = loadHistory(root);
   if (!args.length) die("usage: track restore <commit> [file ...]");
-  const ref = args[0];
-  const idx = resolveRef(history, ref);
-  if (idx < 0) die(`unknown commit: ${ref}`);
+  const id = resolveRef(history, args[0]);
+  if (!id) die(`unknown commit: ${args[0]}`);
   const files = args.slice(1);
-
-  const res = restore(root, history, idx, files);
+  const res = files.length
+    ? restoreFiles(root, history, id, files)
+    : checkoutTree(root, history, id);
   for (const f of res.written) out(green("restored ") + f);
   for (const f of res.removed) out(red("removed  ") + f);
   if (!res.written.length && !res.removed.length) out("Nothing to restore.");
 }
 
-async function cmdServe(args) {
+// checkout <branch|commit>          — switch HEAD (refuses if working tree dirty)
+// checkout <ref> <file...>          — restore those files (alias of restore)
+function cmdCheckout(args) {
   const root = needRepo();
+  const history = loadHistory(root);
+  const force = args.includes("-f") || args.includes("--force");
+  const rest = args.filter((a) => a !== "-f" && a !== "--force");
+  if (!rest.length) die("usage: track checkout <branch|commit> [file ...]");
+
+  if (rest.length > 1) {
+    return cmdRestore(rest); // checkout <ref> <file...> == restore
+  }
+  const target = rest[0];
+  if (!force && isDirty(root, history)) {
+    die("you have uncommitted changes — commit them, or use `checkout -f` to discard");
+  }
+  const res = switchTo(root, history, target);
+  if (res.branch) out(`Switched to branch ${cyan(res.branch)}`);
+  else out(`${yellow("HEAD detached")} at ${cyan(short(res.detached))}`);
+  const touched = res.written.length + res.removed.length;
+  if (touched) out(dim(`  updated ${touched} file(s) in the working tree`));
+}
+
+function cmdSwitch(args) {
+  const root = needRepo();
+  const history = loadHistory(root);
+  const create = args.includes("-c") || args.includes("--create");
+  const rest = args.filter((a) => a !== "-c" && a !== "--create");
+  const name = rest[0];
+  if (!name) die("usage: track switch [-c] <branch>");
+  if (create) {
+    createBranch(root, history, name);
+    out(`Created branch ${cyan(name)}`);
+  }
+  if (!Object.prototype.hasOwnProperty.call(history.branches, name))
+    die(`no such branch: ${name} (use \`switch -c ${name}\` to create it)`);
+  if (isDirty(root, history))
+    die("you have uncommitted changes — commit them first");
+  switchTo(root, history, name);
+  out(`Switched to branch ${cyan(name)}`);
+}
+
+function cmdBranch(args) {
+  const root = needRepo();
+  const history = loadHistory(root);
+  if (args[0] === "-d" || args[0] === "--delete") {
+    if (!args[1]) die("usage: track branch -d <name>");
+    deleteBranch(root, history, args[1]);
+    out(`Deleted branch ${cyan(args[1])}`);
+    return;
+  }
+  if (args.length === 0) {
+    // list
+    const names = Object.keys(history.branches).sort();
+    for (const name of names) {
+      const tip = history.branches[name];
+      const mark = name === history.current ? green("* ") : "  ";
+      out(mark + cyan(name) + dim(`  ${short(tip)}`));
+    }
+    return;
+  }
+  const name = args[0];
+  const at = args[1] ? resolveRef(history, args[1]) : undefined;
+  if (args[1] && !at) die(`unknown commit: ${args[1]}`);
+  createBranch(root, history, name, at);
+  out(`Created branch ${cyan(name)} at ${cyan(short(headCommitId(history)))}`);
+}
+
+function cmdTag(args) {
+  const root = needRepo();
+  const history = loadHistory(root);
+  if (args[0] === "-d" || args[0] === "--delete") {
+    if (!args[1]) die("usage: track tag -d <name>");
+    deleteTag(root, history, args[1]);
+    out(`Deleted tag ${cyan(args[1])}`);
+    return;
+  }
+  if (args.length === 0) {
+    const names = Object.keys(history.tags).sort();
+    if (!names.length) out(dim("(no tags)"));
+    for (const name of names) out(cyan(name) + dim(`  ${short(history.tags[name])}`));
+    return;
+  }
+  const name = args[0];
+  const at = args[1] ? resolveRef(history, args[1]) : undefined;
+  if (args[1] && !at) die(`unknown commit: ${args[1]}`);
+  createTag(root, history, name, at);
+  out(`Tagged ${cyan(short(history.tags[name]))} as ${cyan(name)}`);
+}
+
+function cmdRevert(args) {
+  const root = needRepo();
+  const history = loadHistory(root);
+  if (!args[0]) die("usage: track revert <commit>");
+  const id = resolveRef(history, args[0]);
+  if (!id) die(`unknown commit: ${args[0]}`);
+  if (isDirty(root, history))
+    die("commit or discard your changes before reverting");
+  const res = revert(root, history, id);
+  if (!res) {
+    out("Nothing to revert — that commit's changes are already undone.");
+    return;
+  }
+  out(`${green("✓")} reverted ${cyan(short(id))} in new commit ${cyan(res.id)}`);
+  out("  " + res.message);
+}
+
+function cmdUndo() {
+  const root = needRepo();
+  const history = loadHistory(root);
+  const head = headCommitId(history);
+  if (!head) die("nothing to undo — no commits yet");
+  if (!history.current) die("cannot undo while HEAD is detached");
+  const parent = getCommit(history, head).parent;
+  reset(root, history, parent, { hard: false });
+  out(`Undid commit ${cyan(short(head))} — its changes are back as uncommitted edits.`);
+  out(dim(`  branch ${history.current} now at ${short(parent)}`));
+}
+
+function cmdReset(args) {
+  const root = needRepo();
+  const history = loadHistory(root);
+  const hard = args.includes("--hard");
+  const rest = args.filter((a) => !a.startsWith("-"));
+  const ref = rest[0] || "HEAD~1";
+  const id = resolveRef(history, ref);
+  if (id === null && ref.toLowerCase() !== "head") {
+    // allow resetting to the empty/root state via an explicit ancestor walk
+    if (!/~|\^/.test(ref)) die(`unknown commit: ${ref}`);
+  }
+  reset(root, history, id, { hard });
+  out(`Reset ${cyan(history.current)} to ${cyan(short(id))}${hard ? " (--hard)" : ""}`);
+  if (!hard) out(dim("  working tree left as-is; run `track status` to see changes"));
+}
+
+async function cmdServe(args) {
+  needRepo();
+  const root = findRoot();
   let port = 7878;
   for (let i = 0; i < args.length; i++) {
     if (args[i] === "-p" || args[i] === "--port") port = parseInt(args[++i], 10);
@@ -240,22 +417,37 @@ function cmdHelp() {
 
 ${bold("Usage:")}  track <command> [options]
 
-${bold("Commands:")}
+${bold("Working with changes")}
   init                     Start tracking the current directory
   status                   Show what changed since the last commit
   commit -m "message"      Save a snapshot of all changes
-  log [--oneline]          List commits, newest first
-  show [commit]            Show a commit's diff (default: HEAD)
-  diff [commit]            Show working-tree changes vs a commit (default: HEAD)
-  ls [commit]              List tracked files at a commit (default: HEAD)
-  restore <commit> [file]  Bring file(s) back from a commit (no args = whole tree)
-  serve [-p port]          Open a phone-friendly web viewer (default port 7878)
+  diff [a] [b]             Changes: working↔HEAD, working↔a, or a↔b
+  log [--oneline] [--all]  List commits (default: history of current branch)
+  show [ref]               Show a commit's diff (default: HEAD)
+  ls [ref]                 List tracked files at a commit (default: HEAD)
+
+${bold("Moving through history")}
+  restore <ref> [file...]  Overwrite file(s)/tree from a commit (HEAD unchanged)
+  checkout <ref> [file...] Switch branch/commit, or restore file(s)
+  undo                     Un-commit the last commit, keep the edits
+  reset <ref> [--hard]     Move the current branch to <ref> (--hard resets files)
+  revert <ref>             New commit that undoes <ref>'s changes (history kept)
+
+${bold("Branches & tags")}
+  branch [name] [at]       List branches, or create one
+  branch -d <name>         Delete a branch
+  switch [-c] <name>       Switch branches (-c creates first)
+  tag [name] [at]          List tags, or create one
+  tag -d <name>            Delete a tag
+
+${bold("Viewing")}
+  serve [-p port]          Phone-friendly web viewer (default port 7878)
   help                     Show this message
 
-${bold("Referring to commits:")}
-  HEAD        the latest commit
-  @3          the 3rd commit (see ordinals in \`track log\`)
-  a1b2c3d4    a commit id, or any unique prefix of one
+${bold("Referring to commits")}
+  HEAD            the current commit          @3        the 3rd commit (see log)
+  main / v1       a branch or tag name        HEAD~2    2 commits back
+  a1b2c3d4        a commit id or unique prefix
 
 ${dim("All history lives in .track/history.json — one JSON file of diffs.")}`);
 }
@@ -265,31 +457,23 @@ ${dim("All history lives in .track/history.json — one JSON file of diffs.")}`)
 export async function run(argv) {
   const [cmd, ...args] = argv;
   switch (cmd) {
-    case "init":
-      return cmdInit();
-    case "status":
-    case "st":
-      return cmdStatus();
-    case "commit":
-    case "ci":
-      return cmdCommit(args);
-    case "log":
-      return cmdLog(args);
-    case "show":
-      return cmdShow(args);
-    case "diff":
-      return cmdDiff(args);
-    case "ls":
-      return cmdLs(args);
-    case "restore":
-      return cmdRestore(args);
-    case "serve":
-      return await cmdServe(args);
-    case "help":
-    case "--help":
-    case "-h":
-    case undefined:
-      return cmdHelp();
+    case "init": return cmdInit();
+    case "status": case "st": return cmdStatus();
+    case "commit": case "ci": return cmdCommit(args);
+    case "log": return cmdLog(args);
+    case "show": return cmdShow(args);
+    case "diff": return cmdDiff(args);
+    case "ls": return cmdLs(args);
+    case "restore": return cmdRestore(args);
+    case "checkout": case "co": return cmdCheckout(args);
+    case "switch": return cmdSwitch(args);
+    case "branch": return cmdBranch(args);
+    case "tag": return cmdTag(args);
+    case "revert": return cmdRevert(args);
+    case "undo": return cmdUndo();
+    case "reset": return cmdReset(args);
+    case "serve": return await cmdServe(args);
+    case "help": case "--help": case "-h": case undefined: return cmdHelp();
     default:
       die(`unknown command: ${cmd}\nrun \`track help\` for usage`);
   }

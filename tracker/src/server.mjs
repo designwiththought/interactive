@@ -1,7 +1,7 @@
 // A tiny, dependency-free web viewer for the history. Handy on a phone, where
 // a browser beats a terminal. Read-only: it shows commits and their diffs.
 import http from "node:http";
-import { loadHistory, reconstructAt, resolveRef } from "./repo.mjs";
+import { loadHistory, resolveRef, getCommit, decorations } from "./repo.mjs";
 import { renderDiff, diffStat } from "./diff.mjs";
 
 const esc = (s) =>
@@ -39,6 +39,9 @@ const PAGE = (title, body) => `<!doctype html>
   .ln.add { color: #2a7; } .ln.del { color: #d54; } .ln.ctx { opacity: .5; }
   a.back { display: inline-block; margin-bottom: .5rem; }
   .empty { opacity: .6; }
+  .tag { font-size: .7rem; padding: .05rem .4rem; border-radius: 999px;
+         background: color-mix(in oklab, #2a7 25%, transparent);
+         color: color-mix(in oklab, CanvasText 80%, #2a7); vertical-align: middle; }
 </style></head>
 <body>
 <header><h1><a href="/">◇ track</a></h1></header>
@@ -62,19 +65,23 @@ function listPage(history) {
       }
     }
     const n = Object.keys(cmt.changes).length;
+    const labels = decorations(history, cmt.id)
+      .map((l) => `<span class="tag">${esc(l)}</span>`)
+      .join(" ");
     rows.push(`<a class="commit" href="/commit/${cmt.id}">
-      <div><span class="id">${cmt.id}</span> <span class="meta">@${i + 1} · ${esc(cmt.time.replace("T", " ").replace(/\..+/, ""))}</span></div>
-      <div class="msg">${esc(cmt.message)}</div>
+      <div><span class="id">${cmt.id}</span> ${labels} <span class="meta">@${i + 1} · ${esc(cmt.time.replace("T", " ").replace(/\..+/, ""))}</span></div>
+      <div class="msg">${esc(cmt.message.split("\n")[0])}</div>
       <div class="stat meta"><span class="add">+${add}</span> <span class="del">-${del}</span> · ${n} file(s)</div>
     </a>`);
   }
   return PAGE("track — history", rows.join("\n"));
 }
 
-function commitPage(history, id) {
-  const idx = resolveRef(history, id);
-  if (idx < 0) return null;
-  const cmt = history.commits[idx];
+function commitPage(history, ref) {
+  const id = resolveRef(history, ref);
+  const cmt = getCommit(history, id);
+  if (!cmt) return null;
+  const ordinal = history.commits.indexOf(cmt) + 1;
   const blocks = [];
   for (const [file, change] of Object.entries(cmt.changes)) {
     if (change.op === "delete") {
@@ -94,8 +101,11 @@ function commitPage(history, id) {
        <pre>${lines}</pre>`,
     );
   }
+  const labels = decorations(history, cmt.id)
+    .map((l) => `<span class="tag">${esc(l)}</span>`)
+    .join(" ");
   const body = `<a class="back" href="/">← all commits</a>
-    <div><span class="id">${cmt.id}</span> <span class="meta">@${idx + 1} · ${esc(cmt.time.replace("T", " ").replace(/\..+/, ""))}</span></div>
+    <div><span class="id">${cmt.id}</span> ${labels} <span class="meta">@${ordinal} · ${esc(cmt.time.replace("T", " ").replace(/\..+/, ""))}</span></div>
     <div class="msg" style="margin:.25rem 0 1rem">${esc(cmt.message)}</div>
     ${blocks.join("\n") || '<p class="empty">No file changes.</p>'}`;
   return PAGE("track — " + cmt.id, body);
