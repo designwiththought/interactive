@@ -10,7 +10,8 @@
   "scripts": {
     "track": "node bin/track.mjs",
     "serve": "node bin/track.mjs serve",
-    "test": "node test/run.mjs"
+    "bundle": "node scripts/bundle.mjs",
+    "test": "node test/run.mjs && node scripts/bundle.mjs && node test/bundle.mjs"
   },
   "engines": {
     "node": ">=18"

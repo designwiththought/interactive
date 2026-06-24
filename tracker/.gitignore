@@ -1,0 +1,5 @@
+# The root .gitignore excludes every `dist/`. Re-include this one: the
+# single-file bundle is a shippable artifact (you copy it to your devices),
+# so we keep it committed. Rebuild it with `npm run bundle`.
+!dist/
+!dist/track.mjs

@@ -26,21 +26,34 @@ model — "a JSON file that references diffs," exactly. You can open
 
 ## Install / run
 
-No install needed. From inside the `tracker/` folder:
+Pick whichever fits how you work. All three are dependency-free.
+
+**1. Single file (most portable — best for iPhone).**
+`dist/track.mjs` is the whole tool inlined into one file. Copy just that file
+anywhere — a project folder, iCloud Drive — and run it. Nothing else needs to be
+present:
+
+```bash
+node track.mjs <command>      # e.g. node track.mjs init
+```
+
+Rebuild it after changing the source with `npm run bundle`.
+
+**2. Global command (Mac and the iOS Code app).**
+Because `track` is pure JS with no native code, it installs globally the same way
+`tsc`/`prettier` do — which the Code app supports in its terminal:
+
+```bash
+cd tracker
+npm install -g .              # now `track` works in any folder
+track <command>
+```
+
+**3. Straight from the source folder.**
 
 ```bash
 node bin/track.mjs <command>
 ```
-
-To get a global `track` command on your Mac (optional):
-
-```bash
-cd tracker
-npm link        # now `track` works anywhere
-```
-
-In the iPhone **Code** app (or a-Shell), open this folder and run
-`node bin/track.mjs <command>` the same way.
 
 ## Commands
 
@@ -201,5 +214,8 @@ A `.trackignore` file (created by `init`) lists patterns to skip, one per line.
 ## Tests
 
 ```bash
-npm test        # or: node test/run.mjs
+npm test        # unit tests, then rebuilds dist/track.mjs and tests the bundle
 ```
+
+`npm test` also regenerates the single-file bundle and runs it end-to-end, so
+`dist/track.mjs` can't silently drift from the source in `src/`.
