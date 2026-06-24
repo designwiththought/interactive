@@ -28,7 +28,12 @@ import {
   createTag,
   reset,
   revert,
+  mergeBranch,
+  abortMerge,
+  mergeBase,
+  conflictMarkers,
 } from "../src/repo.mjs";
+import { merge3Lines } from "../src/merge.mjs";
 
 let passed = 0;
 function test(name, fn) {
@@ -322,6 +327,155 @@ test("v1 history migrates to branch-aware v2", () => {
   assert.equal(h.branches.main, "abcd1234");
   assert.equal(headCommitId(h), "abcd1234");
   assert.equal(resolveRef(h, "HEAD"), "abcd1234");
+});
+
+// ----- merge engine ----------------------------------------------------------
+
+const L = { ours: "ours", theirs: "theirs" };
+
+test("merge3: non-overlapping edits combine cleanly", () => {
+  const base = ["one", "two", "three"];
+  const ours = ["ONE", "two", "three"]; // changed first line
+  const theirs = ["one", "two", "THREE"]; // changed last line
+  const m = merge3Lines(base, ours, theirs, L);
+  assert.equal(m.conflicted, false);
+  assert.deepEqual(m.lines, ["ONE", "two", "THREE"]);
+});
+
+test("merge3: same edit on both sides is not a conflict", () => {
+  const base = ["a", "b"];
+  const m = merge3Lines(base, ["a", "B"], ["a", "B"], L);
+  assert.equal(m.conflicted, false);
+  assert.deepEqual(m.lines, ["a", "B"]);
+});
+
+test("merge3: competing edits to the same line conflict", () => {
+  const base = ["a", "b", "c"];
+  const m = merge3Lines(base, ["a", "X", "c"], ["a", "Y", "c"], L);
+  assert.equal(m.conflicted, true);
+  assert.ok(m.lines.includes("<<<<<<< ours"));
+  assert.ok(m.lines.includes("======="));
+  assert.ok(m.lines.includes(">>>>>>> theirs"));
+  assert.ok(m.lines.includes("X"));
+  assert.ok(m.lines.includes("Y"));
+});
+
+test("merge3: insertions on one side only are kept", () => {
+  const base = ["a", "c"];
+  const m = merge3Lines(base, ["a", "b", "c"], ["a", "c"], L);
+  assert.equal(m.conflicted, false);
+  assert.deepEqual(m.lines, ["a", "b", "c"]);
+});
+
+// ----- merge end-to-end ------------------------------------------------------
+
+function setupBranches(dir) {
+  // base commit on main, then a feature branch diverges
+  write(dir, "page.html", "<h1>Title</h1>\n<p>body</p>\n");
+  ci(dir, "base");
+  let h = reload(dir);
+  createBranch(dir, h, "feature");
+}
+
+test("merge: fast-forward when main has no new commits", () => {
+  const dir = tmpRepo();
+  setupBranches(dir);
+  switchTo(dir, reload(dir), "feature");
+  write(dir, "page.html", "<h1>Title</h1>\n<p>new body</p>\n");
+  ci(dir, "feature edit");
+  switchTo(dir, reload(dir), "main");
+  const res = mergeBranch(dir, reload(dir), "feature");
+  assert.equal(res.status, "fast-forward");
+  assert.equal(read(dir, "page.html"), "<h1>Title</h1>\n<p>new body</p>\n");
+});
+
+test("merge: clean 3-way merge creates a 2-parent commit", () => {
+  const dir = tmpRepo();
+  setupBranches(dir);
+
+  // feature changes the <p>
+  switchTo(dir, reload(dir), "feature");
+  write(dir, "page.html", "<h1>Title</h1>\n<p>FEATURE body</p>\n");
+  const feat = ci(dir, "feature body");
+
+  // main changes the <h1> (different line)
+  switchTo(dir, reload(dir), "main");
+  write(dir, "page.html", "<h1>NEW Title</h1>\n<p>body</p>\n");
+  const mainC = ci(dir, "main title");
+
+  const res = mergeBranch(dir, reload(dir), "feature");
+  assert.equal(res.status, "merged");
+  // both edits present, no markers
+  assert.equal(read(dir, "page.html"), "<h1>NEW Title</h1>\n<p>FEATURE body</p>\n");
+  // merge commit records both parents
+  assert.equal(res.commit.parent, mainC.id);
+  assert.equal(res.commit.parent2, feat.id);
+  // and HEAD reconstructs to the merged content
+  const h = reload(dir);
+  assert.equal(
+    fromLines(reconstructCommit(h, headCommitId(h)).get("page.html")),
+    "<h1>NEW Title</h1>\n<p>FEATURE body</p>\n",
+  );
+});
+
+test("merge: conflicting edits leave markers and pause for resolution", () => {
+  const dir = tmpRepo();
+  setupBranches(dir);
+
+  switchTo(dir, reload(dir), "feature");
+  write(dir, "page.html", "<h1>Title</h1>\n<p>FEATURE</p>\n");
+  ci(dir, "feature p");
+
+  switchTo(dir, reload(dir), "main");
+  write(dir, "page.html", "<h1>Title</h1>\n<p>MAIN</p>\n"); // same line, different
+  ci(dir, "main p");
+
+  const res = mergeBranch(dir, reload(dir), "feature");
+  assert.equal(res.status, "conflict");
+  assert.deepEqual(res.files, ["page.html"]);
+  assert.ok(read(dir, "page.html").includes("<<<<<<< main"));
+  assert.deepEqual(conflictMarkers(dir), ["page.html"]);
+
+  // resolve, then commit completes the merge with two parents
+  write(dir, "page.html", "<h1>Title</h1>\n<p>RESOLVED</p>\n");
+  const h = reload(dir);
+  assert.ok(h.merging, "merge state is pending");
+  const c = commit(dir, h, h.merging.message);
+  assert.ok(c.parent2, "completed merge has a second parent");
+  assert.equal(read(dir, "page.html"), "<h1>Title</h1>\n<p>RESOLVED</p>\n");
+  assert.ok(!reload(dir).merging, "merge state cleared after commit");
+});
+
+test("merge --abort restores the pre-merge tree", () => {
+  const dir = tmpRepo();
+  setupBranches(dir);
+  switchTo(dir, reload(dir), "feature");
+  write(dir, "page.html", "<h1>Title</h1>\n<p>FEATURE</p>\n");
+  ci(dir, "feature p");
+  switchTo(dir, reload(dir), "main");
+  write(dir, "page.html", "<h1>Title</h1>\n<p>MAIN</p>\n");
+  ci(dir, "main p");
+
+  mergeBranch(dir, reload(dir), "feature");
+  assert.ok(reload(dir).merging);
+  abortMerge(dir, reload(dir));
+  assert.ok(!reload(dir).merging);
+  assert.equal(read(dir, "page.html"), "<h1>Title</h1>\n<p>MAIN</p>\n");
+});
+
+test("mergeBase finds the common ancestor", () => {
+  const dir = tmpRepo();
+  write(dir, "a.txt", "1\n");
+  const base = ci(dir, "base");
+  let h = reload(dir);
+  createBranch(dir, h, "feature");
+  switchTo(dir, reload(dir), "feature");
+  write(dir, "a.txt", "1\n2\n");
+  const feat = ci(dir, "feature");
+  switchTo(dir, reload(dir), "main");
+  write(dir, "a.txt", "1\n0\n");
+  const mainC = ci(dir, "main");
+  assert.equal(mergeBase(reload(dir), mainC.id, feat.id), base.id);
 });
 
 process.stdout.write(`\n${passed} test(s) passed.\n`);

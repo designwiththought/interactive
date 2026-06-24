@@ -39,6 +39,7 @@ import {
   applyDiff,
   diffHasChanges,
 } from "./diff.mjs";
+import { mergeStates } from "./merge.mjs";
 
 export const TRACK_DIR = ".track";
 const HISTORY_FILE = "history.json";
@@ -329,12 +330,17 @@ export function commit(root, history, message, author = "you") {
   const base = reconstructCommit(history, parent);
   const work = scanWorkingTree(root);
   const changes = changesFrom(base, work);
-  if (Object.keys(changes).length === 0) return null;
+  const merging = history.merging;
+  if (Object.keys(changes).length === 0 && !merging) return null;
 
   const time = new Date().toISOString();
+  const parent2 = merging ? merging.theirs : null;
   const id = makeId(parent, changes, time);
-  history.commits.push({ id, parent, message, time, author, changes });
+  const obj = { id, parent, message, time, author, changes };
+  if (parent2) obj.parent2 = parent2;
+  history.commits.push(obj);
   moveHead(history, id);
+  if (merging) delete history.merging;
   saveHistory(root, history);
   return getCommit(history, id);
 }
@@ -480,6 +486,162 @@ export function revert(root, history, id, author = "you") {
   }
   const summary = target.message.split("\n")[0];
   return commit(root, history, `Revert "${summary}" (${target.id})`, author);
+}
+
+// ----- graph helpers (two-parent aware) --------------------------------------
+
+function shortId(id) {
+  return id ? id.slice(0, 8) : "(none)";
+}
+
+// Both parents of a commit (a merge commit has two).
+export function parentsOf(commit) {
+  if (!commit) return [];
+  return [commit.parent, commit.parent2].filter(Boolean);
+}
+
+// Every commit reachable from `id` by following both parents.
+export function reachable(history, id) {
+  const seen = new Set();
+  const stack = id ? [id] : [];
+  while (stack.length) {
+    const cur = stack.pop();
+    if (!cur || seen.has(cur)) continue;
+    seen.add(cur);
+    for (const p of parentsOf(getCommit(history, cur))) stack.push(p);
+  }
+  return [...seen].map((x) => getCommit(history, x)).filter(Boolean);
+}
+
+function ancestorSet(history, id) {
+  const set = new Set();
+  const stack = id ? [id] : [];
+  while (stack.length) {
+    const cur = stack.pop();
+    if (!cur || set.has(cur)) continue;
+    set.add(cur);
+    for (const p of parentsOf(getCommit(history, cur))) stack.push(p);
+  }
+  return set;
+}
+
+// Lowest common ancestor of two commits (the merge base). BFS from `b` returns
+// the common ancestor nearest to `b`, which is what we want for a 3-way merge.
+export function mergeBase(history, a, b) {
+  const ancestorsA = ancestorSet(history, a);
+  const queue = b ? [b] : [];
+  const seen = new Set(queue);
+  while (queue.length) {
+    const cur = queue.shift();
+    if (ancestorsA.has(cur)) return cur;
+    for (const p of parentsOf(getCommit(history, cur))) {
+      if (!seen.has(p)) {
+        seen.add(p);
+        queue.push(p);
+      }
+    }
+  }
+  return null;
+}
+
+// ----- merge -----------------------------------------------------------------
+
+// Write a full desired tree (Map<path, lines>) to disk, removing tracked files
+// that aren't part of it.
+function applyState(root, stateMap) {
+  for (const [file, lines] of stateMap) {
+    const abs = path.join(root, file);
+    fs.mkdirSync(path.dirname(abs), { recursive: true });
+    fs.writeFileSync(abs, fromLines(lines));
+  }
+  for (const file of scanWorkingTree(root).keys()) {
+    if (!stateMap.has(file)) fs.rmSync(path.join(root, file));
+  }
+}
+
+// Merge another branch/commit into the current branch. Returns a status object:
+//   { status: "up-to-date" }
+//   { status: "fast-forward", to }
+//   { status: "merged", commit }
+//   { status: "conflict", files, message }
+export function mergeBranch(root, history, theirsRef) {
+  if (history.merging)
+    throw new Error(
+      "a merge is already in progress — resolve and commit, or `track merge --abort`",
+    );
+  if (!history.current)
+    throw new Error("you must be on a branch to merge (HEAD is detached)");
+  if (isDirty(root, history))
+    throw new Error("commit your changes before merging");
+
+  const oursId = headCommitId(history);
+  const theirsId = resolveRef(history, theirsRef);
+  if (!theirsId) throw new Error(`unknown branch or commit: ${theirsRef}`);
+  if (theirsId === oursId) return { status: "up-to-date" };
+
+  const baseId = mergeBase(history, oursId, theirsId);
+  if (baseId === theirsId) return { status: "up-to-date" };
+
+  const oursLabel = history.current;
+  const theirsLabel = Object.prototype.hasOwnProperty.call(
+    history.branches,
+    theirsRef,
+  )
+    ? theirsRef
+    : shortId(theirsId);
+
+  // Fast-forward: our branch has no commits the other lacks.
+  if (baseId === oursId) {
+    moveHead(history, theirsId);
+    const tree = checkoutTree(root, history, theirsId);
+    saveHistory(root, history);
+    return { status: "fast-forward", to: theirsId, tree };
+  }
+
+  const baseState = reconstructCommit(history, baseId);
+  const oursState = reconstructCommit(history, oursId);
+  const theirsState = reconstructCommit(history, theirsId);
+  const { result, conflicts } = mergeStates(baseState, oursState, theirsState, {
+    ours: oursLabel,
+    theirs: theirsLabel,
+  });
+
+  applyState(root, result);
+  const message = `Merge ${theirsLabel} into ${oursLabel}`;
+  history.merging = {
+    theirs: theirsId,
+    theirsLabel,
+    oursLabel,
+    base: baseId,
+    message,
+    conflicts,
+  };
+
+  if (conflicts.length) {
+    saveHistory(root, history);
+    return { status: "conflict", files: conflicts, message };
+  }
+  const created = commit(root, history, message); // consumes merging → parent2
+  return { status: "merged", commit: created };
+}
+
+// Throw away an in-progress merge and restore the current branch's tree.
+export function abortMerge(root, history) {
+  if (!history.merging) throw new Error("no merge in progress");
+  const tree = checkoutTree(root, history, headCommitId(history));
+  delete history.merging;
+  saveHistory(root, history);
+  return tree;
+}
+
+// Are there leftover conflict markers in the working tree?
+export function conflictMarkers(root) {
+  const files = [];
+  for (const [file, lines] of scanWorkingTree(root)) {
+    if (lines.some((l) => l.startsWith("<<<<<<< ") || l.startsWith(">>>>>>> ")))
+      files.push(file);
+  }
+  return files;
 }
 
 export { fromLines } from "./diff.mjs";

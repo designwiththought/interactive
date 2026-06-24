@@ -64,11 +64,14 @@ track reset <ref> [--hard]     Move current branch to <ref> (--hard resets files
 track revert <ref>             New commit that undoes <ref>'s changes (history kept)
 ```
 
-**Branches & tags**
+**Branches, merging & tags**
 ```
 track branch [name] [at]       List branches, or create one
 track branch -d <name>         Delete a branch
 track switch [-c] <name>       Switch branches (-c creates first)
+track merge <branch>           Merge another branch into the current one (3-way)
+track merge --continue         Finish a merge after resolving conflicts
+track merge --abort            Cancel an in-progress merge
 track tag [name] [at]          List tags, or create one
 track tag -d <name>            Delete a tag
 ```
@@ -98,6 +101,40 @@ track help                     Show usage
   alone, so the changes reappear as uncommitted edits you can fix and re-commit.
 - **`reset <ref>`** moves the current branch to any commit. Add `--hard` to also
   rewrite the working tree to match (this discards uncommitted changes).
+
+### Merging a branch (the visual-edits workflow)
+
+Make changes on a branch, then bring them into `main`:
+
+```bash
+track switch -c restyle      # branch off main
+# ...edit your HTML/CSS/JS in your editor...
+track commit -m "new hero section"
+
+track switch main
+track merge restyle          # 3-way merge into main
+```
+
+- **Edits to different lines** combine automatically — no conflict.
+- **Edits to the same lines** stop the merge and write conflict markers into the
+  affected files:
+
+  ```
+  <<<<<<< main
+  ...what main has...
+  =======
+  ...what restyle has...
+  >>>>>>> restyle
+  ```
+
+  Open those files in your editor, delete the markers, keep the lines you want,
+  then finish with `track merge --continue` (or bail out with
+  `track merge --abort`). `track status` lists the files still needing
+  attention while a merge is in progress.
+
+A merge records a commit with **two parents**, so `track log` and the web viewer
+show exactly where the branch came back together. If `main` hasn't moved since
+you branched, the merge is a clean **fast-forward** (no merge commit needed).
 
 ## A quick tour
 
@@ -134,11 +171,11 @@ read-only; commits are still made from the command line.
 
 ## What it deliberately does not do
 
-No **merging** of branches, no **remotes**/networking, and no staging area —
-every commit snapshots the whole working tree. Branches and tags exist, but
-bringing two branches back together is left to you (commit the combined files on
-one branch). That keeps it tiny and predictable. Your history is plain JSON, so
-it's easy to migrate if you outgrow it.
+No **remotes**/networking and no staging area — every commit snapshots the whole
+working tree. Conflict resolution is manual (edit the markers), and the
+merge-base finder assumes a single common ancestor, which is true for ordinary
+branch-and-merge workflows. That keeps it tiny and predictable. Your history is
+plain JSON, so it's easy to migrate if you outgrow it.
 
 ## Ignoring files
 

@@ -23,6 +23,10 @@ import {
   deleteTag,
   reset,
   revert,
+  mergeBranch,
+  abortMerge,
+  conflictMarkers,
+  reachable,
   scanWorkingTree,
   fromLines,
 } from "./repo.mjs";
@@ -103,9 +107,22 @@ function cmdStatus() {
     : `${yellow("HEAD detached")} at ${cyan(short(head))}`;
   out(`${where}  ${dim(`(${short(head)})`)}`);
 
+  if (history.merging) {
+    out("");
+    out(yellow(`Merging ${history.merging.theirsLabel} into ${history.merging.oursLabel}.`));
+    const stuck = conflictMarkers(root);
+    if (stuck.length) {
+      out(red("  Unresolved conflicts — edit these, then commit:"));
+      for (const f of stuck) out("    " + red(f));
+    } else {
+      out(green("  All conflicts resolved — run `track commit` to finish the merge."));
+    }
+    out(dim("  (or `track merge --abort` to back out)"));
+  }
+
   const s = status(root, history);
   if (!s.added.length && !s.modified.length && !s.deleted.length) {
-    out(green("Working tree clean — nothing to commit."));
+    if (!history.merging) out(green("Working tree clean — nothing to commit."));
     return;
   }
   out("");
@@ -143,9 +160,11 @@ function cmdLog(args) {
   const oneline = args.includes("--oneline");
   const all = args.includes("--all");
 
+  // Default: everything reachable from HEAD (following merges), newest first.
   const list = all
     ? [...history.commits]
-    : ancestry(history, headCommitId(history));
+    : reachable(history, headCommitId(history));
+  list.sort((a, b) => (a.time < b.time ? -1 : a.time > b.time ? 1 : 0));
   if (!list.length) {
     out("No commits yet.");
     return;
@@ -184,7 +203,10 @@ function cmdShow(args) {
   const cmt = getCommit(history, id);
 
   out(bold(cyan("commit " + cmt.id)) + decoStr(history, cmt.id));
-  out(dim("  parent " + short(cmt.parent)));
+  const parents = cmt.parent2
+    ? `${short(cmt.parent)} + ${short(cmt.parent2)}  (merge)`
+    : short(cmt.parent);
+  out(dim("  parent " + parents));
   out(dim("  " + shortTime(cmt.time)));
   out("  " + cmt.message);
   out("");
@@ -401,6 +423,65 @@ function cmdReset(args) {
   if (!hard) out(dim("  working tree left as-is; run `track status` to see changes"));
 }
 
+function cmdMerge(args) {
+  const root = needRepo();
+  const history = loadHistory(root);
+
+  if (args[0] === "--abort") {
+    abortMerge(root, history);
+    out("Merge aborted — working tree restored.");
+    return;
+  }
+  if (args[0] === "--continue") {
+    if (!history.merging) die("no merge in progress");
+    const stuck = conflictMarkers(root);
+    if (stuck.length) {
+      die(
+        "unresolved conflict markers remain in: " +
+          stuck.join(", ") +
+          "\n  edit them, then run `track merge --continue` again",
+      );
+    }
+    let message = history.merging.message;
+    for (let i = 1; i < args.length; i++) {
+      if (args[i] === "-m" || args[i] === "--message") message = args[++i];
+    }
+    const c = commit(root, history, message);
+    out(`${green("✓")} merge committed ${cyan(c.id)}`);
+    out("  " + c.message);
+    return;
+  }
+
+  const target = args.find((a) => !a.startsWith("-"));
+  if (!target) die("usage: track merge <branch>   (or --abort / --continue)");
+
+  let res;
+  try {
+    res = mergeBranch(root, history, target);
+  } catch (err) {
+    die(err.message);
+  }
+
+  if (res.status === "up-to-date") {
+    out("Already up to date — nothing to merge.");
+  } else if (res.status === "fast-forward") {
+    out(`${green("✓")} fast-forwarded ${cyan(history.current)} to ${cyan(short(res.to))}`);
+    const touched = res.tree.written.length + res.tree.removed.length;
+    if (touched) out(dim(`  updated ${touched} file(s)`));
+  } else if (res.status === "merged") {
+    const n = Object.keys(res.commit.changes).length;
+    out(`${green("✓")} merged into ${cyan(history.current)} as ${cyan(res.commit.id)}  ` +
+      dim(`(${n} file${n === 1 ? "" : "s"})`));
+    out("  " + res.commit.message);
+  } else if (res.status === "conflict") {
+    out(`${yellow("Merge has conflicts")} in ${res.files.length} file(s):`);
+    for (const f of res.files) out("  " + red(f));
+    out("");
+    out("Edit each file to resolve the " + bold("<<<<<<< / ======= / >>>>>>>") + " markers,");
+    out(`then run ${cyan("track merge --continue")}  (or ${cyan("track merge --abort")} to back out).`);
+  }
+}
+
 async function cmdServe(args) {
   needRepo();
   const root = findRoot();
@@ -437,6 +518,9 @@ ${bold("Branches & tags")}
   branch [name] [at]       List branches, or create one
   branch -d <name>         Delete a branch
   switch [-c] <name>       Switch branches (-c creates first)
+  merge <branch>           Merge another branch into the current one (3-way)
+  merge --continue         Finish a merge after resolving conflicts
+  merge --abort            Cancel an in-progress merge
   tag [name] [at]          List tags, or create one
   tag -d <name>            Delete a tag
 
@@ -470,6 +554,7 @@ export async function run(argv) {
     case "branch": return cmdBranch(args);
     case "tag": return cmdTag(args);
     case "revert": return cmdRevert(args);
+    case "merge": return cmdMerge(args);
     case "undo": return cmdUndo();
     case "reset": return cmdReset(args);
     case "serve": return await cmdServe(args);
