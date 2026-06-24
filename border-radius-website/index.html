@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Border Radius — design tips, sharp corners, and a podcast.</title>
+<script>
+  // Apply saved theme before paint to avoid a flash. Default is warm paper.
+  (function () {
+    try {
+      if (localStorage.getItem('borderradius-theme') === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+    } catch (e) {}
+  })();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  /* Featured shelf sits directly on the desk (no torn sheet of its own). */
+  .featured::before { display: none; }
+</style>
+</head>
+<body>
+
+<!-- Torn-edge filters: feTurbulence + feDisplacementMap roughen a straight
+     paper edge into fibers. Applied to paper backings only, never to text. -->
+<svg class="filters" aria-hidden="true">
+  <filter id="torn" x="-3%" y="-30%" width="106%" height="160%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.014 0.11" numOctaves="4" seed="3" result="n"/>
+    <feDisplacementMap in="SourceGraphic" in2="n" scale="17" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+  <filter id="torn2" x="-5%" y="-30%" width="110%" height="160%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.02 0.13" numOctaves="4" seed="8" result="n"/>
+    <feDisplacementMap in="SourceGraphic" in2="n" scale="20" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+</svg>
+
+<header class="top">
+  <a class="wordmark" href="index.html">
+    <span class="glyph" aria-hidden="true"></span>
+    Bo<span class="r">r</span>der Radius
+  </a>
+  <nav aria-label="Primary">
+    <ul>
+      <li><a href="#tips">tips</a></li>
+      <li><a href="#podcast">podcast</a></li>
+      <li><a href="#about">about</a></li>
+      <li><a href="#subscribe">subscribe</a></li>
+    </ul>
+  </nav>
+  <div class="top-right">
+    <span class="top-meta">
+      <svg class="reg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+        <circle cx="12" cy="12" r="6"/><path d="M12 1v6M12 17v6M1 12h6M17 12h6"/>
+      </svg>
+      ISSUE 12 · OUT NOW
+    </span>
+    <button class="theme-toggle" id="themeToggle" aria-label="Switch between light and dark theme" title="Toggle theme">
+      <svg id="iconSun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="4"/>
+        <path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>
+      </svg>
+      <svg id="iconMoon" width="15" height="15" viewBox="0 0 24 24" fill="currentColor" style="display:none;" aria-hidden="true">
+        <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<!-- ===== Hero (compact intro) ===== -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="kicker">A weekly read on design — heavy on Figma</div>
+    <h1>Design tips that <span class="swipe">round off</span> the rough edges.</h1>
+    <p class="lede">
+      <strong>Border Radius</strong> is a short weekly read — and a podcast — for people who sweat the details. Sharp tips on <strong>layout, type, design systems, and Figma</strong>, plus a plain-English note on whatever just shipped. No fluff. Just the good corners.
+    </p>
+    <div class="hero-cta">
+      <a class="btn btn-primary" href="#subscribe">Get the weekly →</a>
+      <a class="btn btn-ghost" href="#tips">Browse the tips</a>
+    </div>
+    <p class="hero-meta">Free · read in three minutes · also on <a href="#">Bluesky</a>, <a href="#">Mastodon</a>, and <a href="#">RSS</a>.</p>
+  </div>
+</section>
+
+<!-- ===== Featured: latest tip + latest episode ===== -->
+<section class="featured">
+  <div class="sec-head">
+    <h2>Start here</h2>
+    <span class="sec-aside">the latest tip &amp; the latest episode</span>
+  </div>
+  <div class="featured-grid">
+
+    <aside class="tip-card scrap reveal" aria-label="Featured tip — radius playground">
+      <span class="tape" aria-hidden="true"></span>
+      <span class="pill">Latest tip</span>
+      <div class="play-stage">
+        <div class="play-shape" id="playShape"><span id="shapeVal">24px</span></div>
+      </div>
+      <div class="tip-eyebrow"><span>The namesake</span><span class="num">Figma</span></div>
+      <h3 class="tip-name"><a href="tips/radius-variables.html">Type a radius once, reuse it everywhere</a></h3>
+      <p class="tip-blurb">Don’t eyeball corners. Save your radii as <b style="color:var(--accent)">number variables</b> so every card, button, and chip rounds the same. Drag to feel it.</p>
+      <div class="slider-row">
+        <div class="slider-label">
+          <span>radius/lg</span>
+          <span><b id="sliderVal">24</b> px</span>
+        </div>
+        <input type="range" id="radiusSlider" min="0" max="80" value="24" aria-label="Border radius in pixels" />
+        <div class="copy-row">
+          <div class="code-out"><span class="prop">border-radius</span>: <span class="val" id="codeVal">24px</span>;</div>
+          <button class="copy-btn" id="copyBtn" aria-label="Copy CSS">Copy</button>
+        </div>
+      </div>
+      <div class="tip-card-foot">
+        <a class="tip-link" href="tips/radius-variables.html">Read the full tip <span class="arr">→</span></a>
+      </div>
+    </aside>
+
+    <aside class="pod-episode in-featured scrap reveal" aria-label="Latest episode">
+      <span class="tape" aria-hidden="true"></span>
+      <div class="ep-eyebrow">Latest episode · <b>Ep 14</b></div>
+      <div class="ep-main">
+        <button class="ep-play" id="epPlay" aria-label="Play or pause the latest episode">
+          <svg id="epPlayIcon" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          <svg id="epPauseIcon" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="display:none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+        </button>
+        <div class="ep-text">
+          <div class="ep-title">Design in grayscale first</div>
+          <div class="ep-meta">21 min · this week</div>
+        </div>
+      </div>
+      <div class="ep-wave" aria-hidden="true">
+        <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+      </div>
+      <div class="ep-foot"><a href="#podcast">All episodes &amp; where to listen <span aria-hidden="true">→</span></a></div>
+    </aside>
+
+  </div>
+</section>
+
+<!-- ===== Tips list (one flat list) ===== -->
+<section id="tips">
+  <div class="sec-head">
+    <h2>The <span class="swipe">tips</span></h2>
+    <span class="sec-aside">design, type, systems &amp; figma</span>
+  </div>
+
+  <div id="rows"></div>
+
+  <p class="archive-link">every tip ever lives in the <a href="#">full archive</a> →</p>
+</section>
+
+<!-- ===== Podcast ===== -->
+<section id="podcast">
+  <div class="pod">
+    <div class="pod-intro">
+      <h2 class="eyebrow">What’s the podcast?</h2>
+      <h3>Border Radius, out loud.</h3>
+      <p>Same idea as the newsletter, with a microphone. Every other Thursday I take <strong>one design idea</strong> — a Figma trick, a layout principle, a hard-won process lesson — and talk it all the way through in about twenty minutes. Solo most weeks, with a guest designer when I can twist an arm.</p>
+      <p>No ads, no meandering. Subscribe wherever you listen:</p>
+      <div class="listen">
+        <a class="listen-chip" href="#">Apple Podcasts</a>
+        <a class="listen-chip" href="#">Spotify</a>
+        <a class="listen-chip" href="#">Overcast</a>
+        <a class="listen-chip" href="#">RSS</a>
+      </div>
+    </div>
+
+    <div class="pod-recent">
+      <div class="ep-list-title">Recent episodes</div>
+      <a class="ep-row" href="#">
+        <div><div class="ep-row-title">Stop nudging by one pixel</div><div class="ep-row-sub">On letting the tool do the math.</div></div>
+        <div class="ep-row-len">Ep 13 · 19 min</div>
+      </a>
+      <a class="ep-row" href="#">
+        <div><div class="ep-row-title">A components talk I should’ve given sooner</div><div class="ep-row-sub">Properties vs. a wall of variants.</div></div>
+        <div class="ep-row-len">Ep 12 · 24 min</div>
+      </a>
+      <a class="ep-row" href="#">
+        <div><div class="ep-row-title">Naming things, the only hard problem</div><div class="ep-row-sub">Layers, tokens, and future-you.</div></div>
+        <div class="ep-row-len">Ep 11 · 18 min</div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Pull quote ===== -->
+<section class="quote-section">
+  <blockquote>
+    The fastest designers I know aren’t faster at dragging rectangles. They’ve just <span class="swipe">stopped doing things by hand</span> that the tool will do for them.
+  </blockquote>
+  <div class="quote-attr">From the podcast — Ep 09, “Stop nudging by one pixel”</div>
+</section>
+
+<!-- ===== About / editor ===== -->
+<section id="about">
+  <div class="bio">
+    <figure class="bio-avatar reveal" aria-hidden="true">
+      <span class="tape"></span>
+      <figcaption>At the desk — Sunday night</figcaption>
+    </figure>
+    <div>
+      <h2 class="eyebrow">About the editor</h2>
+      <h3>Brian</h3>
+      <p>Brian is a product designer who has shipped design systems at two startups and one company large enough to have a “design ops” team. He has strong, slightly embarrassing opinions about <strong>nested components</strong> and <strong>variable modes</strong>.</p>
+      <p>He writes <strong>Border Radius</strong> on Sunday nights and records the podcast whenever the room is quiet enough. If something here saved you ten minutes, that’s the whole job done.</p>
+      <div class="bio-links">
+        <a href="#">Email Brian</a>
+        <a href="#">Suggest a tip</a>
+        <a href="#">The archive</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Subscribe ===== -->
+<section id="subscribe">
+  <div class="subscribe-wrap">
+    <div class="subscribe scrap reveal">
+      <span class="tape" aria-hidden="true"></span>
+      <h2>One sharp <span class="swipe">design tip</span>, every week.</h2>
+      <p>Join designers who’d rather learn one good trick on a Tuesday than binge a tutorial that never ends. The newsletter, plus a heads-up when a new episode drops. Free, no spam, unsubscribe in a click.</p>
+      <form class="signup" id="signup" novalidate>
+        <input type="email" id="email" placeholder="you@studio.com" aria-label="Email address" />
+        <button type="submit">Subscribe</button>
+      </form>
+      <div class="msg" id="msg" aria-live="polite"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Footer ===== -->
+<footer class="masthead">
+  <a class="mast" href="index.html"><span class="glyph" aria-hidden="true"></span>Border Radius</a>
+  <div>design tips, sharp corners, and a podcast</div>
+  <nav>
+    <a href="#">bluesky</a>·
+    <a href="#">mastodon</a>·
+    <a href="#">youtube</a>·
+    <a href="#">archive</a>·
+    <a href="#">rss</a>
+  </nav>
+  <div class="small">&copy; <span id="year"></span> Border Radius. Not affiliated with Figma — just a fan with shortcuts. Tips welcome.</div>
+</footer>
+
+<script>
+  // ===== Tip data — one flat list: general design tips + Figma tips. =====
+  // Tips with a `slug` link to their own page; the rest are plain rows.
+  const chipColors = {
+    'Figma':   'var(--riso-purple)',
+    'Layout':  'var(--riso-blue)',
+    'Type':    'var(--riso-orange)',
+    'Color':   'var(--riso-red)',
+    'Systems': 'var(--riso-green)',
+    'Process': 'var(--riso-yellow)',
+    'Handoff': 'var(--riso-blue)',
+  };
+
+  const tips = [
+    {
+      tag: 'Figma', read: '2 min', slug: 'radius-variables',
+      title: 'Type a radius once, reuse it everywhere',
+      blurb: 'Save your radii as <kbd>number variables</kbd> — <code>radius/sm</code> … <code>radius/lg</code> — and apply them everywhere. Change one value and every corner in the file updates. The newsletter’s whole namesake.',
+    },
+    {
+      tag: 'Figma', read: '2 min', slug: 'auto-layout-shift-a',
+      title: 'Wrap anything in auto layout with Shift + A',
+      blurb: 'Select your layers, hit <kbd>Shift</kbd> <kbd>A</kbd>, and Figma frames them with real spacing and padding. Resize and everything reflows — no more re-nudging six layers when one label gets longer.',
+    },
+    {
+      tag: 'Layout', read: '3 min', slug: 'spacing-scale',
+      title: 'Pick a spacing scale and never freehand a gap again',
+      blurb: 'Commit to a simple set — 4, 8, 12, 16, 24, 32 — and use only those. Your spacing stops looking random, and “does this feel off?” becomes a question you can actually answer.',
+    },
+    {
+      tag: 'Type', read: '2 min',
+      title: 'Two typefaces is plenty — give each one a job',
+      blurb: 'One for talking, one for labels and numbers. Most “designy” pages are just one good text face plus a mono used with restraint. Resist adding a third for flavor.',
+    },
+    {
+      tag: 'Color', read: '3 min',
+      title: 'Design it in grayscale first, add color last',
+      blurb: 'If the layout reads with no color, your hierarchy is real and not just propped up by a bright accent. Get it working in gray, then let color do the small, deliberate jobs.',
+    },
+    {
+      tag: 'Systems', read: '2 min',
+      title: 'Component properties beat a folder of variants',
+      blurb: 'For booleans like “has icon” or text like a button label, use component properties instead of spawning a variant for every combination. Fewer rows in the variant table, far less to maintain.',
+    },
+    {
+      tag: 'Process', read: '2 min',
+      title: 'Show the messy version early',
+      blurb: 'A rough frame shared on Monday gets you the feedback that saves the polished version on Friday. Hold work too long and you end up defending it instead of improving it.',
+    },
+    {
+      tag: 'Figma', read: '3 min',
+      title: 'Variable modes are how you do light & dark for free',
+      blurb: 'Put your color tokens in a collection with a <kbd>Light</kbd> and <kbd>Dark</kbd> mode. Flip the mode on any frame and the whole thing re-themes — no duplicate screens, no detached styles.',
+    },
+    {
+      tag: 'Handoff', read: '1 min',
+      title: 'Name layers like someone has to read them (they do)',
+      blurb: '“Frame 47” helps no one. Thirty seconds of naming as you go makes your file searchable, your components legible, and your future self a lot less annoyed.',
+    },
+  ];
+
+  const rowsEl = document.getElementById('rows');
+  rowsEl.innerHTML = tips.map((t, i) => {
+    const color = chipColors[t.tag] || 'var(--accent)';
+    const n = String(i + 1).padStart(2, '0');
+    const inner = `
+        <div class="row-num">${n}</div>
+        <div class="row-body">
+          <span class="chip" style="--c:${color}">${t.tag}</span>
+          <h3 class="row-title">${t.title}</h3>
+          <p class="row-blurb">${t.blurb}</p>
+        </div>
+        <div class="row-meta">
+          <span>${t.read}</span>
+          <span class="row-arrow" aria-hidden="true">→</span>
+        </div>`;
+    return t.slug
+      ? `<a class="tip-row reveal" href="tips/${t.slug}.html">${inner}</a>`
+      : `<article class="tip-row static reveal">${inner}</article>`;
+  }).join('');
+</script>
+<script src="app.js"></script>
+</body>
+</html>
