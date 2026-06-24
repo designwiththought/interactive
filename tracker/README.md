@@ -169,6 +169,22 @@ Code app's preview pane or Safari. You get a tappable list of commits and a
 color diff for each — easier than a terminal on a small screen. The viewer is
 read-only; commits are still made from the command line.
 
+## Portability (why it runs in iOS code editors)
+
+The whole tool is plain ES modules with **no dependencies and no native code**:
+
+- The **core** (init/commit/diff/log/show/branch/merge/…) imports only
+  `node:fs` and `node:path` — the two most universally available modules. Commit
+  ids use a small pure-JS hash, so there's **no `node:crypto`/OpenSSL** requirement.
+- It never spawns subprocesses (`child_process`), uses no worker threads, and
+  loads no `.node` native add-ons — all of which iOS sandboxes forbid.
+- The optional `track serve` viewer adds `node:http`, binding a **localhost**
+  port. iOS Node editors (e.g. the Code app) allow loopback servers — you open
+  `http://localhost:PORT` in the side-by-side browser. If a build ever refused
+  to bind a port, every other command still works without it.
+
+In short: if the app can run a `.mjs` file with Node at all, `track` works.
+
 ## What it deliberately does not do
 
 No **remotes**/networking and no staging area — every commit snapshots the whole

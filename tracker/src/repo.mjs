@@ -31,7 +31,6 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import crypto from "node:crypto";
 import {
   toLines,
   fromLines,
@@ -302,12 +301,26 @@ export function isDirty(root, history) {
 
 // ----- commit ----------------------------------------------------------------
 
+// A short, stable id for a commit. We hash parent + changes + time so the same
+// content at a different moment still gets a distinct id. This is a plain
+// pure-JS hash (FNV-1a, 64-bit, folded to 8 hex chars) so the tool needs only
+// `fs` and `path` — no `node:crypto`/OpenSSL, which keeps it portable to slim
+// Node builds like the ones in iOS code editors.
+function hashId(str) {
+  const prime = 0x100000001b3n;
+  const mask = 0xffffffffffffffffn;
+  let h = 0xcbf29ce484222325n;
+  for (let i = 0; i < str.length; i++) {
+    const code = str.charCodeAt(i);
+    h = ((h ^ BigInt(code & 0xff)) * prime) & mask;
+    h = ((h ^ BigInt((code >> 8) & 0xff)) * prime) & mask;
+  }
+  const folded = (h ^ (h >> 32n)) & 0xffffffffn; // mix high bits into the low 32
+  return folded.toString(16).padStart(8, "0");
+}
+
 function makeId(parent, changes, time) {
-  return crypto
-    .createHash("sha256")
-    .update(JSON.stringify({ parent, changes, time }))
-    .digest("hex")
-    .slice(0, 8);
+  return hashId(JSON.stringify({ parent, changes, time }));
 }
 
 // Build the change set between a base state and the working tree.
