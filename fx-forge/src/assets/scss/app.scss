@@ -30,3 +30,45 @@ input {
   font-family: inherit;
   font-size: inherit;
 }
+
+/* -------------------------------
+  Shared minimal controls
+  Form controls in the action bar and effect view are styled to read like
+  small versions of the tracker buttons, keeping one consistent interface.
+------------------------------- */
+.actions,
+.fx-graph {
+  select,
+  input[type='number'],
+  input[type='text'] {
+    height: 23px;
+    padding: 0 6px;
+    color: #fff;
+    background: #1e1f21;
+    border: 2px solid #000;
+    border-bottom-width: 3px;
+    border-radius: 6px;
+    outline: 0;
+    font-size: 11px;
+    box-shadow: 0 0.5px 0 rgba(255, 255, 255, 0.12);
+  }
+  select {
+    cursor: pointer;
+  }
+  input[type='range'] {
+    appearance: none;
+    -webkit-appearance: none;
+    height: 4px;
+    border-radius: 2px;
+    background: #2a2b2d;
+    outline: 0;
+    accent-color: var(--pattern-step-active-color);
+  }
+  // Small uppercase section labels, matching the muted tracker label voice.
+  .fxg-label {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--pattern-step-label-color);
+  }
+}

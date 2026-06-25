@@ -42,7 +42,9 @@
   //----------------------------------
   const PAD = { l: 30, r: 10, t: 10, b: 20 };
   const VIEW_H = 220;
-  const LANE_COLORS = ['#e8a04e', '#4ec9b0'];
+  // Lane colors mirror the pattern grid's FX columns (fx1 / fx2) so the two
+  // views read as one interface.
+  const LANE_COLORS = ['#bb58f1', '#57f1ff'];
 
   //----------------------------------
   // State
@@ -205,17 +207,14 @@
 
 <template>
   <div class="fx-graph">
-    <div class="toolbar">
-      <label>
-        Track
-        <select v-model.number="trackIndex">
-          <option v-for="n in numTracks" :key="n" :value="n - 1">{{ n }}</option>
-        </select>
-      </label>
-      <span class="range-readout"
-        >Range: <strong>{{ rangeLabel }}</strong></span
-      >
-      <Button @click="selectWholeTrack"><sup>Sel</sup> Whole Track</Button>
+    <div class="fxg-head">
+      <span class="fxg-label">Track</span>
+      <select v-model.number="trackIndex">
+        <option v-for="n in numTracks" :key="n" :value="n - 1">{{ n }}</option>
+      </select>
+      <span class="fxg-label">Range</span>
+      <strong class="range-readout">{{ rangeLabel }}</strong>
+      <Button small @click="selectWholeTrack">Whole track</Button>
       <span class="hint">click two steps to set a range</span>
     </div>
 
@@ -295,20 +294,20 @@
       />
     </svg>
 
-    <div class="legend">
-      <span><i :style="{ background: LANE_COLORS[0] }" /> Lane 1: {{ laneLegend(0) }}</span>
-      <span><i :style="{ background: LANE_COLORS[1] }" /> Lane 2: {{ laneLegend(1) }}</span>
+    <div class="fxg-legend">
+      <span><i :style="{ background: LANE_COLORS[0] }" /> Lane 1 · {{ laneLegend(0) }}</span>
+      <span><i :style="{ background: LANE_COLORS[1] }" /> Lane 2 · {{ laneLegend(1) }}</span>
     </div>
 
-    <div class="builders">
+    <div class="fxg-panels">
       <!-- Preset effects -->
-      <section>
-        <h4>Drop an effect</h4>
-        <div class="row">
+      <section class="fxg-panel">
+        <div class="fxg-label">Drop an effect</div>
+        <div class="fxg-line">
           <select v-model="effectId">
             <option v-for="e in EFFECTS" :key="e.id" :value="e.id">{{ e.name }}</option>
           </select>
-          <span class="lanes">{{ effectLaneLabel }}</span>
+          <span class="budget">{{ effectLaneLabel }}</span>
         </div>
         <p class="desc">{{ selectedEffect.description }}</p>
         <div class="params">
@@ -324,18 +323,16 @@
             <span class="pval">{{ effectParams[param.id] }}{{ param.unit ? ' ' + param.unit : '' }}</span>
           </label>
         </div>
-        <div class="row">
-          <Button @click="dropEffect"><sup>Drop</sup> into {{ rangeLabel }}</Button>
+        <div class="fxg-line">
+          <Button small @click="dropEffect"><sup>Drop</sup> into {{ rangeLabel }}</Button>
           <label class="check"><input type="checkbox" v-model="placeNotes" /> place notes</label>
         </div>
       </section>
 
       <!-- Custom builder -->
-      <section>
-        <h4>
-          Build a custom effect <small>({{ customLaneCount }}/{{ MAX_FX_LANES }} lanes)</small>
-        </h4>
-        <div class="row">
+      <section class="fxg-panel">
+        <div class="fxg-label">Build a custom effect · {{ customLaneCount }}/{{ MAX_FX_LANES }}</div>
+        <div class="fxg-line">
           <span class="lane-tag" :style="{ color: LANE_COLORS[0] }">Lane 1</span>
           <select v-model="lane1Fx">
             <option v-for="f in AUTOMATABLE_FX" :key="f.symbol" :value="f.symbol">{{ f.symbol }} · {{ f.name }}</option>
@@ -344,7 +341,7 @@
             <option v-for="c in CURVES" :key="c.id" :value="c.id">{{ c.name }}</option>
           </select>
         </div>
-        <div class="row">
+        <div class="fxg-line">
           <label class="check"><input type="checkbox" v-model="lane2On" :disabled="MAX_FX_LANES < 2" /></label>
           <span class="lane-tag" :style="{ color: LANE_COLORS[1] }">Lane 2</span>
           <select v-model="lane2Fx" :disabled="!lane2On">
@@ -354,9 +351,9 @@
             <option v-for="c in CURVES" :key="c.id" :value="c.id">{{ c.name }}</option>
           </select>
         </div>
-        <div class="row">
-          <Button @click="applyCustom"><sup>Apply</sup> to {{ rangeLabel }}</Button>
-          <Button @click="clearFx"><sup>Clear</sup> FX</Button>
+        <div class="fxg-line">
+          <Button small @click="applyCustom"><sup>Apply</sup> to {{ rangeLabel }}</Button>
+          <Button small @click="clearFx"><sup>Clear</sup> FX</Button>
         </div>
       </section>
     </div>
@@ -365,65 +362,52 @@
 
 <style lang="scss">
   div.fx-graph {
-    --fxg-border: var(--pattern-overlay-accent-color, #555);
     width: 100%;
     max-width: calc((124px * 8) + 36px + (3px * 7));
-    color: var(--pattern-step-note-color, #ddd);
+    color: var(--pattern-step-note-color);
     font-size: 12px;
 
-    .toolbar,
-    .legend,
-    .row {
+    .fxg-head,
+    .fxg-legend,
+    .fxg-line {
       display: flex;
       align-items: center;
       gap: 10px;
     }
-    .toolbar {
-      margin-bottom: 6px;
+    .fxg-head {
+      margin-bottom: 8px;
       flex-wrap: wrap;
     }
     .hint {
-      opacity: 0.5;
+      opacity: 0.4;
+      font-size: 11px;
     }
-    .range-readout strong {
+    .range-readout {
       color: #fff;
-    }
-
-    select,
-    input[type='checkbox'] {
-      font-family: inherit;
-      font-size: 12px;
-    }
-    select {
-      height: 26px;
-      padding: 0 6px;
-      border: 1px solid var(--fxg-border);
-      border-radius: 4px;
-      background: var(--pattern-step-bg-color, #1b1b1b);
-      color: inherit;
+      font-weight: normal;
     }
 
     svg.graph {
       display: block;
       height: 220px;
       max-width: 100%;
-      background: var(--pattern-step-bg-color, #161616);
-      border: 1px solid var(--fxg-border);
+      background: var(--pattern-step-bg-color);
+      border: 2px solid #000;
       border-radius: 6px;
 
       .range-band {
-        fill: rgba(255, 255, 255, 0.07);
+        fill: rgba(255, 255, 255, 0.06);
       }
       .beat {
-        stroke: rgba(255, 255, 255, 0.08);
+        stroke: var(--pattern-step-beat-bg-color);
         stroke-width: 1;
       }
       .axis {
-        stroke: rgba(255, 255, 255, 0.25);
+        stroke: rgba(255, 255, 255, 0.18);
         stroke-width: 1;
       }
       .axis-label {
-        fill: rgba(255, 255, 255, 0.35);
+        fill: var(--pattern-step-label-color);
         font-size: 9px;
       }
       .curve {
@@ -431,9 +415,8 @@
         stroke-width: 1.5;
       }
       .playhead {
-        stroke: #fff;
+        stroke: var(--pattern-step-active-color);
         stroke-width: 1.5;
-        opacity: 0.7;
       }
       .hit {
         fill: transparent;
@@ -444,87 +427,97 @@
       }
     }
 
-    .legend {
-      margin: 6px 0 12px;
-      opacity: 0.85;
+    .fxg-legend {
+      margin: 8px 0 14px;
+      font-size: 11px;
+      color: var(--pattern-step-label-color);
       i {
         display: inline-block;
-        width: 10px;
-        height: 10px;
+        width: 9px;
+        height: 9px;
         border-radius: 2px;
-        margin-right: 4px;
+        margin-right: 5px;
         vertical-align: middle;
       }
     }
 
-    .builders {
+    .fxg-panels {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 18px;
+      gap: 24px;
     }
     @media (max-width: 720px) {
-      .builders {
+      .fxg-panels {
         grid-template-columns: 1fr;
+        gap: 16px;
       }
     }
-    section {
-      border: 1px solid var(--fxg-border);
-      border-radius: 6px;
-      padding: 10px 12px;
-      h4 {
-        margin: 0 0 8px;
-        font-size: 13px;
-        small {
-          opacity: 0.6;
-          font-weight: normal;
+    .fxg-panel {
+      // Panels are divided by a single hairline rule, not boxed cards —
+      // keeping the flat, minimal tracker feel.
+      &:last-child {
+        padding-left: 24px;
+        border-left: 1px solid #1c1c1c;
+      }
+      @media (max-width: 720px) {
+        &:last-child {
+          padding-left: 0;
+          padding-top: 16px;
+          border-left: 0;
+          border-top: 1px solid #1c1c1c;
         }
       }
-      .row {
-        margin: 6px 0;
+      .fxg-label {
+        margin-bottom: 10px;
+      }
+      .fxg-line {
+        margin: 8px 0;
         flex-wrap: wrap;
       }
       .desc {
-        margin: 4px 0 8px;
-        opacity: 0.6;
+        margin: 6px 0 10px;
+        opacity: 0.5;
         min-height: 2.4em;
+        line-height: 1.35;
       }
-      .lanes {
+      .budget {
         font-family: monospace;
-        opacity: 0.8;
+        font-size: 11px;
+        color: var(--pattern-step-label-color);
       }
       .params {
         display: flex;
         flex-direction: column;
-        gap: 5px;
-        margin: 6px 0 10px;
+        gap: 6px;
+        margin: 6px 0 12px;
       }
       .param {
         display: grid;
-        grid-template-columns: 70px 1fr 64px;
+        grid-template-columns: 72px 1fr 60px;
         align-items: center;
-        gap: 8px;
+        gap: 10px;
         .pname {
-          opacity: 0.75;
+          opacity: 0.65;
         }
         input[type='range'] {
           width: 100%;
-          accent-color: var(--fxg-border);
         }
         .pval {
           font-family: monospace;
           text-align: right;
-          opacity: 0.9;
+          color: #fff;
+          opacity: 0.85;
         }
       }
       .lane-tag {
         font-weight: bold;
-        min-width: 44px;
+        min-width: 46px;
       }
       .check {
         display: inline-flex;
         align-items: center;
-        gap: 4px;
-        opacity: 0.8;
+        gap: 5px;
+        opacity: 0.65;
       }
     }
   }

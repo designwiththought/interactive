@@ -736,18 +736,14 @@
       <Button type="file" mime-types=".mtp" @file="handlePatternInput"> <sup>Load</sup> Pattern </Button>
       <Button v-if="patternData" @click="handlePatternOutput"> <sup>Save</sup> Pattern </Button>
     </div>
-    <div class="group separator" />
-    <div class="group forge">
-      <select v-model="forgePresetId" class="forge-select" :title="forgePreset.description">
-        <option v-for="p in forgePresets" :key="p.id" :value="p.id">{{ p.name }}</option>
-      </select>
-      <Button @click="handleForge(false)"> <sup>Forge</sup> FX </Button>
-      <Button @click="handleForge(true)"> <sup>Re-roll</sup> {{ forgeSeed }} </Button>
-      <Button v-if="patternData" @click="toggleGraph"> <sup>View</sup> {{ showGraph ? 'Grid' : 'Graph' }} </Button>
+    <div v-if="patternData" class="group separator" />
+    <div v-if="patternData" class="group">
+      <Button :focused="!showGraph" @click="showGraph && toggleGraph()"> <sup>View</sup> Pattern </Button>
+      <Button :focused="showGraph" @click="!showGraph && toggleGraph()"> <sup>View</sup> Effects </Button>
     </div>
-    <div class="group separator" />
-    <div class="group transport">
-      <Button v-if="patternData" @click="togglePlay"> <sup>Preview</sup> {{ isPlaying ? '■ Stop' : '▶ Play' }} </Button>
+    <div v-if="patternData" class="group separator" />
+    <div v-if="patternData" class="group transport">
+      <Button :blue="isPlaying" @click="togglePlay"> <sup>Preview</sup> {{ isPlaying ? '■ Stop' : '▶ Play' }} </Button>
       <label class="bpm">
         BPM
         <input type="number" min="20" max="400" v-model.number="previewBpm" @change="preview?.setBpm(previewBpm)" />
@@ -755,6 +751,14 @@
       <Button type="file" mime-types="audio/*,.wav" @file="handleSampleLoad">
         <sup>Sample</sup> {{ sampleName }}
       </Button>
+    </div>
+    <div class="group separator" />
+    <div class="group forge">
+      <select v-model="forgePresetId" :title="forgePreset.description">
+        <option v-for="p in forgePresets" :key="p.id" :value="p.id">{{ p.name }}</option>
+      </select>
+      <Button @click="handleForge(false)"> <sup>Forge</sup> FX </Button>
+      <Button @click="handleForge(true)"> <sup>Re-roll</sup> {{ forgeSeed }} </Button>
     </div>
   </div>
 </template>
@@ -928,38 +932,19 @@
     }
   }
 
-  div.actions > div.group.transport {
-    & > label.bpm {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      font-size: 11px;
-      opacity: 0.8;
-      & > input {
-        width: 52px;
-        height: 26px;
-        padding: 0 4px;
-        border: 1px solid var(--pattern-overlay-accent-color, #888);
-        border-radius: 4px;
-        background: var(--pattern-step-bg-color, #1b1b1b);
-        color: var(--pattern-step-note-color, #eee);
-        font-family: inherit;
-        font-size: 12px;
-      }
-    }
+  // The action bar wraps to multiple rows gracefully as groups are added.
+  div.actions {
+    flex-wrap: wrap;
+    row-gap: 10px;
   }
-
-  div.actions > div.group.forge {
-    & > select.forge-select {
-      height: 28px;
-      padding: 0 8px;
-      border: 1px solid var(--pattern-overlay-accent-color, #888);
-      border-radius: 4px;
-      background: var(--pattern-step-bg-color, #1b1b1b);
-      color: var(--pattern-step-note-color, #eee);
-      font-family: inherit;
-      font-size: 12px;
-      cursor: pointer;
+  div.actions > div.group.transport > label.bpm {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    color: var(--pattern-step-label-color);
+    & > input {
+      width: 52px;
     }
   }
 </style>
