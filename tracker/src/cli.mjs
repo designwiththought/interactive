@@ -32,6 +32,13 @@ import {
 } from "./repo.mjs";
 import { diffLines, renderDiff, diffStat } from "./diff.mjs";
 
+// Exit quietly when our output is piped to a command that closes early
+// (e.g. `track log | head`) instead of crashing with an EPIPE stack trace.
+process.stdout.on("error", (err) => {
+  if (err && err.code === "EPIPE") process.exit(0);
+});
+process.stderr.on("error", () => {});
+
 // ----- terminal coloring (auto-off when not a TTY) ---------------------------
 
 const useColor = process.stdout.isTTY && !process.env.NO_COLOR;
@@ -301,7 +308,10 @@ function cmdCheckout(args) {
     return cmdRestore(rest); // checkout <ref> <file...> == restore
   }
   const target = rest[0];
-  if (!force && isDirty(root, history)) {
+  // Only block on uncommitted changes if switching would actually rewrite files
+  // (i.e. the target is a different commit than where we are now).
+  const targetId = resolveRef(history, target);
+  if (!force && isDirty(root, history) && targetId !== headCommitId(history)) {
     die("you have uncommitted changes — commit them, or use `checkout -f` to discard");
   }
   const res = switchTo(root, history, target);
@@ -318,14 +328,18 @@ function cmdSwitch(args) {
   const rest = args.filter((a) => a !== "-c" && a !== "--create");
   const name = rest[0];
   if (!name) die("usage: track switch [-c] <branch>");
+  if (!create && !Object.prototype.hasOwnProperty.call(history.branches, name))
+    die(`no such branch: ${name} (use \`switch -c ${name}\` to create it)`);
+  // Switching only rewrites files when the target is a *different* commit.
+  // If it points at the current commit (always true for `switch -c`), it's a
+  // no-op for files, so uncommitted edits are safe to carry across.
+  const targetId = create ? headCommitId(history) : history.branches[name];
+  if (isDirty(root, history) && targetId !== headCommitId(history))
+    die("you have uncommitted changes — commit them first");
   if (create) {
     createBranch(root, history, name);
     out(`Created branch ${cyan(name)}`);
   }
-  if (!Object.prototype.hasOwnProperty.call(history.branches, name))
-    die(`no such branch: ${name} (use \`switch -c ${name}\` to create it)`);
-  if (isDirty(root, history))
-    die("you have uncommitted changes — commit them first");
   switchTo(root, history, name);
   out(`Switched to branch ${cyan(name)}`);
 }

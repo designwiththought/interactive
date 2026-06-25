@@ -278,6 +278,20 @@ test("branches diverge and reconstruct independently", () => {
   assert.equal(fromLines(reconstructCommit(h, mainC.id).get("a.txt")), "base\nmain work\n");
 });
 
+test("switching to the same commit preserves uncommitted edits", () => {
+  const dir = tmpRepo();
+  write(dir, "a.txt", "base\n");
+  ci(dir, "base");
+  // new branch at the current commit, then dirty the tree
+  let h = reload(dir);
+  createBranch(dir, h, "feature");
+  write(dir, "a.txt", "base\nWIP\n"); // uncommitted edit
+  // switching to feature (same commit) must NOT clobber the edit
+  switchTo(dir, reload(dir), "feature");
+  assert.equal(read(dir, "a.txt"), "base\nWIP\n");
+  assert.equal(reload(dir).current, "feature");
+});
+
 test("switching branches rewrites the working tree", () => {
   const dir = tmpRepo();
   write(dir, "a.txt", "base\n");

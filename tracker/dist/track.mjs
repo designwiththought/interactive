@@ -799,10 +799,16 @@ function deleteBranch(root, history, name) {
 
 // Switch HEAD to a branch (by name) or detach onto a commit id.
 function switchTo(root, history, name) {
+  const fromId = headCommitId(history);
+  // Switching to the commit we're already on is a pure pointer move — leave the
+  // working tree (and any uncommitted edits) untouched.
+  const noop = { written: [], removed: [] };
+
   if (Object.prototype.hasOwnProperty.call(history.branches, name)) {
+    const toId = history.branches[name];
     history.current = name;
     history.detached = null;
-    const res = checkoutTree(root, history, history.branches[name]);
+    const res = toId === fromId ? noop : checkoutTree(root, history, toId);
     saveHistory(root, history);
     return { branch: name, ...res };
   }
@@ -810,7 +816,7 @@ function switchTo(root, history, name) {
   if (!id) throw new Error(`no such branch or commit: ${name}`);
   history.current = null;
   history.detached = id;
-  const res = checkoutTree(root, history, id);
+  const res = id === fromId ? noop : checkoutTree(root, history, id);
   saveHistory(root, history);
   return { detached: id, ...res };
 }
@@ -1164,6 +1170,13 @@ function serve(root, port = 7878) {
 
 // Command-line interface for `track`.
 
+// Exit quietly when our output is piped to a command that closes early
+// (e.g. `track log | head`) instead of crashing with an EPIPE stack trace.
+process.stdout.on("error", (err) => {
+  if (err && err.code === "EPIPE") process.exit(0);
+});
+process.stderr.on("error", () => {});
+
 // ----- terminal coloring (auto-off when not a TTY) ---------------------------
 
 const useColor = process.stdout.isTTY && !process.env.NO_COLOR;
@@ -1433,7 +1446,10 @@ function cmdCheckout(args) {
     return cmdRestore(rest); // checkout <ref> <file...> == restore
   }
   const target = rest[0];
-  if (!force && isDirty(root, history)) {
+  // Only block on uncommitted changes if switching would actually rewrite files
+  // (i.e. the target is a different commit than where we are now).
+  const targetId = resolveRef(history, target);
+  if (!force && isDirty(root, history) && targetId !== headCommitId(history)) {
     die("you have uncommitted changes — commit them, or use `checkout -f` to discard");
   }
   const res = switchTo(root, history, target);
@@ -1450,14 +1466,18 @@ function cmdSwitch(args) {
   const rest = args.filter((a) => a !== "-c" && a !== "--create");
   const name = rest[0];
   if (!name) die("usage: track switch [-c] <branch>");
+  if (!create && !Object.prototype.hasOwnProperty.call(history.branches, name))
+    die(`no such branch: ${name} (use \`switch -c ${name}\` to create it)`);
+  // Switching only rewrites files when the target is a *different* commit.
+  // If it points at the current commit (always true for `switch -c`), it's a
+  // no-op for files, so uncommitted edits are safe to carry across.
+  const targetId = create ? headCommitId(history) : history.branches[name];
+  if (isDirty(root, history) && targetId !== headCommitId(history))
+    die("you have uncommitted changes — commit them first");
   if (create) {
     createBranch(root, history, name);
     out(`Created branch ${cyan(name)}`);
   }
-  if (!Object.prototype.hasOwnProperty.call(history.branches, name))
-    die(`no such branch: ${name} (use \`switch -c ${name}\` to create it)`);
-  if (isDirty(root, history))
-    die("you have uncommitted changes — commit them first");
   switchTo(root, history, name);
   out(`Switched to branch ${cyan(name)}`);
 }

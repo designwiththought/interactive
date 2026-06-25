@@ -58,6 +58,20 @@ check("branch + clean merge work from the bundle", () => {
   assert.equal(fs.readFileSync(path.join(dir, "readme.txt"), "utf8"), "hello\nfrom feature\n");
 });
 
+check("switch -c carries uncommitted edits onto the new branch", () => {
+  // dirty the tree, then branch off — the edit should come along, not be blocked
+  const current = fs.readFileSync(path.join(dir, "readme.txt"), "utf8");
+  write("readme.txt", current + "WIP edit\n");
+  const outText = track("switch", "-c", "wip");
+  assert.ok(/Switched to branch/.test(outText), "switch -c should succeed when dirty");
+  assert.equal(
+    fs.readFileSync(path.join(dir, "readme.txt"), "utf8"),
+    current + "WIP edit\n",
+    "uncommitted edit is preserved on the new branch",
+  );
+  track("commit", "-m", "save wip"); // leave a clean tree for the next test
+});
+
 check("restore brings a file back from history", () => {
   write("readme.txt", "totally different\n");
   track("commit", "-m", "rewrite");

@@ -431,10 +431,16 @@ export function deleteBranch(root, history, name) {
 
 // Switch HEAD to a branch (by name) or detach onto a commit id.
 export function switchTo(root, history, name) {
+  const fromId = headCommitId(history);
+  // Switching to the commit we're already on is a pure pointer move — leave the
+  // working tree (and any uncommitted edits) untouched.
+  const noop = { written: [], removed: [] };
+
   if (Object.prototype.hasOwnProperty.call(history.branches, name)) {
+    const toId = history.branches[name];
     history.current = name;
     history.detached = null;
-    const res = checkoutTree(root, history, history.branches[name]);
+    const res = toId === fromId ? noop : checkoutTree(root, history, toId);
     saveHistory(root, history);
     return { branch: name, ...res };
   }
@@ -442,7 +448,7 @@ export function switchTo(root, history, name) {
   if (!id) throw new Error(`no such branch or commit: ${name}`);
   history.current = null;
   history.detached = id;
-  const res = checkoutTree(root, history, id);
+  const res = id === fromId ? noop : checkoutTree(root, history, id);
   saveHistory(root, history);
   return { detached: id, ...res };
 }
