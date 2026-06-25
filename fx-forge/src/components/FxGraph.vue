@@ -29,6 +29,10 @@
       type: Object as PropType<PatternData | null>,
       default: null,
     },
+    playStep: {
+      type: Number,
+      default: -1,
+    },
   });
   const emit = defineEmits<{ changed: [] }>();
 
@@ -228,6 +232,15 @@
         :x2="bx"
         :y2="VIEW_H - PAD.b"
       />
+      <!-- playhead -->
+      <line
+        v-if="playStep >= 0 && playStep < numSteps"
+        class="playhead"
+        :x1="xOf(playStep)"
+        :y1="PAD.t"
+        :x2="xOf(playStep)"
+        :y2="VIEW_H - PAD.b"
+      />
       <!-- axis baseline -->
       <line class="axis" :x1="PAD.l" :y1="VIEW_H - PAD.b" :x2="viewW - PAD.r" :y2="VIEW_H - PAD.b" />
       <text class="axis-label" :x="2" :y="PAD.t + 8">max</text>
@@ -395,6 +408,11 @@
       .curve {
         fill: none;
         stroke-width: 1.5;
+      }
+      .playhead {
+        stroke: #fff;
+        stroke-width: 1.5;
+        opacity: 0.7;
       }
       .hit {
         fill: transparent;

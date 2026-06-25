@@ -32,6 +32,7 @@
   import VueComp from '@/utils/vuecomp.ts';
   import FxGraph from '@/components/FxGraph.vue';
   import { PRESETS, applyRecipe, getPreset } from '@/forge/index.ts';
+  import { PatternPreview } from '@/audio/preview.ts';
 
   //---------------------------------------------------
   //
@@ -81,6 +82,15 @@
   const forgeSeed = ref<number>(1);
   const forgePreset = computed(() => getPreset(forgePresetId.value));
   const showGraph = ref<boolean>(false);
+
+  //----------------------------------
+  // Audio preview variables
+  //----------------------------------
+  let preview: PatternPreview | null = null;
+  const isPlaying = ref<boolean>(false);
+  const previewBpm = ref<number>(130);
+  const playStep = ref<number>(-1);
+  const sampleName = ref<string>('default blip');
 
   //----------------------------------
   // Keyboard variables
@@ -150,6 +160,7 @@
   // onDeactivated(() => {});
   onBeforeUnmount(() => {
     removeInteractions();
+    preview?.dispose();
   });
   // onUnmounted(() => {});
 
@@ -628,6 +639,37 @@
     }
   }
 
+  //----------------------------------
+  // Audio preview Methods
+  //----------------------------------
+  async function togglePlay() {
+    if (!preview) preview = new PatternPreview();
+    if (isPlaying.value) {
+      preview.stop();
+      isPlaying.value = false;
+      playStep.value = -1;
+      return;
+    }
+    if (!patternData.value) return;
+    isPlaying.value = true;
+    await preview.play(patternData.value, {
+      bpm: previewBpm.value,
+      onStep: (s) => (playStep.value = s),
+      onStop: () => {
+        isPlaying.value = false;
+        playStep.value = -1;
+      },
+    });
+  }
+
+  async function handleSampleLoad(file: File) {
+    if (!file) return;
+    if (!preview) preview = new PatternPreview();
+    const buf = await file.arrayBuffer();
+    await preview.setSample(buf);
+    sampleName.value = file.name;
+  }
+
   //---------------------------------------------------
   //
   //  Expose
@@ -685,7 +727,7 @@
   </div>
 
   <div v-if="showGraph && patternData" class="graph-view">
-    <FxGraph :pattern="patternData" @changed="onGraphChanged" />
+    <FxGraph :pattern="patternData" :play-step="playStep" @changed="onGraphChanged" />
   </div>
 
   <div class="actions">
@@ -702,6 +744,17 @@
       <Button @click="handleForge(false)"> <sup>Forge</sup> FX </Button>
       <Button @click="handleForge(true)"> <sup>Re-roll</sup> {{ forgeSeed }} </Button>
       <Button v-if="patternData" @click="toggleGraph"> <sup>View</sup> {{ showGraph ? 'Grid' : 'Graph' }} </Button>
+    </div>
+    <div class="group separator" />
+    <div class="group transport">
+      <Button v-if="patternData" @click="togglePlay"> <sup>Preview</sup> {{ isPlaying ? '■ Stop' : '▶ Play' }} </Button>
+      <label class="bpm">
+        BPM
+        <input type="number" min="20" max="400" v-model.number="previewBpm" @change="preview?.setBpm(previewBpm)" />
+      </label>
+      <Button type="file" mime-types="audio/*,.wav" @file="handleSampleLoad">
+        <sup>Sample</sup> {{ sampleName }}
+      </Button>
     </div>
   </div>
 </template>
@@ -871,6 +924,27 @@
             }
           }
         }
+      }
+    }
+  }
+
+  div.actions > div.group.transport {
+    & > label.bpm {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      opacity: 0.8;
+      & > input {
+        width: 52px;
+        height: 26px;
+        padding: 0 4px;
+        border: 1px solid var(--pattern-overlay-accent-color, #888);
+        border-radius: 4px;
+        background: var(--pattern-step-bg-color, #1b1b1b);
+        color: var(--pattern-step-note-color, #eee);
+        font-family: inherit;
+        font-size: 12px;
       }
     }
   }

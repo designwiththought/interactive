@@ -31,7 +31,8 @@ src/forge/                 ← the engine (pure TypeScript, no Vue, no DOM)
   shapes.ts       automation curves + audio effects (Tape Stop, Riser…) + graph data
   index.ts        forge(pattern, presetId, { seed })
   smoke.test.mjs  runs the engine against real tracker-lib patterns
-src/components/PatternEditor.vue   ← forked editor + Forge controls + Grid/Graph toggle
+src/audio/preview.ts               ← Web Audio sequencer (hear the pattern + FX)
+src/components/PatternEditor.vue   ← forked editor + Forge controls + transport + toggle
 src/components/FxGraph.vue         ← line-graph view & interactive effect builder
 ```
 
@@ -80,6 +81,23 @@ lanes drawn as line graphs over the steps. Click two steps to set a range, then:
 > which is what `MAX_FX_LANES` encodes. If your firmware/device supports more, bump that one
 > constant in `src/forge/recipe.ts` and the budget propagates everywhere.
 
+## Audio preview
+
+**Preview ▶ Play** sequences the pattern through a small Web Audio engine
+(`src/audio/preview.ts`) so you can *hear* the effects before exporting. Set the
+BPM, and optionally load your own WAV — otherwise a built-in blip is used. In the
+graph view a playhead follows the steps.
+
+It approximates the FX with standard Web Audio nodes — `V` volume, `P` pan, `M`
+micro-tune, `G` glide, `q` gate, `R` roll, `r` reverse, `C` chance, `T` tempo,
+`L`/`H`/`B` filter, `s`/`t` delay·reverb sends, `D` overdrive. It is a **preview,
+not a hardware-accurate renderer** — the exported `.mtp` is the source of truth.
+
+> Why not reuse the official instrument editor's audio? Its engine
+> (`tracker-pti-editor`) is **CC BY-NC 4.0** (non-commercial, MIT-incompatible)
+> and built on Elementary Audio to play a *single instrument*, not a sequenced
+> pattern. So this preview is an independent, MIT-clean implementation.
+
 ## Getting started
 
 ```bash
@@ -102,9 +120,11 @@ Working and verified against tracker-lib `0.1.2` (12-check smoke test + a browse
 - Generative engine — 6 forge presets + the recipe/generator stack.
 - Graph view — line-graph of the two FX lanes, range selection, 7 drop-in audio effects,
   and a lane-budget-aware custom effect builder.
+- Audio preview — a Web Audio sequencer that plays the pattern and approximates the FX,
+  with a moving playhead (verified in a headless browser run).
 
-Next on the roadmap (`docs/CONCEPT.md`): a Web Audio preview, per-effect parameter knobs,
-`.pti`/`.mt` bundling, and shareable `preset+seed` URLs.
+Next on the roadmap (`docs/CONCEPT.md`): per-effect parameter knobs, `.pti`/`.mt`
+bundling so a sample ships with the pattern, and shareable `preset+seed` URLs.
 
 ## License & attribution
 
