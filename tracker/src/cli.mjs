@@ -552,8 +552,7 @@ ${dim("All history lives in .track/history.json — one JSON file of diffs.")}`)
 
 // ----- dispatch --------------------------------------------------------------
 
-export async function run(argv) {
-  const [cmd, ...args] = argv;
+async function dispatch(cmd, args) {
   switch (cmd) {
     case "init": return cmdInit();
     case "status": case "st": return cmdStatus();
@@ -575,5 +574,16 @@ export async function run(argv) {
     case "help": case "--help": case "-h": case undefined: return cmdHelp();
     default:
       die(`unknown command: ${cmd}\nrun \`track help\` for usage`);
+  }
+}
+
+export async function run(argv) {
+  const [cmd, ...args] = argv;
+  try {
+    return await dispatch(cmd, args);
+  } catch (err) {
+    // One place for all errors thrown by commands/repo, so they print
+    // consistently and respect whether output is a terminal.
+    die(err?.message || String(err));
   }
 }
