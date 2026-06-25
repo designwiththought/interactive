@@ -24,6 +24,7 @@
     defaultParams,
   } from '@/forge/index.ts';
   import Button from '@/components/ui/Button.vue';
+  import VFader from '@/components/ui/VFader.vue';
 
   const props = defineProps({
     pattern: {
@@ -310,18 +311,18 @@
           <span class="budget">{{ effectLaneLabel }}</span>
         </div>
         <p class="desc">{{ selectedEffect.description }}</p>
-        <div class="params">
-          <label v-for="param in selectedEffect.params" :key="param.id" class="param">
-            <span class="pname">{{ param.label }}</span>
-            <input
-              type="range"
-              :min="param.min"
-              :max="param.max"
-              :step="param.step ?? 1"
-              v-model.number="effectParams[param.id]"
-            />
-            <span class="pval">{{ effectParams[param.id] }}{{ param.unit ? ' ' + param.unit : '' }}</span>
-          </label>
+        <div class="param-bar">
+          <VFader
+            v-for="param in selectedEffect.params"
+            :key="param.id"
+            v-model="effectParams[param.id]"
+            :min="param.min"
+            :max="param.max"
+            :step="param.step ?? 1"
+            :label="param.label"
+            :unit="param.unit ?? ''"
+            :bipolar="param.min < 0"
+          />
         </div>
         <div class="fxg-line">
           <Button small @click="dropEffect"><sup>Drop</sup> into {{ rangeLabel }}</Button>
@@ -485,29 +486,17 @@
         font-size: 11px;
         color: var(--pattern-step-label-color);
       }
-      .params {
+      // The effect's params as a recessed strip of vertical faders — a small
+      // bar-graph that mirrors the sampler's parameter bar.
+      .param-bar {
         display: flex;
-        flex-direction: column;
-        gap: 6px;
+        align-items: flex-end;
+        gap: 22px;
+        padding: 12px 16px;
         margin: 6px 0 12px;
-      }
-      .param {
-        display: grid;
-        grid-template-columns: 72px 1fr 60px;
-        align-items: center;
-        gap: 10px;
-        .pname {
-          opacity: 0.65;
-        }
-        input[type='range'] {
-          width: 100%;
-        }
-        .pval {
-          font-family: monospace;
-          text-align: right;
-          color: #fff;
-          opacity: 0.85;
-        }
+        background: var(--pattern-step-bg-color);
+        border: 2px solid #000;
+        border-radius: 6px;
       }
       .lane-tag {
         font-weight: bold;
