@@ -24,7 +24,7 @@
     defaultParams,
   } from '@/forge/index.ts';
   import Button from '@/components/ui/Button.vue';
-  import ParamBar from '@/components/ui/ParamBar.vue';
+  import Slider from '@/components/ui/Slider.vue';
 
   const props = defineProps({
     pattern: {
@@ -55,20 +55,20 @@
   const rangeTo = ref<number | null>(null);
   const pendingEnd = ref(false);
 
+  const CUSTOM = 'custom';
+  const NONE = 'none';
   const effectId = ref(EFFECTS[0].id);
   const effectParams = ref<Record<string, number>>(defaultParams(EFFECTS[0]));
-  const placeNotes = ref(true);
   const seed = ref(1);
 
-  // Reset knobs to the new effect's defaults whenever the effect changes.
+  // Reset knobs to the new effect's defaults whenever a preset is chosen.
   watch(effectId, (id) => {
-    effectParams.value = defaultParams(EFFECTS_BY_ID[id]);
+    if (id !== CUSTOM) effectParams.value = defaultParams(EFFECTS_BY_ID[id]);
   });
 
   const lane1Fx = ref('L'); // Low-pass
   const lane1Curve = ref('ramp-up');
-  const lane2On = ref(false);
-  const lane2Fx = ref('V'); // Volume
+  const lane2Fx = ref(NONE); // None = lane 2 off
   const lane2Curve = ref('ramp-down');
 
   //----------------------------------
@@ -92,12 +92,28 @@
     rangeFrom.value == null ? 'whole track' : `steps ${effectiveRange.value.from + 1}–${effectiveRange.value.to + 1}`,
   );
 
-  const selectedEffect = computed(() => EFFECTS_BY_ID[effectId.value]);
-  const effectLaneLabel = computed(() => {
-    const ls = selectedEffect.value.lanes(effectParams.value);
-    return `${ls.map((l) => l.fx).join(' + ')}  (${ls.length}/${MAX_FX_LANES} lanes)`;
+  const isCustom = computed(() => effectId.value === CUSTOM);
+  const selectedEffect = computed(() => EFFECTS_BY_ID[effectId.value] ?? null);
+  // Effect selector options: the presets, then Custom.
+  const effectOptions = computed(() => [
+    ...EFFECTS.map((e) => ({ id: e.id, name: e.name })),
+    { id: CUSTOM, name: 'Custom' },
+  ]);
+  // Lane-2 FX dropdown gains a leading "None" entry (replaces the enable checkbox).
+  const lane2Options = computed(() => [{ symbol: NONE, name: 'None' }, ...AUTOMATABLE_FX]);
+
+  const customLaneCount = computed(() => (lane2Fx.value === NONE ? 1 : 2));
+  const laneBudget = computed(() => {
+    if (isCustom.value) {
+      const fx = lane2Fx.value === NONE ? lane1Fx.value : `${lane1Fx.value} + ${lane2Fx.value}`;
+      return `${fx} · ${customLaneCount.value}/${MAX_FX_LANES} FX`;
+    }
+    const ls = selectedEffect.value!.lanes(effectParams.value);
+    return `${ls.map((l) => l.fx).join(' + ')} · ${ls.length}/${MAX_FX_LANES} FX`;
   });
-  const customLaneCount = computed(() => 1 + (lane2On.value ? 1 : 0));
+  const effectDesc = computed(() =>
+    isCustom.value ? 'Build your own from an FX and a curve per lane.' : (selectedEffect.value?.description ?? ''),
+  );
 
   //----------------------------------
   // SVG mapping
@@ -162,15 +178,18 @@
   //----------------------------------
   // Apply
   //----------------------------------
-  function dropEffect() {
+  // The single Drop action — applies the preset effect or the custom build.
+  function handleDrop() {
     if (!props.pattern) return;
-    applyEffect(props.pattern, effectId.value, {
-      track: trackIndex.value,
-      range: effectiveRange.value,
-      seed: seed.value,
-      withNotes: placeNotes.value,
-      params: { ...effectParams.value },
-    });
+    if (isCustom.value) applyCustom();
+    else
+      applyEffect(props.pattern, effectId.value, {
+        track: trackIndex.value,
+        range: effectiveRange.value,
+        seed: seed.value,
+        withNotes: true,
+        params: { ...effectParams.value },
+      });
     emit('changed');
   }
 
@@ -183,10 +202,10 @@
       fx: lane1Fx.value,
       curveId: lane1Curve.value,
       lane: 0,
-      withNotes: placeNotes.value,
+      withNotes: true,
       seed: seed.value,
     });
-    if (lane2On.value && MAX_FX_LANES > 1) {
+    if (lane2Fx.value !== NONE && MAX_FX_LANES > 1) {
       applyCurve(props.pattern, {
         track: trackIndex.value,
         range: effectiveRange.value,
@@ -196,7 +215,6 @@
         seed: seed.value,
       });
     }
-    emit('changed');
   }
 
   function clearFx() {
@@ -219,17 +237,7 @@
       <span class="hint">click two steps to set a range</span>
     </div>
 
-    <!-- Effect selector (full width, above the graph + params) -->
-    <div class="fxg-line effect-head">
-      <span class="fxg-label">Effect</span>
-      <select v-model="effectId">
-        <option v-for="e in EFFECTS" :key="e.id" :value="e.id">{{ e.name }}</option>
-      </select>
-      <span class="budget">{{ effectLaneLabel }}</span>
-      <span class="desc">{{ selectedEffect.description }}</span>
-    </div>
-
-    <!-- Graph (left) sits beside the effect parameters (right) -->
+    <!-- Graph (left, fills the width) + effect panel (right) -->
     <div class="fxg-main">
       <div class="fxg-graph-col">
         <svg class="graph" :viewBox="`0 0 ${viewW} ${VIEW_H}`" preserveAspectRatio="none">
@@ -311,36 +319,66 @@
           <span><i :style="{ background: LANE_COLORS[1] }" /> Lane 2 · {{ laneLegend(1) }}</span>
         </div>
       </div>
-      <div class="fxg-params-col">
-        <ParamBar :params="selectedEffect.params" v-model="effectParams" />
+
+      <!-- Effect panel: title selector, parameters, action row -->
+      <div class="fx-panel">
+        <select class="fp-title" v-model="effectId">
+          <option v-for="o in effectOptions" :key="o.id" :value="o.id">{{ o.name }}</option>
+        </select>
+        <div class="fp-meta">
+          <span class="budget">{{ laneBudget }}</span>
+          <p class="desc">{{ effectDesc }}</p>
+        </div>
+
+        <div class="fp-body">
+          <!-- Preset: parameter sliders -->
+          <template v-if="!isCustom && selectedEffect">
+            <Slider
+              v-for="param in selectedEffect.params"
+              :key="param.id"
+              v-model="effectParams[param.id]"
+              :label="param.label"
+              :min="param.min"
+              :max="param.max"
+              :step="param.step ?? 1"
+              :unit="param.unit ?? ''"
+              :bipolar="param.min < 0"
+            />
+          </template>
+
+          <!-- Custom: an FX + curve per lane -->
+          <template v-else>
+            <div class="fp-lane">
+              <span class="fp-lane-label">Lane 1</span>
+              <select v-model="lane1Fx">
+                <option v-for="f in AUTOMATABLE_FX" :key="f.symbol" :value="f.symbol">
+                  {{ f.symbol }} · {{ f.name }}
+                </option>
+              </select>
+              <select v-model="lane1Curve">
+                <option v-for="c in CURVES" :key="c.id" :value="c.id">{{ c.name }}</option>
+              </select>
+            </div>
+            <div class="fp-lane">
+              <span class="fp-lane-label">Lane 2</span>
+              <select v-model="lane2Fx">
+                <option v-for="f in lane2Options" :key="f.symbol" :value="f.symbol">
+                  {{ f.symbol === 'none' ? 'None' : `${f.symbol} · ${f.name}` }}
+                </option>
+              </select>
+              <select v-model="lane2Curve" :disabled="lane2Fx === 'none'">
+                <option v-for="c in CURVES" :key="c.id" :value="c.id">{{ c.name }}</option>
+              </select>
+            </div>
+          </template>
+        </div>
+
+        <div class="fp-actions">
+          <span class="fp-range">{{ rangeLabel }}</span>
+          <Button small @click="clearFx">Clear</Button>
+          <Button small blue @click="handleDrop">Drop</Button>
+        </div>
       </div>
-    </div>
-
-    <div class="fxg-line drop-row">
-      <Button small @click="dropEffect"><sup>Drop</sup> into {{ rangeLabel }}</Button>
-      <label class="check"><input type="checkbox" v-model="placeNotes" /> place notes</label>
-    </div>
-
-    <!-- Custom builder: one compact row -->
-    <div class="fxg-custom">
-      <span class="fxg-label">Custom · {{ customLaneCount }}/{{ MAX_FX_LANES }}</span>
-      <span class="lane-tag" :style="{ color: LANE_COLORS[0] }">L1</span>
-      <select v-model="lane1Fx">
-        <option v-for="f in AUTOMATABLE_FX" :key="f.symbol" :value="f.symbol">{{ f.symbol }} · {{ f.name }}</option>
-      </select>
-      <select v-model="lane1Curve">
-        <option v-for="c in CURVES" :key="c.id" :value="c.id">{{ c.name }}</option>
-      </select>
-      <label class="check"><input type="checkbox" v-model="lane2On" :disabled="MAX_FX_LANES < 2" /></label>
-      <span class="lane-tag" :style="{ color: LANE_COLORS[1] }">L2</span>
-      <select v-model="lane2Fx" :disabled="!lane2On">
-        <option v-for="f in AUTOMATABLE_FX" :key="f.symbol" :value="f.symbol">{{ f.symbol }} · {{ f.name }}</option>
-      </select>
-      <select v-model="lane2Curve" :disabled="!lane2On">
-        <option v-for="c in CURVES" :key="c.id" :value="c.id">{{ c.name }}</option>
-      </select>
-      <Button small @click="applyCustom"><sup>Apply</sup> to {{ rangeLabel }}</Button>
-      <Button small @click="clearFx"><sup>Clear</sup> FX</Button>
     </div>
   </div>
 </template>
@@ -376,7 +414,8 @@
     svg.graph {
       display: block;
       width: 100%;
-      height: 170px; // matches the parameter-bar fader wells
+      height: 100%; // fills the column, matching the effect panel's height
+      min-height: 200px;
       background: var(--pattern-step-bg-color);
       border: 2px solid #000;
       border-radius: 6px;
@@ -431,67 +470,104 @@
       }
     }
 
-    .fxg-line {
-      margin: 8px 0;
-      flex-wrap: wrap;
-    }
-    .desc {
-      opacity: 0.5;
-      line-height: 1.35;
-    }
-    .budget {
-      font-family: monospace;
-      font-size: 11px;
-      color: var(--pattern-step-label-color);
-    }
-    .lane-tag {
-      font-weight: bold;
-    }
-    .check {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      opacity: 0.65;
-    }
-
-    .effect-head {
-      margin: 4px 0 8px;
-    }
-
-    // Graph (left, fills the width) beside the effect parameters (right). The
-    // graph height matches the fader wells so they read as one row.
+    // Graph (left, fills) beside the effect panel (right), stretched to one height.
     .fxg-main {
       display: flex;
-      align-items: flex-start;
-      gap: 20px;
+      align-items: stretch;
+      gap: 16px;
     }
     .fxg-graph-col {
       flex: 1;
       min-width: 0;
+      display: flex;
+      flex-direction: column;
     }
-    .fxg-params-col {
-      flex: 0 0 auto;
+
+    // Effect panel — title selector, parameter sliders, action row.
+    .fx-panel {
+      flex: 0 0 360px;
+      display: flex;
+      flex-direction: column;
+      background: #0e0e0e;
+      border: 2px solid #000;
+      border-radius: 6px;
+      overflow: hidden;
+
+      // Light title bar with the effect selector, like the reference panel.
+      .fp-title {
+        appearance: none;
+        -webkit-appearance: none;
+        width: 100%;
+        height: 34px;
+        padding: 0 12px;
+        border: 0;
+        border-radius: 0;
+        background: #d6d6d6;
+        color: #111;
+        font-weight: 700;
+        font-size: 13px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        cursor: pointer;
+        box-shadow: none;
+      }
+      .fp-meta {
+        padding: 10px 14px 0;
+        .budget {
+          font-family: monospace;
+          font-size: 11px;
+          color: var(--pattern-step-label-color);
+        }
+        .desc {
+          margin: 4px 0 0;
+          font-size: 11px;
+          opacity: 0.5;
+          line-height: 1.35;
+          min-height: 2.2em;
+        }
+      }
+      .fp-body {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 18px;
+        padding: 14px;
+      }
+      .fp-lane {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        .fp-lane-label {
+          min-width: 50px;
+          color: #fff;
+        }
+        select {
+          flex: 1;
+          min-width: 0;
+        }
+      }
+      .fp-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 12px;
+        border-top: 1px solid #000;
+        .fp-range {
+          flex: 1;
+          font-size: 11px;
+          color: var(--pattern-step-label-color);
+        }
+      }
     }
-    .drop-row {
-      margin-top: 12px;
-    }
+
     @media (max-width: 720px) {
       .fxg-main {
         flex-direction: column;
       }
-      .fxg-params-col {
-        width: 100%;
+      .fx-panel {
+        flex-basis: auto;
       }
-    }
-
-    // Custom builder: one calm row, divided from the effect block by a hairline.
-    .fxg-custom {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-      padding-top: 14px;
-      border-top: 1px solid #1c1c1c;
     }
   }
 </style>

@@ -161,7 +161,8 @@ export function applyCurve(pattern: PatternData, opts: ApplyCurveOptions): numbe
     const t = span === 0 ? 0 : (s - from) / span;
     const v = lo + (hi - lo) * curve(t, rng);
     step.fx[lane] = makeFx(opts.fx, v, { scaled: dr.scaled });
-    if (opts.withNotes) {
+    // Only seed a note on empty steps, so existing notes are never clobbered.
+    if (opts.withNotes && step.note < 0) {
       step.note = opts.note ?? 48;
       step.instrument = opts.instrument ?? 0;
     }
@@ -355,7 +356,7 @@ export function applyEffect(pattern: PatternData, effectId: string, opts: ApplyE
     if (!step) continue;
     step.fx[0] = makeNone();
     step.fx[1] = makeNone();
-    if (withNotes) {
+    if (withNotes && step.note < 0) {
       step.note = opts.note ?? 48;
       step.instrument = opts.instrument ?? 0;
     }

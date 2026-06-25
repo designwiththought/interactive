@@ -59,12 +59,16 @@ always reproduces the exact same pattern.
 Toggle **View → Effects** for an alternate, automation-style view of a track: the two FX
 lanes drawn as white line graphs over the steps. Click two steps to set a range, then:
 
-- **Drop an effect** — pick a named audio effect and drop it onto the range. Each effect's
-  parameters appear in a **parameter bar** — a full-width row of tall vertical faders with
-  a footer of label/value cells, modeled on the Tracker's Instrument Parameters screen;
-  drag or scroll a column to tune it (bipolar params fill from a centre line). e.g. Tape
-  Stop has *From* / *To* tempo and *Pitch bend*; Gate Chop has *Rate* / *Depth*; Wobble has
-  *Rate* / *Floor*. Each effect also shows its live FX-lane budget (e.g. Tape Stop = `T + M (2/2)`):
+The graph fills the left; an **effect panel** sits on the right with a title-bar selector,
+the effect's parameters as horizontal sliders (label / value / white bar — drag or scroll),
+and a **Clear · Drop** action row. Picking **Custom** in the selector swaps the sliders for
+an FX + curve per lane (lane 2 has a *None* option). Each effect shows its live FX-lane
+budget (e.g. Tape Stop = `T + M · 2/2 FX`):
+
+- **Drop an effect** — pick a named audio effect, tune its sliders, and drop it onto the
+  range. e.g. Tape Stop has *From* / *To* tempo and *Pitch bend*; Gate Chop has *Rate* /
+  *Depth*; Wobble has *Rate* / *Floor*. Dropping seeds a note on any empty step in range so
+  the effect sounds, without disturbing notes you already placed.
 
   | Effect | What it does | FX |
   |---|---|---|
