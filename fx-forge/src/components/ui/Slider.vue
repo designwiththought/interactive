@@ -92,6 +92,7 @@
       i {
         font-style: normal;
         opacity: 0.5;
+        margin-left: 0.35em; // space between the number and its unit (e.g. 80 BPM)
       }
     }
     .hs-track {
