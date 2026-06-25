@@ -16,6 +16,7 @@ export * from './fx.ts';
 export * from './generators.ts';
 export * from './recipe.ts';
 export * from './presets.ts';
+export * from './shapes.ts';
 
 /** Convenience: forge a named preset onto a pattern in place. */
 export function forge(pattern: PatternData, presetId: string, opts: ForgeOptions = {}): ForgeReport {

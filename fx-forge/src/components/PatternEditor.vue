@@ -30,6 +30,7 @@
   import Button from '@/components/ui/Button.vue';
   import ModalPatternCreate from '@/components/modals/ModalPatternCreate.vue';
   import VueComp from '@/utils/vuecomp.ts';
+  import FxGraph from '@/components/FxGraph.vue';
   import { PRESETS, applyRecipe, getPreset } from '@/forge/index.ts';
 
   //---------------------------------------------------
@@ -79,6 +80,7 @@
   const forgePresetId = ref<string>(PRESETS[0].id);
   const forgeSeed = ref<number>(1);
   const forgePreset = computed(() => getPreset(forgePresetId.value));
+  const showGraph = ref<boolean>(false);
 
   //----------------------------------
   // Keyboard variables
@@ -596,11 +598,34 @@
       forgeSeed.value = (forgeSeed.value % 65535) + 1;
     }
     applyRecipe(patternData.value, forgePreset.value.build(), { seed: forgeSeed.value });
-    // Reassign the top-level ref so the trackData computed re-renders the grid.
-    patternData.value = { ...patternData.value };
+    refreshAfterMutation();
+  }
+
+  // Reassign the top-level ref so the trackData computed re-renders, then
+  // (re)attach the grid's keyboard interactions.
+  function refreshAfterMutation() {
+    if (patternData.value) {
+      patternData.value = { ...patternData.value };
+    }
     nextTick(async () => {
-      await addInteractions();
+      if (!showGraph.value) await addInteractions();
     });
+  }
+
+  // The graph view mutated the pattern in place — refresh both views.
+  function onGraphChanged() {
+    refreshAfterMutation();
+  }
+
+  function toggleGraph() {
+    showGraph.value = !showGraph.value;
+    if (showGraph.value) {
+      removeInteractions();
+    } else {
+      nextTick(async () => {
+        await addInteractions();
+      });
+    }
   }
 
   //---------------------------------------------------
@@ -612,7 +637,7 @@
 </script>
 
 <template>
-  <div class="pattern-editor">
+  <div v-show="!showGraph" class="pattern-editor">
     <div ref="patternContainer" class="pattern" tabindex="0">
       <div class="track-names">
         <div><span>--</span></div>
@@ -658,6 +683,11 @@
       </ul>
     </div>
   </div>
+
+  <div v-if="showGraph && patternData" class="graph-view">
+    <FxGraph :pattern="patternData" @changed="onGraphChanged" />
+  </div>
+
   <div class="actions">
     <div class="group">
       <Button @click="handlePatternCreate"> <sup>New</sup> Pattern </Button>
@@ -671,6 +701,7 @@
       </select>
       <Button @click="handleForge(false)"> <sup>Forge</sup> FX </Button>
       <Button @click="handleForge(true)"> <sup>Re-roll</sup> {{ forgeSeed }} </Button>
+      <Button v-if="patternData" @click="toggleGraph"> <sup>View</sup> {{ showGraph ? 'Grid' : 'Graph' }} </Button>
     </div>
   </div>
 </template>

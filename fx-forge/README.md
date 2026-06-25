@@ -28,9 +28,11 @@ src/forge/                 ← the engine (pure TypeScript, no Vue, no DOM)
   generators.ts   everyN · euclidFx · chance · ramp · drift · burst · pingpong · trigger
   recipe.ts       applyRecipe(pattern, recipe) — resolves contributions into 2 FX lanes
   presets.ts      the named effects (Stutter Fill, Tape Warble, …)
+  shapes.ts       automation curves + audio effects (Tape Stop, Riser…) + graph data
   index.ts        forge(pattern, presetId, { seed })
   smoke.test.mjs  runs the engine against real tracker-lib patterns
-src/components/PatternEditor.vue   ← forked editor + the Forge controls in the action bar
+src/components/PatternEditor.vue   ← forked editor + Forge controls + Grid/Graph toggle
+src/components/FxGraph.vue         ← line-graph view & interactive effect builder
 ```
 
 The engine is intentionally decoupled from the UI: `applyRecipe()` mutates a tracker-lib
@@ -51,6 +53,33 @@ CLI or other front-ends later.
 "Re-roll" bumps the seed for a fresh variation of the same effect. Same seed + same preset
 always reproduces the exact same pattern.
 
+## Visual tools (Graph view)
+
+Toggle **View → Graph** for an alternate, automation-style view of a track: the two FX
+lanes drawn as line graphs over the steps. Click two steps to set a range, then:
+
+- **Drop an effect** — pick a named audio effect and drop it onto the range. Each effect
+  declares which FX lanes it uses, shown as a live budget (e.g. Tape Stop = `T + M (2/2)`):
+
+  | Effect | What it does | FX |
+  |---|---|---|
+  | **Tape Stop** | Tempo collapses while pitch bends down | `T` `M` |
+  | **Riser** | Pitch climbs + volume swells into a hit | `M` `V` |
+  | **Filter Drop** | Low-pass closes to a muffle then opens | `L` |
+  | **Fade Out** | Volume rides to silence | `V` |
+  | **Pan Sweep** | Travels hard left → right | `P` |
+  | **Gate Chop** | Trance-gate on/off stutter | `q` |
+  | **Wobble** | Dubstep-style filter LFO | `L` |
+
+- **Build a custom effect** — assign an automation **curve** (Ramp, Exp Decay, Swell,
+  Sine LFO, Gate, Random…) to each FX lane. The builder enforces the **2-FX-per-step**
+  limit: lane 2 is the budget ceiling, and applying clears the range first so the result
+  is exactly what you drew.
+
+> **FX-per-step limit.** The `.mtp` format stores **two** FX per step (`fx[0]`, `fx[1]`),
+> which is what `MAX_FX_LANES` encodes. If your firmware/device supports more, bump that one
+> constant in `src/forge/recipe.ts` and the budget propagates everywhere.
+
 ## Getting started
 
 ```bash
@@ -68,10 +97,14 @@ writes the `.mtp`.
 
 ## Status
 
-Working: the generative engine (6 presets, verified against tracker-lib `0.1.2`) and its
-integration into the editor's action bar. Next on the roadmap (`docs/CONCEPT.md`):
-per-track targeting in the UI, a Web Audio preview, `.pti`/`.mt` bundling, and shareable
-`preset+seed` URLs.
+Working and verified against tracker-lib `0.1.2` (12-check smoke test + a browser run):
+
+- Generative engine — 6 forge presets + the recipe/generator stack.
+- Graph view — line-graph of the two FX lanes, range selection, 7 drop-in audio effects,
+  and a lane-budget-aware custom effect builder.
+
+Next on the roadmap (`docs/CONCEPT.md`): a Web Audio preview, per-effect parameter knobs,
+`.pti`/`.mt` bundling, and shareable `preset+seed` URLs.
 
 ## License & attribution
 

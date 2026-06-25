@@ -46,7 +46,8 @@ export interface ForgeReport {
   tracksTouched: number;
 }
 
-const MAX_FX_LANES = 2;
+/** Hardware FX lanes per step. The .mtp format stores 2 (fx[0], fx[1]). */
+export const MAX_FX_LANES = 2;
 
 /** Apply a recipe to a pattern in place. Deterministic for a given (seed, recipe). */
 export function applyRecipe(pattern: PatternData, recipe: ForgeRecipe, opts: ForgeOptions = {}): ForgeReport {

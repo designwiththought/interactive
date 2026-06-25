@@ -2,7 +2,14 @@
   "name": "fx-forge",
   "version": "0.1.0",
   "description": "Generative step-FX sequencer for the Polyend Tracker — populate patterns with FX to create specific effects and sounds.",
-  "keywords": ["polyend", "tracker", "mtp", "sequencer", "fx", "generative"],
+  "keywords": [
+    "polyend",
+    "tracker",
+    "mtp",
+    "sequencer",
+    "fx",
+    "generative"
+  ],
   "license": "MIT",
   "type": "module",
   "engines": {

@@ -61,4 +61,42 @@ forge(wrote, 'stutter-fill', { seed: 3, tracks: [0, 1] });
 assert(typeof Tracker.writePattern === 'function');
 ok('output is a valid PatternData shape');
 
+//----------------------------------
+// Shapes: curves & effects
+//----------------------------------
+const { applyCurve, applyEffect, laneSeries, EFFECTS, CURVES, MAX_FX_LANES } = await import('./index.ts');
+
+// 5. Every effect fits the lane budget and writes FX within range over a sub-range.
+for (const def of EFFECTS) {
+  assert(def.lanes.length <= MAX_FX_LANES, `${def.id} exceeds ${MAX_FX_LANES} lanes`);
+  const p = Tracker.createPattern(8, 16);
+  const n = applyEffect(p, def.id, { track: 0, range: { from: 4, to: 11 }, seed: 1 });
+  assert(n > 0, `${def.id} wrote nothing`);
+  // Outside the range stays empty; inside has the effect's FX.
+  assert(p.tracks[0].steps[0].fx[0].type.symbol === '-', `${def.id} bled before range`);
+  assert(p.tracks[0].steps[15].fx[0].type.symbol === '-', `${def.id} bled after range`);
+  const inSym = p.tracks[0].steps[4].fx[0].type.symbol;
+  assert(inSym === def.lanes[0].fx, `${def.id} lane0 should be ${def.lanes[0].fx}, got ${inSym}`);
+  for (const step of p.tracks[0].steps) {
+    for (const fx of step.fx)
+      assert(fx.value >= fx.type.min && fx.value <= fx.type.max, `${def.id} value out of range`);
+  }
+}
+ok(`${EFFECTS.length} effects fit ${MAX_FX_LANES}-lane budget & write in range`);
+
+// 6. Tape Stop tempo collapses (exp-decay → lower at the end than the start).
+const ts = Tracker.createPattern(8, 16);
+applyEffect(ts, 'tape-stop', { track: 0, range: { from: 0, to: 15 }, seed: 1 });
+const tempo = laneSeries(ts, 0, 0).filter((pt) => pt.symbol === 'T');
+assert(tempo[0].display > tempo[tempo.length - 1].display, 'tape stop tempo should fall');
+ok('tape stop tempo curve descends');
+
+// 7. applyCurve writes a single FX lane with a monotonic ramp.
+const cv = Tracker.createPattern(8, 16);
+applyCurve(cv, { track: 0, range: { from: 0, to: 15 }, fx: 'L', curveId: 'ramp-up', lane: 0 });
+const lp = laneSeries(cv, 0, 0);
+assert(lp[0].raw === 0 && lp[15].raw === 100, `low-pass ramp should span 0..100, got ${lp[0].raw}..${lp[15].raw}`);
+assert(CURVES.length >= 8, 'curve library present');
+ok('applyCurve ramps a single FX lane');
+
 console.log(`\n${passed} checks passed.`);
