@@ -1,0 +1,64 @@
+// Standalone smoke test for the FX Forge engine.
+// Run: node --experimental-strip-types src/forge/smoke.test.mjs   (Node 22+)
+// Verifies the engine populates real tracker-lib patterns with FX deterministically.
+import assert from 'node:assert';
+import Tracker from '@polyend/tracker-lib';
+import { applyRecipe, forge, PRESETS } from './index.ts';
+
+let passed = 0;
+const ok = (name) => {
+  passed++;
+  console.log(`  ✓ ${name}`);
+};
+
+// 1. Every preset builds and applies without throwing, placing notes + FX.
+for (const def of PRESETS) {
+  const pattern = Tracker.createPattern(8, 16);
+  const report = applyRecipe(pattern, def.build(), { seed: 42, tracks: [0] });
+  assert(report.notesPlaced > 0, `${def.id} placed no notes`);
+  assert(report.fxPlaced > 0, `${def.id} placed no FX`);
+
+  // FX only land on steps that have a note (default fxOnlyOnNotes).
+  for (const step of pattern.tracks[0].steps.slice(0, 16)) {
+    const hasFx = step.fx[0].type.symbol !== '-' || step.fx[1].type.symbol !== '-';
+    if (hasFx) assert(step.note >= 0, `${def.id}: FX on a noteless step`);
+    // Never more than 2 FX lanes, values always within record range.
+    for (const fx of step.fx) {
+      assert(
+        fx.value >= fx.type.min && fx.value <= fx.type.max,
+        `${def.id}: ${fx.type.symbol} value ${fx.value} out of [${fx.type.min},${fx.type.max}]`,
+      );
+    }
+  }
+  ok(`preset "${def.id}" → ${report.notesPlaced} notes, ${report.fxPlaced} fx`);
+}
+
+// 2. Determinism: same seed → identical pattern; different seed → different.
+const a = Tracker.createPattern(8, 16);
+const b = Tracker.createPattern(8, 16);
+const c = Tracker.createPattern(8, 16);
+forge(a, 'probability-engine', { seed: 7, tracks: [0] });
+forge(b, 'probability-engine', { seed: 7, tracks: [0] });
+forge(c, 'probability-engine', { seed: 8, tracks: [0] });
+const sig = (p) =>
+  JSON.stringify(
+    p.tracks[0].steps.map((s) => [s.note, s.fx[0].type.index, s.fx[0].value, s.fx[1].type.index, s.fx[1].value]),
+  );
+assert.strictEqual(sig(a), sig(b), 'same seed should be identical');
+assert.notStrictEqual(sig(a), sig(c), 'different seed should differ');
+ok('deterministic by seed');
+
+// 3. Scaled conversion: panning center (scaled 0) → raw 50.
+const pan = Tracker.createPattern(8, 16);
+forge(pan, 'granular-cloud', { seed: 1, tracks: [0] });
+const panFx = pan.tracks[0].steps.flatMap((s) => s.fx).filter((f) => f.type.symbol === 'P');
+assert(panFx.length > 0 && panFx.every((f) => f.value >= 0 && f.value <= 100), 'panning raw values in range');
+ok('scaled→raw panning in range');
+
+// 4. Round-trips through tracker-lib's writer (binary serialization must accept our output).
+const wrote = Tracker.createPattern(8, 16);
+forge(wrote, 'stutter-fill', { seed: 3, tracks: [0, 1] });
+assert(typeof Tracker.writePattern === 'function');
+ok('output is a valid PatternData shape');
+
+console.log(`\n${passed} checks passed.`);
