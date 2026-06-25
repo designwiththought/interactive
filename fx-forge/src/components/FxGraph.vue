@@ -24,7 +24,7 @@
     defaultParams,
   } from '@/forge/index.ts';
   import Button from '@/components/ui/Button.vue';
-  import VFader from '@/components/ui/VFader.vue';
+  import ParamBar from '@/components/ui/ParamBar.vue';
 
   const props = defineProps({
     pattern: {
@@ -43,9 +43,9 @@
   //----------------------------------
   const PAD = { l: 30, r: 10, t: 10, b: 20 };
   const VIEW_H = 220;
-  // Lane colors mirror the pattern grid's FX columns (fx1 / fx2) so the two
-  // views read as one interface.
-  const LANE_COLORS = ['#bb58f1', '#57f1ff'];
+  // Monochrome white graph, matching the sampler. Lane 2 is a dimmer white so
+  // the two lanes stay distinguishable.
+  const LANE_COLORS = ['#ffffff', 'rgba(255,255,255,0.5)'];
 
   //----------------------------------
   // State
@@ -300,63 +300,43 @@
       <span><i :style="{ background: LANE_COLORS[1] }" /> Lane 2 · {{ laneLegend(1) }}</span>
     </div>
 
-    <div class="fxg-panels">
-      <!-- Preset effects -->
-      <section class="fxg-panel">
-        <div class="fxg-label">Drop an effect</div>
-        <div class="fxg-line">
-          <select v-model="effectId">
-            <option v-for="e in EFFECTS" :key="e.id" :value="e.id">{{ e.name }}</option>
-          </select>
-          <span class="budget">{{ effectLaneLabel }}</span>
-        </div>
-        <p class="desc">{{ selectedEffect.description }}</p>
-        <div class="param-bar">
-          <VFader
-            v-for="param in selectedEffect.params"
-            :key="param.id"
-            v-model="effectParams[param.id]"
-            :min="param.min"
-            :max="param.max"
-            :step="param.step ?? 1"
-            :label="param.label"
-            :unit="param.unit ?? ''"
-            :bipolar="param.min < 0"
-          />
-        </div>
-        <div class="fxg-line">
-          <Button small @click="dropEffect"><sup>Drop</sup> into {{ rangeLabel }}</Button>
-          <label class="check"><input type="checkbox" v-model="placeNotes" /> place notes</label>
-        </div>
-      </section>
+    <!-- Effect: selector + full-width parameter bar -->
+    <div class="fxg-effect">
+      <div class="fxg-line head">
+        <span class="fxg-label">Effect</span>
+        <select v-model="effectId">
+          <option v-for="e in EFFECTS" :key="e.id" :value="e.id">{{ e.name }}</option>
+        </select>
+        <span class="budget">{{ effectLaneLabel }}</span>
+        <span class="desc">{{ selectedEffect.description }}</span>
+      </div>
+      <ParamBar :params="selectedEffect.params" v-model="effectParams" />
+      <div class="fxg-line">
+        <Button small @click="dropEffect"><sup>Drop</sup> into {{ rangeLabel }}</Button>
+        <label class="check"><input type="checkbox" v-model="placeNotes" /> place notes</label>
+      </div>
+    </div>
 
-      <!-- Custom builder -->
-      <section class="fxg-panel">
-        <div class="fxg-label">Build a custom effect · {{ customLaneCount }}/{{ MAX_FX_LANES }}</div>
-        <div class="fxg-line">
-          <span class="lane-tag" :style="{ color: LANE_COLORS[0] }">Lane 1</span>
-          <select v-model="lane1Fx">
-            <option v-for="f in AUTOMATABLE_FX" :key="f.symbol" :value="f.symbol">{{ f.symbol }} · {{ f.name }}</option>
-          </select>
-          <select v-model="lane1Curve">
-            <option v-for="c in CURVES" :key="c.id" :value="c.id">{{ c.name }}</option>
-          </select>
-        </div>
-        <div class="fxg-line">
-          <label class="check"><input type="checkbox" v-model="lane2On" :disabled="MAX_FX_LANES < 2" /></label>
-          <span class="lane-tag" :style="{ color: LANE_COLORS[1] }">Lane 2</span>
-          <select v-model="lane2Fx" :disabled="!lane2On">
-            <option v-for="f in AUTOMATABLE_FX" :key="f.symbol" :value="f.symbol">{{ f.symbol }} · {{ f.name }}</option>
-          </select>
-          <select v-model="lane2Curve" :disabled="!lane2On">
-            <option v-for="c in CURVES" :key="c.id" :value="c.id">{{ c.name }}</option>
-          </select>
-        </div>
-        <div class="fxg-line">
-          <Button small @click="applyCustom"><sup>Apply</sup> to {{ rangeLabel }}</Button>
-          <Button small @click="clearFx"><sup>Clear</sup> FX</Button>
-        </div>
-      </section>
+    <!-- Custom builder: one compact row -->
+    <div class="fxg-custom">
+      <span class="fxg-label">Custom · {{ customLaneCount }}/{{ MAX_FX_LANES }}</span>
+      <span class="lane-tag" :style="{ color: LANE_COLORS[0] }">L1</span>
+      <select v-model="lane1Fx">
+        <option v-for="f in AUTOMATABLE_FX" :key="f.symbol" :value="f.symbol">{{ f.symbol }} · {{ f.name }}</option>
+      </select>
+      <select v-model="lane1Curve">
+        <option v-for="c in CURVES" :key="c.id" :value="c.id">{{ c.name }}</option>
+      </select>
+      <label class="check"><input type="checkbox" v-model="lane2On" :disabled="MAX_FX_LANES < 2" /></label>
+      <span class="lane-tag" :style="{ color: LANE_COLORS[1] }">L2</span>
+      <select v-model="lane2Fx" :disabled="!lane2On">
+        <option v-for="f in AUTOMATABLE_FX" :key="f.symbol" :value="f.symbol">{{ f.symbol }} · {{ f.name }}</option>
+      </select>
+      <select v-model="lane2Curve" :disabled="!lane2On">
+        <option v-for="c in CURVES" :key="c.id" :value="c.id">{{ c.name }}</option>
+      </select>
+      <Button small @click="applyCustom"><sup>Apply</sup> to {{ rangeLabel }}</Button>
+      <Button small @click="clearFx"><sup>Clear</sup> FX</Button>
     </div>
   </div>
 </template>
@@ -442,72 +422,45 @@
       }
     }
 
-    .fxg-panels {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 24px;
+    .fxg-line {
+      margin: 8px 0;
+      flex-wrap: wrap;
     }
-    @media (max-width: 720px) {
-      .fxg-panels {
-        grid-template-columns: 1fr;
-        gap: 16px;
-      }
+    .desc {
+      opacity: 0.5;
+      line-height: 1.35;
     }
-    .fxg-panel {
-      // Panels are divided by a single hairline rule, not boxed cards —
-      // keeping the flat, minimal tracker feel.
-      &:last-child {
-        padding-left: 24px;
-        border-left: 1px solid #1c1c1c;
-      }
-      @media (max-width: 720px) {
-        &:last-child {
-          padding-left: 0;
-          padding-top: 16px;
-          border-left: 0;
-          border-top: 1px solid #1c1c1c;
-        }
-      }
-      .fxg-label {
+    .budget {
+      font-family: monospace;
+      font-size: 11px;
+      color: var(--pattern-step-label-color);
+    }
+    .lane-tag {
+      font-weight: bold;
+    }
+    .check {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      opacity: 0.65;
+    }
+
+    // Effect block: header row, full-width parameter bar, then the drop row.
+    .fxg-effect {
+      margin-bottom: 14px;
+      .fxg-line.head {
         margin-bottom: 10px;
       }
-      .fxg-line {
-        margin: 8px 0;
-        flex-wrap: wrap;
-      }
-      .desc {
-        margin: 6px 0 10px;
-        opacity: 0.5;
-        min-height: 2.4em;
-        line-height: 1.35;
-      }
-      .budget {
-        font-family: monospace;
-        font-size: 11px;
-        color: var(--pattern-step-label-color);
-      }
-      // The effect's params as a recessed strip of vertical faders — a small
-      // bar-graph that mirrors the sampler's parameter bar.
-      .param-bar {
-        display: flex;
-        align-items: flex-end;
-        gap: 22px;
-        padding: 12px 16px;
-        margin: 6px 0 12px;
-        background: var(--pattern-step-bg-color);
-        border: 2px solid #000;
-        border-radius: 6px;
-      }
-      .lane-tag {
-        font-weight: bold;
-        min-width: 46px;
-      }
-      .check {
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-        opacity: 0.65;
-      }
+    }
+
+    // Custom builder: one calm row, divided from the effect block by a hairline.
+    .fxg-custom {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      padding-top: 14px;
+      border-top: 1px solid #1c1c1c;
     }
   }
 </style>

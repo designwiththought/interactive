@@ -56,14 +56,15 @@ always reproduces the exact same pattern.
 
 ## Visual tools (Graph view)
 
-Toggle **View → Graph** for an alternate, automation-style view of a track: the two FX
-lanes drawn as line graphs over the steps. Click two steps to set a range, then:
+Toggle **View → Effects** for an alternate, automation-style view of a track: the two FX
+lanes drawn as white line graphs over the steps. Click two steps to set a range, then:
 
-- **Drop an effect** — pick a named audio effect and drop it onto the range. Each effect
-  exposes **parameter faders** — a strip of vertical level bars (modeled on the sampler's
-  parameter bar) you drag or scroll to tune before dropping. e.g. Tape Stop has *From* /
-  *To* tempo and *Pitch bend*; Gate Chop has *Rate* / *Depth*; Wobble has *Rate* / *Floor*.
-  Each effect also shows its live FX-lane budget (e.g. Tape Stop = `T + M (2/2)`):
+- **Drop an effect** — pick a named audio effect and drop it onto the range. Each effect's
+  parameters appear in a **parameter bar** — a full-width row of tall vertical faders with
+  a footer of label/value cells, modeled on the Tracker's Instrument Parameters screen;
+  drag or scroll a column to tune it (bipolar params fill from a centre line). e.g. Tape
+  Stop has *From* / *To* tempo and *Pitch bend*; Gate Chop has *Rate* / *Depth*; Wobble has
+  *Rate* / *Floor*. Each effect also shows its live FX-lane budget (e.g. Tape Stop = `T + M (2/2)`):
 
   | Effect | What it does | FX |
   |---|---|---|
