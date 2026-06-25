@@ -103,18 +103,21 @@
   .param-bar {
     user-select: none;
 
+    // Narrow portrait columns, left-aligned — not stretched to full width.
+    --pb-col: 88px;
+    --pb-gap: 6px;
+
     .pb-wells {
       display: flex;
-      gap: 4px;
-      height: 150px;
+      gap: var(--pb-gap);
     }
     .pb-well {
       position: relative;
-      flex: 1;
-      min-width: 0;
+      width: var(--pb-col);
+      height: 170px;
       background: #0c0d0e;
-      border: 1px solid #242526;
-      border-radius: 3px;
+      border: 1px solid #2e2f31;
+      border-radius: 4px;
       overflow: hidden;
       cursor: ns-resize;
       touch-action: none;
@@ -140,34 +143,32 @@
 
     .pb-footer {
       display: flex;
-      margin-top: 2px;
-      background: var(--pattern-step-bg-color);
-      border-radius: 0 0 3px 3px;
+      gap: var(--pb-gap);
+      margin-top: 4px;
     }
     .pb-cell {
       position: relative;
-      flex: 1;
-      min-width: 0;
+      width: var(--pb-col);
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 2px;
-      padding: 7px 0;
+      gap: 3px;
+      padding: 6px 0;
       text-align: center;
 
       &:not(:last-child)::after {
         content: '';
         position: absolute;
-        right: 0;
-        top: 15%;
-        height: 70%;
+        right: calc(var(--pb-gap) / -2);
+        top: 10%;
+        height: 80%;
         width: 1px;
         background: #2a2b2d;
       }
       .pb-label {
         font-size: 11px;
-        opacity: 0.55;
+        color: var(--pattern-step-label-color);
       }
       .pb-val {
         font-size: 13px;

@@ -42,7 +42,7 @@
   // View geometry
   //----------------------------------
   const PAD = { l: 30, r: 10, t: 10, b: 20 };
-  const VIEW_H = 220;
+  const VIEW_H = 170; // matches the rendered graph height (px) to avoid vertical distortion
   // Monochrome white graph, matching the sampler. Lane 2 is a dimmer white so
   // the two lanes stay distinguishable.
   const LANE_COLORS = ['#ffffff', 'rgba(255,255,255,0.5)'];
@@ -219,102 +219,106 @@
       <span class="hint">click two steps to set a range</span>
     </div>
 
-    <!-- Line-graph view of the two FX lanes -->
-    <svg class="graph" :viewBox="`0 0 ${viewW} ${VIEW_H}`" :style="{ width: viewW + 'px' }" preserveAspectRatio="none">
-      <!-- range band -->
-      <rect
-        v-if="numSteps"
-        class="range-band"
-        :x="xOf(effectiveRange.from) - stepW / 2"
-        :y="PAD.t"
-        :width="xOf(effectiveRange.to) - xOf(effectiveRange.from) + stepW"
-        :height="VIEW_H - PAD.t - PAD.b"
-      />
-      <!-- beat gridlines -->
-      <line
-        v-for="(bx, i) in beatLines"
-        :key="`b${i}`"
-        class="beat"
-        :x1="bx"
-        :y1="PAD.t"
-        :x2="bx"
-        :y2="VIEW_H - PAD.b"
-      />
-      <!-- playhead -->
-      <line
-        v-if="playStep >= 0 && playStep < numSteps"
-        class="playhead"
-        :x1="xOf(playStep)"
-        :y1="PAD.t"
-        :x2="xOf(playStep)"
-        :y2="VIEW_H - PAD.b"
-      />
-      <!-- axis baseline -->
-      <line class="axis" :x1="PAD.l" :y1="VIEW_H - PAD.b" :x2="viewW - PAD.r" :y2="VIEW_H - PAD.b" />
-      <text class="axis-label" :x="2" :y="PAD.t + 8">max</text>
-      <text class="axis-label" :x="2" :y="VIEW_H - PAD.b">min</text>
-
-      <!-- lane 0 -->
-      <polyline
-        v-for="(run, i) in lane0Runs"
-        :key="`l0r${i}`"
-        :points="polyline(run)"
-        :stroke="LANE_COLORS[0]"
-        class="curve"
-      />
-      <template v-for="(run, i) in lane0Runs" :key="`l0p${i}`">
-        <circle v-for="p in run" :key="`l0-${p.step}`" :cx="p.x" :cy="p.y" r="2.5" :fill="LANE_COLORS[0]">
-          <title>step {{ p.step + 1 }} · {{ p.symbol }}{{ p.display }}</title>
-        </circle>
-      </template>
-
-      <!-- lane 1 -->
-      <polyline
-        v-for="(run, i) in lane1Runs"
-        :key="`l1r${i}`"
-        :points="polyline(run)"
-        :stroke="LANE_COLORS[1]"
-        class="curve"
-      />
-      <template v-for="(run, i) in lane1Runs" :key="`l1p${i}`">
-        <circle v-for="p in run" :key="`l1-${p.step}`" :cx="p.x" :cy="p.y" r="2.5" :fill="LANE_COLORS[1]">
-          <title>step {{ p.step + 1 }} · {{ p.symbol }}{{ p.display }}</title>
-        </circle>
-      </template>
-
-      <!-- clickable step columns -->
-      <rect
-        v-for="s in numSteps"
-        :key="`c${s}`"
-        class="hit"
-        :x="xOf(s - 1) - stepW / 2"
-        :y="PAD.t"
-        :width="stepW"
-        :height="VIEW_H - PAD.t - PAD.b"
-        @click="onStepClick(s - 1)"
-      />
-    </svg>
-
-    <div class="fxg-legend">
-      <span><i :style="{ background: LANE_COLORS[0] }" /> Lane 1 · {{ laneLegend(0) }}</span>
-      <span><i :style="{ background: LANE_COLORS[1] }" /> Lane 2 · {{ laneLegend(1) }}</span>
+    <!-- Effect selector (full width, above the graph + params) -->
+    <div class="fxg-line effect-head">
+      <span class="fxg-label">Effect</span>
+      <select v-model="effectId">
+        <option v-for="e in EFFECTS" :key="e.id" :value="e.id">{{ e.name }}</option>
+      </select>
+      <span class="budget">{{ effectLaneLabel }}</span>
+      <span class="desc">{{ selectedEffect.description }}</span>
     </div>
 
-    <!-- Effect: selector + full-width parameter bar -->
-    <div class="fxg-effect">
-      <div class="fxg-line head">
-        <span class="fxg-label">Effect</span>
-        <select v-model="effectId">
-          <option v-for="e in EFFECTS" :key="e.id" :value="e.id">{{ e.name }}</option>
-        </select>
-        <span class="budget">{{ effectLaneLabel }}</span>
-        <span class="desc">{{ selectedEffect.description }}</span>
+    <!-- Graph (left) sits beside the effect parameters (right) -->
+    <div class="fxg-main">
+      <div class="fxg-graph-col">
+        <svg class="graph" :viewBox="`0 0 ${viewW} ${VIEW_H}`" preserveAspectRatio="none">
+          <!-- range band -->
+          <rect
+            v-if="numSteps"
+            class="range-band"
+            :x="xOf(effectiveRange.from) - stepW / 2"
+            :y="PAD.t"
+            :width="xOf(effectiveRange.to) - xOf(effectiveRange.from) + stepW"
+            :height="VIEW_H - PAD.t - PAD.b"
+          />
+          <!-- beat gridlines -->
+          <line
+            v-for="(bx, i) in beatLines"
+            :key="`b${i}`"
+            class="beat"
+            :x1="bx"
+            :y1="PAD.t"
+            :x2="bx"
+            :y2="VIEW_H - PAD.b"
+          />
+          <!-- playhead -->
+          <line
+            v-if="playStep >= 0 && playStep < numSteps"
+            class="playhead"
+            :x1="xOf(playStep)"
+            :y1="PAD.t"
+            :x2="xOf(playStep)"
+            :y2="VIEW_H - PAD.b"
+          />
+          <!-- axis baseline -->
+          <line class="axis" :x1="PAD.l" :y1="VIEW_H - PAD.b" :x2="viewW - PAD.r" :y2="VIEW_H - PAD.b" />
+          <text class="axis-label" :x="2" :y="PAD.t + 8">max</text>
+          <text class="axis-label" :x="2" :y="VIEW_H - PAD.b">min</text>
+
+          <!-- lane 0 -->
+          <polyline
+            v-for="(run, i) in lane0Runs"
+            :key="`l0r${i}`"
+            :points="polyline(run)"
+            :stroke="LANE_COLORS[0]"
+            class="curve"
+          />
+          <template v-for="(run, i) in lane0Runs" :key="`l0p${i}`">
+            <circle v-for="p in run" :key="`l0-${p.step}`" :cx="p.x" :cy="p.y" r="2.5" :fill="LANE_COLORS[0]">
+              <title>step {{ p.step + 1 }} · {{ p.symbol }}{{ p.display }}</title>
+            </circle>
+          </template>
+
+          <!-- lane 1 -->
+          <polyline
+            v-for="(run, i) in lane1Runs"
+            :key="`l1r${i}`"
+            :points="polyline(run)"
+            :stroke="LANE_COLORS[1]"
+            class="curve"
+          />
+          <template v-for="(run, i) in lane1Runs" :key="`l1p${i}`">
+            <circle v-for="p in run" :key="`l1-${p.step}`" :cx="p.x" :cy="p.y" r="2.5" :fill="LANE_COLORS[1]">
+              <title>step {{ p.step + 1 }} · {{ p.symbol }}{{ p.display }}</title>
+            </circle>
+          </template>
+
+          <!-- clickable step columns -->
+          <rect
+            v-for="s in numSteps"
+            :key="`c${s}`"
+            class="hit"
+            :x="xOf(s - 1) - stepW / 2"
+            :y="PAD.t"
+            :width="stepW"
+            :height="VIEW_H - PAD.t - PAD.b"
+            @click="onStepClick(s - 1)"
+          />
+        </svg>
+        <div class="fxg-legend">
+          <span><i :style="{ background: LANE_COLORS[0] }" /> Lane 1 · {{ laneLegend(0) }}</span>
+          <span><i :style="{ background: LANE_COLORS[1] }" /> Lane 2 · {{ laneLegend(1) }}</span>
+        </div>
       </div>
-      <ParamBar :params="selectedEffect.params" v-model="effectParams" />
-      <div class="fxg-line">
-        <Button small @click="dropEffect"><sup>Drop</sup> into {{ rangeLabel }}</Button>
-        <label class="check"><input type="checkbox" v-model="placeNotes" /> place notes</label>
+      <div class="fxg-params-col">
+        <ParamBar :params="selectedEffect.params" v-model="effectParams" />
       </div>
+    </div>
+
+    <div class="fxg-line drop-row">
+      <Button small @click="dropEffect"><sup>Drop</sup> into {{ rangeLabel }}</Button>
+      <label class="check"><input type="checkbox" v-model="placeNotes" /> place notes</label>
     </div>
 
     <!-- Custom builder: one compact row -->
@@ -345,7 +349,8 @@
   div.fx-graph {
     width: 100%;
     max-width: calc((124px * 8) + 36px + (3px * 7));
-    color: var(--pattern-step-note-color);
+    // Neutral light-gray text like the sampler — not the teal note color.
+    color: #d8d8d8;
     font-size: 12px;
 
     .fxg-head,
@@ -370,8 +375,8 @@
 
     svg.graph {
       display: block;
-      height: 220px;
-      max-width: 100%;
+      width: 100%;
+      height: 170px; // matches the parameter-bar fader wells
       background: var(--pattern-step-bg-color);
       border: 2px solid #000;
       border-radius: 6px;
@@ -382,10 +387,12 @@
       .beat {
         stroke: var(--pattern-step-beat-bg-color);
         stroke-width: 1;
+        vector-effect: non-scaling-stroke;
       }
       .axis {
         stroke: rgba(255, 255, 255, 0.18);
         stroke-width: 1;
+        vector-effect: non-scaling-stroke;
       }
       .axis-label {
         fill: var(--pattern-step-label-color);
@@ -394,10 +401,12 @@
       .curve {
         fill: none;
         stroke-width: 1.5;
+        vector-effect: non-scaling-stroke;
       }
       .playhead {
         stroke: var(--pattern-step-active-color);
         stroke-width: 1.5;
+        vector-effect: non-scaling-stroke;
       }
       .hit {
         fill: transparent;
@@ -409,7 +418,7 @@
     }
 
     .fxg-legend {
-      margin: 8px 0 14px;
+      margin: 8px 0 0;
       font-size: 11px;
       color: var(--pattern-step-label-color);
       i {
@@ -445,11 +454,33 @@
       opacity: 0.65;
     }
 
-    // Effect block: header row, full-width parameter bar, then the drop row.
-    .fxg-effect {
-      margin-bottom: 14px;
-      .fxg-line.head {
-        margin-bottom: 10px;
+    .effect-head {
+      margin: 4px 0 8px;
+    }
+
+    // Graph (left, fills the width) beside the effect parameters (right). The
+    // graph height matches the fader wells so they read as one row.
+    .fxg-main {
+      display: flex;
+      align-items: flex-start;
+      gap: 20px;
+    }
+    .fxg-graph-col {
+      flex: 1;
+      min-width: 0;
+    }
+    .fxg-params-col {
+      flex: 0 0 auto;
+    }
+    .drop-row {
+      margin-top: 12px;
+    }
+    @media (max-width: 720px) {
+      .fxg-main {
+        flex-direction: column;
+      }
+      .fxg-params-col {
+        width: 100%;
       }
     }
 
