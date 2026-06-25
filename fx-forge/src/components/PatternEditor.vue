@@ -932,6 +932,11 @@
     }
   }
 
+  // The effect (graph) view spans the full width of the app.
+  div.graph-view {
+    width: 100%;
+  }
+
   // The action bar wraps to multiple rows gracefully as groups are added.
   div.actions {
     flex-wrap: wrap;

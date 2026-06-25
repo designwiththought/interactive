@@ -386,7 +386,6 @@
 <style lang="scss">
   div.fx-graph {
     width: 100%;
-    max-width: calc((124px * 8) + 36px + (3px * 7));
     // Neutral light-gray text like the sampler — not the teal note color.
     color: #d8d8d8;
     font-size: 12px;
@@ -493,21 +492,22 @@
       border-radius: 6px;
       overflow: hidden;
 
-      // Light title bar with the effect selector, like the reference panel.
+      // Dark title bar with the effect selector.
       .fp-title {
         appearance: none;
         -webkit-appearance: none;
         width: 100%;
-        height: 34px;
-        padding: 0 12px;
+        height: 40px;
+        padding: 0 32px 0 14px;
         border: 0;
+        border-bottom: 1px solid #000;
         border-radius: 0;
-        background: #d6d6d6;
-        color: #111;
-        font-weight: 700;
-        font-size: 13px;
-        letter-spacing: 0.06em;
-        text-transform: uppercase;
+        background: #1b1c1e
+          url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="11" height="7"><path d="M0 0l5.5 7L11 0z" fill="%23999"/></svg>')
+          no-repeat right 14px center;
+        color: #fff;
+        font-weight: 600;
+        font-size: 15px;
         cursor: pointer;
         box-shadow: none;
       }
