@@ -64,11 +64,14 @@ ok('output is a valid PatternData shape');
 //----------------------------------
 // Shapes: curves & effects
 //----------------------------------
-const { applyCurve, applyEffect, laneSeries, EFFECTS, CURVES, MAX_FX_LANES } = await import('./index.ts');
+const { applyCurve, applyEffect, laneSeries, EFFECTS, CURVES, MAX_FX_LANES, defaultParams } =
+  await import('./index.ts');
 
 // 5. Every effect fits the lane budget and writes FX within range over a sub-range.
 for (const def of EFFECTS) {
-  assert(def.lanes.length <= MAX_FX_LANES, `${def.id} exceeds ${MAX_FX_LANES} lanes`);
+  const lanes = def.lanes(defaultParams(def));
+  assert(lanes.length <= MAX_FX_LANES, `${def.id} exceeds ${MAX_FX_LANES} lanes`);
+  assert(def.params.length > 0, `${def.id} should expose at least one param`);
   const p = Tracker.createPattern(8, 16);
   const n = applyEffect(p, def.id, { track: 0, range: { from: 4, to: 11 }, seed: 1 });
   assert(n > 0, `${def.id} wrote nothing`);
@@ -76,13 +79,39 @@ for (const def of EFFECTS) {
   assert(p.tracks[0].steps[0].fx[0].type.symbol === '-', `${def.id} bled before range`);
   assert(p.tracks[0].steps[15].fx[0].type.symbol === '-', `${def.id} bled after range`);
   const inSym = p.tracks[0].steps[4].fx[0].type.symbol;
-  assert(inSym === def.lanes[0].fx, `${def.id} lane0 should be ${def.lanes[0].fx}, got ${inSym}`);
+  assert(inSym === lanes[0].fx, `${def.id} lane0 should be ${lanes[0].fx}, got ${inSym}`);
   for (const step of p.tracks[0].steps) {
     for (const fx of step.fx)
       assert(fx.value >= fx.type.min && fx.value <= fx.type.max, `${def.id} value out of range`);
   }
 }
 ok(`${EFFECTS.length} effects fit ${MAX_FX_LANES}-lane budget & write in range`);
+
+// 5b. Per-effect params change the output and stay in range at extremes.
+const pA = Tracker.createPattern(8, 16);
+const pB = Tracker.createPattern(8, 16);
+applyEffect(pA, 'tape-stop', { track: 0, range: { from: 0, to: 15 }, params: { toTempo: 8 } });
+applyEffect(pB, 'tape-stop', { track: 0, range: { from: 0, to: 15 }, params: { toTempo: 120 } });
+const endA = laneSeries(pA, 0, 0)
+  .filter((s) => s.symbol === 'T')
+  .at(-1).display;
+const endB = laneSeries(pB, 0, 0)
+  .filter((s) => s.symbol === 'T')
+  .at(-1).display;
+assert(endB > endA, `param 'toTempo' should change the floor (${endA} vs ${endB})`);
+// Extreme params across every effect/param still produce in-range values.
+for (const def of EFFECTS) {
+  for (const param of def.params) {
+    for (const v of [param.min, param.max]) {
+      const p = Tracker.createPattern(8, 16);
+      applyEffect(p, def.id, { track: 0, range: { from: 0, to: 15 }, params: { [param.id]: v } });
+      for (const step of p.tracks[0].steps)
+        for (const fx of step.fx)
+          assert(fx.value >= fx.type.min && fx.value <= fx.type.max, `${def.id}.${param.id}=${v} out of range`);
+    }
+  }
+}
+ok('per-effect params alter output and clamp at extremes');
 
 // 6. Tape Stop tempo collapses (exp-decay → lower at the end than the start).
 const ts = Tracker.createPattern(8, 16);

@@ -60,7 +60,9 @@ Toggle **View → Graph** for an alternate, automation-style view of a track: th
 lanes drawn as line graphs over the steps. Click two steps to set a range, then:
 
 - **Drop an effect** — pick a named audio effect and drop it onto the range. Each effect
-  declares which FX lanes it uses, shown as a live budget (e.g. Tape Stop = `T + M (2/2)`):
+  exposes **parameter knobs** (sliders) so you can tune it before dropping — e.g. Tape Stop
+  has *From* / *To* tempo and *Pitch bend*; Gate Chop has *Rate* / *Depth*; Wobble has
+  *Rate* / *Floor*. Each effect also shows its live FX-lane budget (e.g. Tape Stop = `T + M (2/2)`):
 
   | Effect | What it does | FX |
   |---|---|---|
@@ -122,9 +124,11 @@ Working and verified against tracker-lib `0.1.2` (12-check smoke test + a browse
   and a lane-budget-aware custom effect builder.
 - Audio preview — a Web Audio sequencer that plays the pattern and approximates the FX,
   with a moving playhead (verified in a headless browser run).
+- Per-effect parameters — every drop-in effect has tunable knobs, validated to stay within
+  each FX's value range at any setting.
 
-Next on the roadmap (`docs/CONCEPT.md`): per-effect parameter knobs, `.pti`/`.mt`
-bundling so a sample ships with the pattern, and shareable `preset+seed` URLs.
+Next on the roadmap (`docs/CONCEPT.md`): `.pti`/`.mt` bundling so a sample ships with the
+pattern, and shareable `preset+seed` URLs.
 
 ## License & attribution
 

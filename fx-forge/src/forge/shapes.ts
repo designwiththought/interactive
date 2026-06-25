@@ -61,6 +61,18 @@ export const CURVES: CurveDef[] = [
 
 export const CURVES_BY_ID: Record<string, CurveDef> = Object.fromEntries(CURVES.map((c) => [c.id, c]));
 
+/** Parametric square wave — `cycles` on/off pulses across the range. */
+export const squareCurve =
+  (cycles: number): CurveFn =>
+  (t) =>
+    Math.floor(t * cycles * 2) % 2 === 0 ? 1 : 0;
+
+/** Parametric sine LFO — `cycles` oscillations across the range. */
+export const sineCurve =
+  (cycles: number): CurveFn =>
+  (t) =>
+    0.5 + 0.5 * Math.sin(2 * Math.PI * cycles * t);
+
 //----------------------------------
 // Automatable FX list (for the builder UI)
 //----------------------------------
@@ -113,7 +125,9 @@ export interface ApplyCurveOptions {
   track: number;
   range: StepRange;
   fx: string; // symbol or name
-  curveId: string;
+  curveId?: string;
+  /** A curve function, taking precedence over curveId (used by parametric effects). */
+  curveFn?: CurveFn;
   /** Which FX lane to write into (0 or 1). Default 0. */
   lane?: number;
   /** Value range in the FX's natural (display) domain. Defaults to the full FX range. */
@@ -136,7 +150,7 @@ export function applyCurve(pattern: PatternData, opts: ApplyCurveOptions): numbe
   const dr = fxDisplayRange(rec);
   const lo = opts.lo ?? dr.lo;
   const hi = opts.hi ?? dr.hi;
-  const curve = CURVES_BY_ID[opts.curveId]?.fn ?? CURVES_BY_ID['ramp-up'].fn;
+  const curve = opts.curveFn ?? CURVES_BY_ID[opts.curveId ?? '']?.fn ?? CURVES_BY_ID['ramp-up'].fn;
   const rng = new Rng(mixSeed(opts.seed ?? 1, opts.track));
 
   let written = 0;
@@ -173,29 +187,50 @@ export function clearRange(pattern: PatternData, trackIndex: number, range: Step
 }
 
 //----------------------------------
-// Effects: named audio effects built from up to MAX_FX_LANES FX lanes
+// Effects: named, parameterized audio effects (within MAX_FX_LANES)
 //----------------------------------
 export interface EffectLane {
   fx: string; // symbol or name
-  curveId: string;
+  curveId?: string;
+  curve?: CurveFn;
   /** Natural-domain start/end values. */
   lo: number;
   hi: number;
+}
+
+/** A user-tweakable knob on an effect. */
+export interface EffectParam {
+  id: string;
+  label: string;
+  min: number;
+  max: number;
+  step?: number;
+  default: number;
+  unit?: string;
 }
 
 export interface EffectDef {
   id: string;
   name: string;
   description: string;
-  lanes: EffectLane[];
+  /** Knobs the UI renders as sliders. */
+  params: EffectParam[];
+  /** Build the FX lanes for the current param values. */
+  lanes: (p: Record<string, number>) => EffectLane[];
   /** Lay notes across the range so the effect is audible on an empty pattern. */
   withNotes?: boolean;
 }
 
-/** All effects are authored to fit within MAX_FX_LANES; this guards against regressions. */
+/** Default value for each param. */
+export function defaultParams(def: EffectDef): Record<string, number> {
+  return Object.fromEntries(def.params.map((p) => [p.id, p.default]));
+}
+
+/** Guard: every effect must fit MAX_FX_LANES at its default params. */
 function effect(def: EffectDef): EffectDef {
-  if (def.lanes.length > MAX_FX_LANES) {
-    throw new Error(`Effect "${def.id}" uses ${def.lanes.length} FX lanes; max is ${MAX_FX_LANES}`);
+  const n = def.lanes(defaultParams(def)).length;
+  if (n > MAX_FX_LANES) {
+    throw new Error(`Effect "${def.id}" uses ${n} FX lanes; max is ${MAX_FX_LANES}`);
   }
   return def;
 }
@@ -205,9 +240,14 @@ export const EFFECTS: EffectDef[] = [
     id: 'tape-stop',
     name: 'Tape Stop',
     description: 'Tempo collapses while pitch bends down — the classic reel grinding to a halt.',
-    lanes: [
-      { fx: 'T', curveId: 'exp-decay', lo: 8, hi: 220 }, // Tempo: high → crawl (scaled BPM)
-      { fx: 'M', curveId: 'ramp-down', lo: -99, hi: 0 }, // Micro-tune: bends down to -99c
+    params: [
+      { id: 'fromTempo', label: 'From', min: 60, max: 300, default: 180, unit: 'BPM' },
+      { id: 'toTempo', label: 'To', min: 8, max: 120, default: 8, unit: 'BPM' },
+      { id: 'pitchBend', label: 'Pitch bend', min: 0, max: 99, default: 99, unit: '¢' },
+    ],
+    lanes: (p) => [
+      { fx: 'T', curveId: 'exp-decay', lo: p.toTempo, hi: p.fromTempo },
+      { fx: 'M', curveId: 'ramp-down', lo: -p.pitchBend, hi: 0 },
     ],
     withNotes: true,
   }),
@@ -215,9 +255,13 @@ export const EFFECTS: EffectDef[] = [
     id: 'riser',
     name: 'Riser',
     description: 'Pitch climbs and volume swells into a hit — a build-up.',
-    lanes: [
-      { fx: 'M', curveId: 'exp-rise', lo: 0, hi: 99 },
-      { fx: 'V', curveId: 'ramp-up', lo: 20, hi: 100 },
+    params: [
+      { id: 'pitchRise', label: 'Pitch rise', min: 0, max: 99, default: 99, unit: '¢' },
+      { id: 'volStart', label: 'Vol start', min: 0, max: 100, default: 20, unit: '%' },
+    ],
+    lanes: (p) => [
+      { fx: 'M', curveId: 'exp-rise', lo: 0, hi: p.pitchRise },
+      { fx: 'V', curveId: 'ramp-up', lo: p.volStart, hi: 100 },
     ],
     withNotes: true,
   }),
@@ -225,35 +269,52 @@ export const EFFECTS: EffectDef[] = [
     id: 'filter-drop',
     name: 'Filter Drop',
     description: 'Low-pass closes down to a muffle, then opens — a breakdown sweep.',
-    lanes: [{ fx: 'L', curveId: 'swell', lo: 100, hi: 0 }],
+    params: [{ id: 'floor', label: 'Dip to', min: 0, max: 80, default: 0, unit: '%' }],
+    lanes: (p) => [{ fx: 'L', curveId: 'swell', lo: 100, hi: p.floor }],
     withNotes: true,
   }),
   effect({
     id: 'fade-out',
     name: 'Fade Out',
     description: 'Volume rides smoothly to silence across the range.',
-    lanes: [{ fx: 'V', curveId: 'ramp-down', lo: 100, hi: 0 }],
+    params: [
+      { id: 'from', label: 'From', min: 0, max: 100, default: 100, unit: '%' },
+      { id: 'to', label: 'To', min: 0, max: 100, default: 0, unit: '%' },
+    ],
+    lanes: (p) => [{ fx: 'V', curveId: 'ramp-down', lo: p.to, hi: p.from }],
     withNotes: true,
   }),
   effect({
     id: 'pan-sweep',
     name: 'Pan Sweep',
-    description: 'Sound travels hard left to hard right.',
-    lanes: [{ fx: 'P', curveId: 'ramp-up', lo: -50, hi: 50 }],
+    description: 'Sound travels across the stereo field.',
+    params: [
+      { id: 'fromPan', label: 'From', min: -50, max: 50, default: -50, unit: 'L/R' },
+      { id: 'toPan', label: 'To', min: -50, max: 50, default: 50, unit: 'L/R' },
+    ],
+    lanes: (p) => [{ fx: 'P', curveId: 'ramp-up', lo: p.fromPan, hi: p.toPan }],
     withNotes: true,
   }),
   effect({
     id: 'gate-chop',
     name: 'Gate Chop',
     description: 'Gate length stutters on/off for a trance-gate rhythm.',
-    lanes: [{ fx: 'q', curveId: 'gate-4', lo: 0, hi: 100 }],
+    params: [
+      { id: 'rate', label: 'Rate', min: 1, max: 8, step: 1, default: 4, unit: '×' },
+      { id: 'depth', label: 'Depth', min: 0, max: 100, default: 0, unit: '%' },
+    ],
+    lanes: (p) => [{ fx: 'q', curve: squareCurve(p.rate), lo: p.depth, hi: 100 }],
     withNotes: true,
   }),
   effect({
     id: 'wobble',
     name: 'Wobble',
     description: 'Low-pass cutoff oscillates — a dubstep-style LFO wobble.',
-    lanes: [{ fx: 'L', curveId: 'sine-4', lo: 10, hi: 100 }],
+    params: [
+      { id: 'rate', label: 'Rate', min: 1, max: 12, step: 1, default: 4, unit: '×' },
+      { id: 'floor', label: 'Floor', min: 0, max: 80, default: 10, unit: '%' },
+    ],
+    lanes: (p) => [{ fx: 'L', curve: sineCurve(p.rate), lo: p.floor, hi: 100 }],
     withNotes: true,
   }),
 ];
@@ -264,6 +325,8 @@ export interface ApplyEffectOptions {
   track: number;
   range: StepRange;
   seed?: number;
+  /** Param values; missing keys fall back to each param's default. */
+  params?: Record<string, number>;
   /** Override the effect's own withNotes default. */
   withNotes?: boolean;
   note?: number;
@@ -272,7 +335,8 @@ export interface ApplyEffectOptions {
 
 /**
  * Drop a named effect onto a track range. Clears the step FX in range first,
- * then writes the effect's lanes — so the result is exactly the dropped effect.
+ * then writes the effect's parameterized lanes — so the result is exactly the
+ * dropped effect at the chosen settings.
  */
 export function applyEffect(pattern: PatternData, effectId: string, opts: ApplyEffectOptions): number {
   const def = EFFECTS_BY_ID[effectId];
@@ -282,6 +346,8 @@ export function applyEffect(pattern: PatternData, effectId: string, opts: ApplyE
   const numSteps = track.length + 1;
   const { from, to } = clampRange(opts.range, numSteps);
   const withNotes = opts.withNotes ?? def.withNotes ?? false;
+  const params = { ...defaultParams(def), ...opts.params };
+  const lanes = def.lanes(params).slice(0, MAX_FX_LANES);
 
   // Clear FX lanes (and optionally place notes) across the range first.
   for (let s = from; s <= to; s++) {
@@ -295,14 +361,15 @@ export function applyEffect(pattern: PatternData, effectId: string, opts: ApplyE
     }
   }
 
-  // Write each effect lane via applyCurve (note placement already done above).
+  // Write each effect lane (note placement already done above).
   let total = 0;
-  def.lanes.forEach((laneDef, i) => {
+  lanes.forEach((laneDef, i) => {
     total += applyCurve(pattern, {
       track: opts.track,
       range: { from, to },
       fx: laneDef.fx,
       curveId: laneDef.curveId,
+      curveFn: laneDef.curve,
       lane: i,
       lo: laneDef.lo,
       hi: laneDef.hi,

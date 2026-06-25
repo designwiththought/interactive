@@ -9,7 +9,7 @@
   //  curve to each FX lane — always within the 2-FX-per-step hardware budget.
   //
   //---------------------------------------------------
-  import { computed, ref, type PropType } from 'vue';
+  import { computed, ref, watch, type PropType } from 'vue';
   import type { PatternData } from '@polyend/tracker-lib';
   import {
     EFFECTS,
@@ -21,6 +21,7 @@
     applyCurve,
     clearRange,
     laneSeries,
+    defaultParams,
   } from '@/forge/index.ts';
   import Button from '@/components/ui/Button.vue';
 
@@ -52,8 +53,14 @@
   const pendingEnd = ref(false);
 
   const effectId = ref(EFFECTS[0].id);
+  const effectParams = ref<Record<string, number>>(defaultParams(EFFECTS[0]));
   const placeNotes = ref(true);
   const seed = ref(1);
+
+  // Reset knobs to the new effect's defaults whenever the effect changes.
+  watch(effectId, (id) => {
+    effectParams.value = defaultParams(EFFECTS_BY_ID[id]);
+  });
 
   const lane1Fx = ref('L'); // Low-pass
   const lane1Curve = ref('ramp-up');
@@ -84,7 +91,7 @@
 
   const selectedEffect = computed(() => EFFECTS_BY_ID[effectId.value]);
   const effectLaneLabel = computed(() => {
-    const ls = selectedEffect.value.lanes;
+    const ls = selectedEffect.value.lanes(effectParams.value);
     return `${ls.map((l) => l.fx).join(' + ')}  (${ls.length}/${MAX_FX_LANES} lanes)`;
   });
   const customLaneCount = computed(() => 1 + (lane2On.value ? 1 : 0));
@@ -159,6 +166,7 @@
       range: effectiveRange.value,
       seed: seed.value,
       withNotes: placeNotes.value,
+      params: { ...effectParams.value },
     });
     emit('changed');
   }
@@ -303,6 +311,19 @@
           <span class="lanes">{{ effectLaneLabel }}</span>
         </div>
         <p class="desc">{{ selectedEffect.description }}</p>
+        <div class="params">
+          <label v-for="param in selectedEffect.params" :key="param.id" class="param">
+            <span class="pname">{{ param.label }}</span>
+            <input
+              type="range"
+              :min="param.min"
+              :max="param.max"
+              :step="param.step ?? 1"
+              v-model.number="effectParams[param.id]"
+            />
+            <span class="pval">{{ effectParams[param.id] }}{{ param.unit ? ' ' + param.unit : '' }}</span>
+          </label>
+        </div>
         <div class="row">
           <Button @click="dropEffect"><sup>Drop</sup> into {{ rangeLabel }}</Button>
           <label class="check"><input type="checkbox" v-model="placeNotes" /> place notes</label>
@@ -470,6 +491,30 @@
       .lanes {
         font-family: monospace;
         opacity: 0.8;
+      }
+      .params {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        margin: 6px 0 10px;
+      }
+      .param {
+        display: grid;
+        grid-template-columns: 70px 1fr 64px;
+        align-items: center;
+        gap: 8px;
+        .pname {
+          opacity: 0.75;
+        }
+        input[type='range'] {
+          width: 100%;
+          accent-color: var(--fxg-border);
+        }
+        .pval {
+          font-family: monospace;
+          text-align: right;
+          opacity: 0.9;
+        }
       }
       .lane-tag {
         font-weight: bold;
