@@ -731,35 +731,52 @@
   </div>
 
   <div class="actions">
-    <div class="group">
-      <Button @click="handlePatternCreate"> <sup>New</sup> Pattern </Button>
-      <Button type="file" mime-types=".mtp" @file="handlePatternInput"> <sup>Load</sup> Pattern </Button>
-      <Button v-if="patternData" @click="handlePatternOutput"> <sup>Save</sup> Pattern </Button>
-    </div>
-    <div v-if="patternData" class="group separator" />
-    <div v-if="patternData" class="group">
-      <Button :focused="!showGraph" @click="showGraph && toggleGraph()"> <sup>View</sup> Pattern </Button>
-      <Button :focused="showGraph" @click="!showGraph && toggleGraph()"> <sup>View</sup> Effects </Button>
-    </div>
-    <div v-if="patternData" class="group separator" />
-    <div v-if="patternData" class="group transport">
-      <Button :blue="isPlaying" @click="togglePlay"> <sup>Preview</sup> {{ isPlaying ? '■ Stop' : '▶ Play' }} </Button>
-      <label class="bpm">
-        BPM
-        <input type="number" min="20" max="400" v-model.number="previewBpm" @change="preview?.setBpm(previewBpm)" />
-      </label>
-      <Button type="file" mime-types="audio/*,.wav" @file="handleSampleLoad">
-        <sup>Sample</sup> {{ sampleName }}
-      </Button>
-    </div>
-    <div class="group separator" />
-    <div class="group forge">
-      <select v-model="forgePresetId" :title="forgePreset.description">
-        <option v-for="p in forgePresets" :key="p.id" :value="p.id">{{ p.name }}</option>
-      </select>
-      <Button @click="handleForge(false)"> <sup>Forge</sup> FX </Button>
-      <Button @click="handleForge(true)"> <sup>Re-roll</sup> {{ forgeSeed }} </Button>
-    </div>
+    <!-- Pattern mode: pattern + generate controls -->
+    <template v-if="!showGraph">
+      <div class="group">
+        <Button @click="handlePatternCreate"> <sup>New</sup> Pattern </Button>
+        <Button type="file" mime-types=".mtp" @file="handlePatternInput"> <sup>Load</sup> Pattern </Button>
+        <Button v-if="patternData" @click="handlePatternOutput"> <sup>Save</sup> Pattern </Button>
+      </div>
+      <div class="group separator" />
+      <div class="group forge">
+        <select v-model="forgePresetId" :title="forgePreset.description">
+          <option v-for="p in forgePresets" :key="p.id" :value="p.id">{{ p.name }}</option>
+        </select>
+        <Button @click="handleForge(false)"> <sup>Forge</sup> FX </Button>
+        <Button @click="handleForge(true)"> <sup>Re-roll</sup> {{ forgeSeed }} </Button>
+      </div>
+      <template v-if="patternData">
+        <div class="group separator" />
+        <div class="group">
+          <Button @click="toggleGraph"> <sup>Go to</sup> Effects </Button>
+        </div>
+      </template>
+    </template>
+
+    <!-- Effects mode: only the FX-relevant controls + back to pattern -->
+    <template v-else>
+      <div class="group">
+        <Button @click="toggleGraph"> <sup>Back to</sup> Pattern </Button>
+      </div>
+      <div class="group separator" />
+      <div class="group transport">
+        <Button :blue="isPlaying" @click="togglePlay">
+          <sup>Preview</sup> {{ isPlaying ? '■ Stop' : '▶ Play' }}
+        </Button>
+        <label class="bpm"
+          ><sup>BPM</sup
+          ><input type="number" min="20" max="400" v-model.number="previewBpm" @change="preview?.setBpm(previewBpm)"
+        /></label>
+        <Button type="file" mime-types="audio/*,.wav" @file="handleSampleLoad">
+          <sup>Sample</sup> {{ sampleName }}
+        </Button>
+      </div>
+      <div class="group separator" />
+      <div class="group">
+        <Button @click="handlePatternOutput"> <sup>Save</sup> Pattern </Button>
+      </div>
+    </template>
   </div>
 </template>
 
@@ -942,14 +959,37 @@
     flex-wrap: wrap;
     row-gap: 10px;
   }
+  // BPM reads like the other buttons: label on top, number below.
   div.actions > div.group.transport > label.bpm {
     display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 11px;
-    color: var(--pattern-step-label-color);
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: flex-start;
+    min-width: 64px;
+    min-height: 48px;
+    padding: 4px 8px 5px;
+    background: #1e1f21;
+    border: 2px solid #000;
+    border-bottom-width: 3px;
+    border-radius: 6px;
+    box-shadow: 0 0.5px 0 rgba(255, 255, 255, 0.12);
+    cursor: text;
+    & > sup {
+      font-size: 9px;
+      vertical-align: baseline;
+      color: rgba(255, 255, 255, 0.5);
+    }
     & > input {
-      width: 52px;
+      width: 100%;
+      height: auto;
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+      font-size: 14px;
+      color: #fff;
+      line-height: 1.1;
     }
   }
 </style>
