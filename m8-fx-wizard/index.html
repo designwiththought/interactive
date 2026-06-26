@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>M8 FX Wizard</title>
+  <link rel="stylesheet" href="styles/app.css" />
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <span class="logo">M8 · FX WIZARD</span>
+      <span class="sub">simulate step FX in phrases &amp; tables — and build them by description</span>
+    </div>
+    <div class="transport">
+      <button id="btnPlay" class="primary">▶ PLAY</button>
+      <div class="selwrap">
+        <label>BPM</label>
+        <input id="bpm" type="range" min="40" max="220" value="120" />
+        <b id="bpmVal" style="color:var(--ink)">120</b>
+      </div>
+      <div class="selwrap">
+        <label>OSC</label>
+        <select id="wave">
+          <option value="sawtooth">saw</option>
+          <option value="square">square</option>
+          <option value="triangle">tri</option>
+          <option value="sine">sine</option>
+        </select>
+      </div>
+      <div class="selwrap">
+        <label>CUT</label>
+        <input id="cutoff" type="range" min="300" max="12000" value="5000" />
+      </div>
+    </div>
+  </header>
+
+  <div class="readouts" style="padding:0 20px 0;">
+    <span>STEP <b id="rStep">--</b></span>
+    <span>TICK <b id="rTick">0</b></span>
+    <span>NOTE <b id="rNote">---</b></span>
+    <span>FREQ <b id="rFreq">--- Hz</b></span>
+    <span>GROOVE <b id="rGroove">00</b></span>
+    <span>TBL&nbsp;TIC <b id="rTic">06</b></span>
+  </div>
+
+  <div class="wrap">
+    <!-- LEFT: sequencer -->
+    <section class="panel">
+      <div class="tabs">
+        <button class="tab active" data-grid="phrase">PHRASE</button>
+        <button class="tab" data-grid="table">TABLE</button>
+        <span style="margin-left:auto"><button id="btnClear" class="ghost">clear</button></span>
+      </div>
+      <p class="gridhint" id="gridHint"></p>
+      <div id="gridHost"></div>
+    </section>
+
+    <!-- RIGHT: voice + scope + wizard -->
+    <div class="stack">
+      <section class="panel">
+        <h2>Live voice</h2>
+        <div class="voicebox">
+          <div class="stat"><span class="k">Note out</span><span class="v big" id="vNote">---</span></div>
+          <div class="stat"><span class="k">Frequency</span><span class="v" id="vFreq">--- Hz</span></div>
+          <div class="stat" style="grid-column:1/3">
+            <span class="k">Level</span>
+            <div class="meter"><i id="vLevel"></i></div>
+          </div>
+          <div class="stat"><span class="k">Pitch bend</span><span class="v" id="vBend">0.00</span></div>
+          <div class="stat"><span class="k">Slide ticks</span><span class="v" id="vSlide">0</span></div>
+        </div>
+        <div style="margin-top:10px">
+          <span class="k" style="color:var(--dimmer);font-size:10px;letter-spacing:.1em;text-transform:uppercase">Active continuous FX</span>
+          <div class="chips" id="vChips"></div>
+        </div>
+        <canvas class="scope" id="scope" width="600" height="110" style="margin-top:12px"></canvas>
+        <div style="color:var(--dimmer);font-size:10px;margin-top:4px">pitch trail (teal) · level (pink)</div>
+      </section>
+
+      <section class="panel">
+        <h2>Describe an effect</h2>
+        <div class="wiz-row">
+          <input id="wizText" type="text" placeholder="e.g. machine-gun stutter, slide into note, swing, random pitch…" />
+          <button id="wizGo">make it</button>
+        </div>
+        <div class="recipe-list" id="recipeList"></div>
+        <div class="explain" id="explain">Pick an idea above, or type what you want. The wizard writes the real FX commands into the grid and explains them.</div>
+      </section>
+    </div>
+  </div>
+
+  <div style="padding:0 20px 20px">
+    <section class="panel">
+      <details open>
+        <summary>FX command reference</summary>
+        <div class="fxref" id="fxref"></div>
+      </details>
+    </section>
+  </div>
+
+  <p class="foot">
+    Timing model: 24&nbsp;PPQN, 6&nbsp;ticks per 16th-note step (Groove View). FX semantics from the
+    M8 Operation Manual (v2026-04-21). Synth is a single illustrative voice, not a clone of the M8's engines.
+    Anything marked <code>partial</code>/<code>ref</code> is approximate — edit <code>js/fx.js</code> to refine.
+  </p>
+
+  <script src="js/notes.js"></script>
+  <script src="js/fx.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/engine.js"></script>
+  <script src="js/wizard.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
