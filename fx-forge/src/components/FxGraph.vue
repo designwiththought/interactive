@@ -134,6 +134,35 @@
   const lane1Runs = computed(() => runsFor(1));
   const polyline = (run: { x: number; y: number }[]) => run.map((p) => `${p.x},${p.y}`).join(' ');
 
+  // Node positions as percentages of the graph box (for the crisp HTML squares).
+  const nodePoints = computed(() => {
+    const out: {
+      key: string;
+      lane: number;
+      step: number;
+      left: number;
+      top: number;
+      symbol: string;
+      display: number;
+    }[] = [];
+    [lane0Runs.value, lane1Runs.value].forEach((runs, lane) => {
+      for (const run of runs) {
+        for (const p of run) {
+          out.push({
+            key: `${lane}-${p.step}`,
+            lane,
+            step: p.step,
+            left: (p.x / viewW.value) * 100,
+            top: (p.y / VIEW_H) * 100,
+            symbol: p.symbol,
+            display: p.display,
+          });
+        }
+      }
+    });
+    return out;
+  });
+
   const beatLines = computed(() => {
     const lines: number[] = [];
     for (let s = 0; s < numSteps.value; s += 4) lines.push(xOf(s));
@@ -398,7 +427,7 @@
             :y2="lvl.y"
           />
 
-          <!-- lane 0 -->
+          <!-- lane curves (nodes are drawn as HTML squares in the overlay below) -->
           <polyline
             v-for="(run, i) in lane0Runs"
             :key="`l0r${i}`"
@@ -406,22 +435,6 @@
             :stroke="LANE_COLORS[0]"
             class="curve"
           />
-          <template v-for="(run, i) in lane0Runs" :key="`l0p${i}`">
-            <circle
-              v-for="p in run"
-              :key="`l0-${p.step}`"
-              class="node"
-              :class="{ sel: isSelected(0, p.step) }"
-              :cx="p.x"
-              :cy="p.y"
-              :r="isSelected(0, p.step) ? 4.5 : 2.5"
-              :fill="LANE_COLORS[0]"
-            >
-              <title>step {{ p.step + 1 }} · {{ p.symbol }}{{ p.display }}</title>
-            </circle>
-          </template>
-
-          <!-- lane 1 -->
           <polyline
             v-for="(run, i) in lane1Runs"
             :key="`l1r${i}`"
@@ -429,20 +442,6 @@
             :stroke="LANE_COLORS[1]"
             class="curve"
           />
-          <template v-for="(run, i) in lane1Runs" :key="`l1p${i}`">
-            <circle
-              v-for="p in run"
-              :key="`l1-${p.step}`"
-              class="node"
-              :class="{ sel: isSelected(1, p.step) }"
-              :cx="p.x"
-              :cy="p.y"
-              :r="isSelected(1, p.step) ? 4.5 : 2.5"
-              :fill="LANE_COLORS[1]"
-            >
-              <title>step {{ p.step + 1 }} · {{ p.symbol }}{{ p.display }}</title>
-            </circle>
-          </template>
 
           <!-- clickable step columns -->
           <rect
@@ -456,6 +455,18 @@
             @click="onStepClick(s - 1)"
           />
         </svg>
+
+        <!-- Nodes as crisp white squares (HTML, so the SVG stretch can't distort them) -->
+        <div class="nodes-layer">
+          <div
+            v-for="n in nodePoints"
+            :key="n.key"
+            class="node-sq"
+            :class="{ sel: isSelected(n.lane, n.step), dim: n.lane === 1 }"
+            :style="{ left: n.left + '%', top: n.top + '%' }"
+            :title="`step ${n.step + 1} · ${n.symbol}${n.display}`"
+          />
+        </div>
       </div>
       <div class="fxg-legend">
         <span><i :style="{ background: LANE_COLORS[0] }" /> Lane 1 · {{ laneLegend(0) }}</span>
@@ -626,16 +637,36 @@
         stroke-width: 1.5;
         vector-effect: non-scaling-stroke;
       }
-      .node.sel {
-        stroke: var(--pattern-step-active-color);
-        stroke-width: 2;
-      }
       .hit {
         fill: transparent;
         cursor: pointer;
         &:hover {
           fill: rgba(255, 255, 255, 0.05);
         }
+      }
+    }
+
+    // Graph nodes: crisp white squares (HTML overlay, undistorted by the SVG stretch).
+    .nodes-layer {
+      position: absolute;
+      inset: 2px; // matches the svg border so squares align with the curve
+      pointer-events: none;
+      overflow: hidden;
+    }
+    .node-sq {
+      position: absolute;
+      width: 7px;
+      height: 7px;
+      background: #fff;
+      transform: translate(-50%, -50%);
+      &.dim {
+        background: rgba(255, 255, 255, 0.55);
+      }
+      &.sel {
+        width: 11px;
+        height: 11px;
+        outline: 1.5px solid var(--pattern-step-active-color);
+        outline-offset: 1px;
       }
     }
 
