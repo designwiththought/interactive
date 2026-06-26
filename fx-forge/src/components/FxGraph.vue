@@ -165,6 +165,7 @@
       rangeTo.value = Math.max(a, step);
       pendingEnd.value = false;
     }
+    selectNodeAtStep(step); // also select this point for arrow-key editing
   }
   function selectWholeTrack() {
     rangeFrom.value = null;
@@ -263,6 +264,69 @@
     e.preventDefault();
     adjustParam(p, (e.deltaY < 0 ? 1 : -1) * (p.step ?? 1));
   }
+
+  // Vertical fill (0..100% from the bottom; bipolar fills from the centre).
+  function paramFill(p: Param) {
+    const t = Math.max(0, Math.min(1, ((effectParams.value[p.id] ?? 0) - p.min) / (p.max - p.min || 1)));
+    const pc = t * 100;
+    if (p.min < 0)
+      return pc >= 50 ? { bottom: '50%', height: pc - 50 + '%' } : { bottom: pc + '%', height: 50 - pc + '%' };
+    return { bottom: '0%', height: pc + '%' };
+  }
+
+  //----------------------------------
+  // Graph node editing (focus the graph, then arrow keys)
+  //   Left/Right — move between nodes (points in time)
+  //   Up/Down    — change the selected point's value (Shift = ×10)
+  //----------------------------------
+  const selectedIdx = ref(-1);
+  const nodeList = computed(() => {
+    const out: { lane: number; step: number }[] = [];
+    for (let lane = 0; lane < 2; lane++) {
+      for (const p of series.value[lane]) if (p.raw != null) out.push({ lane, step: p.step });
+    }
+    out.sort((a, b) => a.step - b.step || a.lane - b.lane);
+    return out;
+  });
+  const selectedNode = computed(() => (selectedIdx.value >= 0 ? (nodeList.value[selectedIdx.value] ?? null) : null));
+  function isSelected(lane: number, step: number) {
+    const n = selectedNode.value;
+    return !!n && n.lane === lane && n.step === step;
+  }
+  function adjustNode(delta: number) {
+    const n = selectedNode.value;
+    const fx = props.pattern?.tracks[trackIndex.value]?.steps[n?.step ?? -1]?.fx[n?.lane ?? 0];
+    if (!n || !fx) return;
+    fx.value = Math.max(fx.type.min, Math.min(fx.type.max, fx.value + delta));
+    emit('changed');
+  }
+  function selectNodeAtStep(step: number) {
+    const idx = nodeList.value.findIndex((n) => n.step === step);
+    if (idx >= 0) selectedIdx.value = idx;
+  }
+  function onGraphKey(e: KeyboardEvent) {
+    const list = nodeList.value;
+    if (!list.length) return;
+    if (selectedIdx.value < 0) selectedIdx.value = 0;
+    switch (e.key) {
+      case 'ArrowLeft':
+        e.preventDefault();
+        selectedIdx.value = Math.max(0, selectedIdx.value - 1);
+        break;
+      case 'ArrowRight':
+        e.preventDefault();
+        selectedIdx.value = Math.min(list.length - 1, selectedIdx.value + 1);
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        adjustNode(e.shiftKey ? 10 : 1);
+        break;
+      case 'ArrowDown':
+        e.preventDefault();
+        adjustNode(e.shiftKey ? -10 : -1);
+        break;
+    }
+  }
 </script>
 
 <template>
@@ -275,12 +339,12 @@
       <span class="fxg-label">Range</span>
       <strong class="range-readout">{{ rangeLabel }}</strong>
       <Button small @click="selectWholeTrack">Whole track</Button>
-      <span class="hint">click two steps to set a range</span>
+      <span class="hint">click two steps to set a range · arrow keys move &amp; edit nodes</span>
     </div>
 
-    <!-- Graph on top -->
+    <!-- Graph on top (focusable: arrow keys move between nodes and change values) -->
     <div class="fxg-graph-col">
-      <div class="graph-wrap">
+      <div class="graph-wrap" tabindex="0" @keydown="onGraphKey">
         <!-- Y-axis value labels (HTML so they stay crisp over the stretched SVG) -->
         <div class="y-axis">
           <span v-for="lvl in gridLevels" :key="`y${lvl.value}`" :style="{ top: lvl.top + '%' }">{{ lvl.value }}</span>
@@ -335,7 +399,16 @@
             class="curve"
           />
           <template v-for="(run, i) in lane0Runs" :key="`l0p${i}`">
-            <circle v-for="p in run" :key="`l0-${p.step}`" :cx="p.x" :cy="p.y" r="2.5" :fill="LANE_COLORS[0]">
+            <circle
+              v-for="p in run"
+              :key="`l0-${p.step}`"
+              class="node"
+              :class="{ sel: isSelected(0, p.step) }"
+              :cx="p.x"
+              :cy="p.y"
+              :r="isSelected(0, p.step) ? 4.5 : 2.5"
+              :fill="LANE_COLORS[0]"
+            >
               <title>step {{ p.step + 1 }} · {{ p.symbol }}{{ p.display }}</title>
             </circle>
           </template>
@@ -349,7 +422,16 @@
             class="curve"
           />
           <template v-for="(run, i) in lane1Runs" :key="`l1p${i}`">
-            <circle v-for="p in run" :key="`l1-${p.step}`" :cx="p.x" :cy="p.y" r="2.5" :fill="LANE_COLORS[1]">
+            <circle
+              v-for="p in run"
+              :key="`l1-${p.step}`"
+              class="node"
+              :class="{ sel: isSelected(1, p.step) }"
+              :cx="p.x"
+              :cy="p.y"
+              :r="isSelected(1, p.step) ? 4.5 : 2.5"
+              :fill="LANE_COLORS[1]"
+            >
               <title>step {{ p.step + 1 }} · {{ p.symbol }}{{ p.display }}</title>
             </circle>
           </template>
@@ -373,72 +455,94 @@
       </div>
     </div>
 
-    <!-- Effect editing: a Polyend-style parameter bar below the graph -->
+    <!-- Effect editing: controls (faders/selects) on top, label/value footer below -->
     <div class="param-bar">
-      <!-- Effect selector -->
-      <div class="pcell select-cell">
-        <span class="pc-label">Effect</span>
-        <select class="pc-select" v-model="effectId">
-          <option v-for="o in effectOptions" :key="o.id" :value="o.id">{{ o.name }}</option>
-        </select>
+      <!-- FX type selector (leftmost): the effect, or "Custom" -->
+      <div class="pcol select-col">
+        <div class="pc-control">
+          <select class="pc-select" v-model="effectId">
+            <option v-for="o in effectOptions" :key="o.id" :value="o.id">{{ o.name }}</option>
+          </select>
+        </div>
+        <div class="pc-foot"><span class="pc-label">FX Type</span></div>
       </div>
 
-      <!-- Preset: a draggable value cell per parameter -->
+      <!-- Preset: a fader per parameter -->
       <template v-if="!isCustom && selectedEffect">
         <div
           v-for="param in selectedEffect.params"
           :key="param.id"
-          class="pcell param"
+          class="pcol fader-col"
           :class="{ active: dragId === param.id }"
           @pointerdown="(e) => cellDown(e, param)"
           @pointermove="(e) => cellMove(e, param)"
           @pointerup="cellUp"
           @wheel="(e) => cellWheel(e, param)"
         >
-          <span class="pc-label">{{ param.label }}</span>
-          <span class="pc-value">{{ paramDisplay(param) }}</span>
+          <div class="pc-control">
+            <div class="pc-fader">
+              <div v-if="param.min < 0" class="pf-center" />
+              <div class="pf-fill" :style="paramFill(param)" />
+            </div>
+          </div>
+          <div class="pc-foot">
+            <span class="pc-label">{{ param.label }}</span>
+            <span class="pc-value">{{ paramDisplay(param) }}</span>
+          </div>
         </div>
       </template>
 
-      <!-- Custom: FX + curve selector cells per lane -->
+      <!-- Custom: an FX + curve select per lane -->
       <template v-else>
-        <div class="pcell select-cell">
-          <span class="pc-label">Lane 1 FX</span>
-          <select class="pc-select" v-model="lane1Fx">
-            <option v-for="f in AUTOMATABLE_FX" :key="f.symbol" :value="f.symbol">{{ f.symbol }} · {{ f.name }}</option>
-          </select>
+        <div class="pcol select-col">
+          <div class="pc-control">
+            <select class="pc-select" v-model="lane1Fx">
+              <option v-for="f in AUTOMATABLE_FX" :key="f.symbol" :value="f.symbol">
+                {{ f.symbol }} · {{ f.name }}
+              </option>
+            </select>
+          </div>
+          <div class="pc-foot"><span class="pc-label">Lane 1 FX</span></div>
         </div>
-        <div class="pcell select-cell">
-          <span class="pc-label">Curve</span>
-          <select class="pc-select" v-model="lane1Curve">
-            <option v-for="c in CURVES" :key="c.id" :value="c.id">{{ c.name }}</option>
-          </select>
+        <div class="pcol select-col">
+          <div class="pc-control">
+            <select class="pc-select" v-model="lane1Curve">
+              <option v-for="c in CURVES" :key="c.id" :value="c.id">{{ c.name }}</option>
+            </select>
+          </div>
+          <div class="pc-foot"><span class="pc-label">Curve</span></div>
         </div>
-        <div class="pcell select-cell">
-          <span class="pc-label">Lane 2 FX</span>
-          <select class="pc-select" v-model="lane2Fx">
-            <option v-for="f in lane2Options" :key="f.symbol" :value="f.symbol">
-              {{ f.symbol === 'none' ? 'None' : `${f.symbol} · ${f.name}` }}
-            </option>
-          </select>
+        <div class="pcol select-col">
+          <div class="pc-control">
+            <select class="pc-select" v-model="lane2Fx">
+              <option v-for="f in lane2Options" :key="f.symbol" :value="f.symbol">
+                {{ f.symbol === 'none' ? 'None' : `${f.symbol} · ${f.name}` }}
+              </option>
+            </select>
+          </div>
+          <div class="pc-foot"><span class="pc-label">Lane 2 FX</span></div>
         </div>
-        <div class="pcell select-cell" :class="{ disabled: lane2Fx === 'none' }">
-          <span class="pc-label">Curve</span>
-          <select class="pc-select" v-model="lane2Curve" :disabled="lane2Fx === 'none'">
-            <option v-for="c in CURVES" :key="c.id" :value="c.id">{{ c.name }}</option>
-          </select>
+        <div class="pcol select-col" :class="{ disabled: lane2Fx === 'none' }">
+          <div class="pc-control">
+            <select class="pc-select" v-model="lane2Curve" :disabled="lane2Fx === 'none'">
+              <option v-for="c in CURVES" :key="c.id" :value="c.id">{{ c.name }}</option>
+            </select>
+          </div>
+          <div class="pc-foot"><span class="pc-label">Curve</span></div>
         </div>
       </template>
 
-      <!-- Range -->
-      <div class="pcell">
-        <span class="pc-label">Range</span>
-        <span class="pc-value">{{ rangeLabel }}</span>
+      <!-- Range (info, no control) -->
+      <div class="pcol info-col">
+        <div class="pc-control" />
+        <div class="pc-foot">
+          <span class="pc-label">Range</span><span class="pc-value">{{ rangeLabel }}</span>
+        </div>
       </div>
 
       <!-- Actions -->
-      <div class="pcell action" @click="clearFx"><span class="pc-action">Clear</span></div>
-      <div class="pcell action drop" @click="handleDrop"><span class="pc-action">Drop</span></div>
+      <div class="pcol action-col" @click="clearFx"><span class="pc-action">Clear</span></div>
+      <div class="pcol action-col drop" @click="handleDrop"><span class="pc-action">Drop</span></div>
     </div>
   </div>
 </template>
@@ -474,6 +578,10 @@
     .graph-wrap {
       position: relative;
       height: 220px;
+      outline: 0;
+      &:focus-visible .graph {
+        border-color: var(--pattern-step-active-color);
+      }
     }
     .y-axis {
       position: absolute;
@@ -526,6 +634,10 @@
         stroke-width: 1.5;
         vector-effect: non-scaling-stroke;
       }
+      .node.sel {
+        stroke: var(--pattern-step-active-color);
+        stroke-width: 2;
+      }
       .hit {
         fill: transparent;
         cursor: pointer;
@@ -555,40 +667,51 @@
       flex-direction: column;
     }
 
-    // Effect editing — a Polyend-style parameter bar of label/value cells.
+    // Effect editing — controls (faders/selects) on top, label/value footer below.
     .param-bar {
       display: flex;
       margin-top: 12px;
-      min-height: 56px;
       background: var(--pattern-step-bg-color);
       border: 2px solid #000;
       border-radius: 6px;
       overflow: hidden;
       user-select: none;
     }
-    .pcell {
+    .pcol {
       position: relative;
       flex: 1;
       min-width: 0;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 4px;
-      padding: 8px 10px;
-      text-align: center;
 
-      // Thin divider between cells, like the hardware parameter bar.
+      // Thin divider between columns, like the hardware parameter bar.
       &:not(:last-child)::after {
         content: '';
         position: absolute;
         right: 0;
-        top: 18%;
-        height: 64%;
+        top: 12%;
+        height: 76%;
         width: 1px;
         background: #2a2b2d;
       }
 
+      // The control area (fader / select) sits above the footer.
+      .pc-control {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 12px 12px 6px;
+        min-height: 84px;
+      }
+      // The footer: parameter name + value, centered.
+      .pc-foot {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+        padding: 6px 8px 9px;
+      }
       .pc-label {
         font-size: 10px;
         letter-spacing: 0.05em;
@@ -601,19 +724,41 @@
         white-space: nowrap;
       }
 
-      // Encoder-style value cells: drag up/down to change.
-      &.param {
+      // Vertical fader (numeric params): a dark well with a white fill.
+      &.fader-col {
         cursor: ns-resize;
-        &:hover {
-          background: rgba(255, 255, 255, 0.03);
-        }
-        &.active {
-          background: rgba(255, 255, 255, 0.06);
+        &:hover .pc-fader,
+        &.active .pc-fader {
+          border-color: #3a3b3d;
         }
       }
+      .pc-fader {
+        position: relative;
+        width: 30px;
+        height: 100%;
+        max-height: 88px;
+        background: #0c0d0e;
+        border: 1px solid #2e2f31;
+        border-radius: 4px;
+        overflow: hidden;
+      }
+      .pf-fill {
+        position: absolute;
+        left: 0;
+        right: 0;
+        background: #f1f1f1;
+      }
+      .pf-center {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 50%;
+        height: 1px;
+        background: rgba(255, 255, 255, 0.4);
+      }
 
-      // Dropdown cells (effect / custom FX + curve).
-      &.select-cell .pc-select {
+      // Select columns (FX type / curve).
+      &.select-col .pc-select {
         appearance: none;
         -webkit-appearance: none;
         max-width: 100%;
@@ -633,10 +778,12 @@
         opacity: 0.4;
       }
 
-      // Action cells (Clear / Drop) sit at the right like Cancel / Fill.
-      &.action {
+      // Action columns (Clear / Drop) — full-height clickable like Cancel / Fill.
+      &.action-col {
         flex: 0 0 auto;
-        min-width: 84px;
+        min-width: 88px;
+        align-items: center;
+        justify-content: center;
         cursor: pointer;
         .pc-action {
           font-weight: 600;
@@ -646,7 +793,7 @@
           background: rgba(255, 255, 255, 0.05);
         }
       }
-      &.action.drop {
+      &.action-col.drop {
         background: var(--pattern-step-active-color, #54cfc1);
         &::after {
           display: none;
