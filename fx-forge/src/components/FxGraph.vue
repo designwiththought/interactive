@@ -24,6 +24,7 @@
     defaultParams,
   } from '@/forge/index.ts';
   import Button from '@/components/ui/Button.vue';
+  import ListBox from '@/components/ui/ListBox.vue';
 
   const props = defineProps({
     pattern: {
@@ -93,13 +94,17 @@
 
   const isCustom = computed(() => effectId.value === CUSTOM);
   const selectedEffect = computed(() => EFFECTS_BY_ID[effectId.value] ?? null);
-  // Effect selector options: the presets, then Custom.
-  const effectOptions = computed(() => [
-    ...EFFECTS.map((e) => ({ id: e.id, name: e.name })),
-    { id: CUSTOM, name: 'Custom' },
+
+  // Option lists for the scrollable ListBoxes ({ value, label }).
+  const effectListOptions = computed(() => [
+    ...EFFECTS.map((e) => ({ value: e.id, label: e.name })),
+    { value: CUSTOM, label: 'Custom' },
   ]);
-  // Lane-2 FX dropdown gains a leading "None" entry (replaces the enable checkbox).
-  const lane2Options = computed(() => [{ symbol: NONE, name: 'None' }, ...AUTOMATABLE_FX]);
+  const fxListOptions = computed(() =>
+    AUTOMATABLE_FX.map((f) => ({ value: f.symbol, label: `${f.symbol} · ${f.name}` })),
+  );
+  const lane2ListOptions = computed(() => [{ value: NONE, label: 'None' }, ...fxListOptions.value]);
+  const curveListOptions = computed(() => CURVES.map((c) => ({ value: c.id, label: c.name })));
 
   //----------------------------------
   // SVG mapping
@@ -460,17 +465,13 @@
 
     <!-- Effect editing: controls (faders/selects) on top, label/value footer below -->
     <div class="param-bar">
-      <!-- FX type selector (leftmost): the effect, or "Custom" -->
-      <div class="pcol select-col">
-        <div class="pc-control">
-          <select class="pc-select" v-model="effectId">
-            <option v-for="o in effectOptions" :key="o.id" :value="o.id">{{ o.name }}</option>
-          </select>
-        </div>
+      <!-- FX type: a scrollable list of effects (or Custom) -->
+      <div class="pcol fx-col">
+        <div class="pc-control"><ListBox :options="effectListOptions" v-model="effectId" /></div>
         <div class="pc-foot"><span class="pc-label">FX Type</span></div>
       </div>
 
-      <!-- Preset: a fader per parameter -->
+      <!-- Preset: a fader per parameter, spread across the width -->
       <template v-if="!isCustom && selectedEffect">
         <div
           v-for="param in selectedEffect.params"
@@ -495,47 +496,29 @@
         </div>
       </template>
 
-      <!-- Custom: an FX + curve select per lane -->
+      <!-- Custom: an FX + curve list per lane -->
       <template v-else>
-        <div class="pcol select-col">
-          <div class="pc-control">
-            <select class="pc-select" v-model="lane1Fx">
-              <option v-for="f in AUTOMATABLE_FX" :key="f.symbol" :value="f.symbol">
-                {{ f.symbol }} · {{ f.name }}
-              </option>
-            </select>
-          </div>
+        <div class="pcol list-col">
+          <div class="pc-control"><ListBox :options="fxListOptions" v-model="lane1Fx" /></div>
           <div class="pc-foot"><span class="pc-label">Lane 1 FX</span></div>
         </div>
-        <div class="pcol select-col">
-          <div class="pc-control">
-            <select class="pc-select" v-model="lane1Curve">
-              <option v-for="c in CURVES" :key="c.id" :value="c.id">{{ c.name }}</option>
-            </select>
-          </div>
+        <div class="pcol list-col">
+          <div class="pc-control"><ListBox :options="curveListOptions" v-model="lane1Curve" /></div>
           <div class="pc-foot"><span class="pc-label">Curve</span></div>
         </div>
-        <div class="pcol select-col">
-          <div class="pc-control">
-            <select class="pc-select" v-model="lane2Fx">
-              <option v-for="f in lane2Options" :key="f.symbol" :value="f.symbol">
-                {{ f.symbol === 'none' ? 'None' : `${f.symbol} · ${f.name}` }}
-              </option>
-            </select>
-          </div>
+        <div class="pcol list-col">
+          <div class="pc-control"><ListBox :options="lane2ListOptions" v-model="lane2Fx" /></div>
           <div class="pc-foot"><span class="pc-label">Lane 2 FX</span></div>
         </div>
-        <div class="pcol select-col" :class="{ disabled: lane2Fx === 'none' }">
+        <div class="pcol list-col">
           <div class="pc-control">
-            <select class="pc-select" v-model="lane2Curve" :disabled="lane2Fx === 'none'">
-              <option v-for="c in CURVES" :key="c.id" :value="c.id">{{ c.name }}</option>
-            </select>
+            <ListBox :options="curveListOptions" v-model="lane2Curve" :disabled="lane2Fx === 'none'" />
           </div>
           <div class="pc-foot"><span class="pc-label">Curve</span></div>
         </div>
       </template>
 
-      <!-- Range (info, no control) -->
+      <!-- Range (info) -->
       <div class="pcol info-col">
         <div class="pc-control" />
         <div class="pc-foot">
@@ -543,9 +526,15 @@
         </div>
       </div>
 
-      <!-- Actions: Cancel exits to the pattern, Fill commits the FX -->
-      <div class="pcol action-col" @click="handleCancel"><span class="pc-action">Cancel</span></div>
-      <div class="pcol action-col fill" @click="handleFill"><span class="pc-action">Fill</span></div>
+      <!-- Cancel / Fill: footer cells (Cancel exits to the pattern, Fill commits) -->
+      <div class="pcol foot-btn" @click="handleCancel">
+        <div class="pc-control" />
+        <div class="pc-foot"><span class="pc-label cancel">Cancel</span></div>
+      </div>
+      <div class="pcol foot-btn fill" @click="handleFill">
+        <div class="pc-control" />
+        <div class="pc-foot"><span class="pc-label fill">Fill</span></div>
+      </div>
     </div>
   </div>
 </template>
@@ -692,28 +681,32 @@
         content: '';
         position: absolute;
         right: 0;
-        top: 12%;
-        height: 76%;
+        top: 8px;
+        bottom: 8px;
         width: 1px;
         background: #2a2b2d;
       }
 
-      // The control area (fader / select) sits above the footer.
+      // Control area (list / fader) sits above the footer — fixed height so
+      // long lists scroll instead of stretching the bar.
       .pc-control {
-        flex: 1;
+        flex: none;
+        height: 132px;
         display: flex;
-        align-items: center;
+        align-items: stretch;
         justify-content: center;
-        padding: 12px 12px 6px;
-        min-height: 84px;
+        padding: 10px 10px 8px;
       }
-      // The footer: parameter name + value, centered.
+      // The footer strip: parameter name + value, along the bottom.
       .pc-foot {
         display: flex;
         flex-direction: column;
         align-items: center;
+        justify-content: center;
         gap: 2px;
-        padding: 6px 8px 9px;
+        min-height: 40px;
+        padding: 5px 8px 7px;
+        border-top: 1px solid #1a1a1a;
       }
       .pc-label {
         font-size: 10px;
@@ -727,19 +720,34 @@
         white-space: nowrap;
       }
 
-      // Vertical fader (numeric params): a dark well with a white fill.
+      // Column widths: list on the left, faders spread, info/actions sized.
+      &.fx-col {
+        flex: 0 0 160px;
+      }
+      &.list-col {
+        flex: 1;
+      }
       &.fader-col {
+        flex: 1;
         cursor: ns-resize;
+        .pc-control {
+          padding: 12px 16px 8px;
+        }
         &:hover .pc-fader,
         &.active .pc-fader {
           border-color: #3a3b3d;
         }
       }
+      &.info-col {
+        flex: 0 0 auto;
+        min-width: 120px;
+      }
+
+      // Vertical fader: a dark well with a white fill, spread to the column width.
       .pc-fader {
         position: relative;
-        width: 30px;
-        height: 100%;
-        max-height: 88px;
+        width: 100%;
+        max-width: 120px;
         background: #0c0d0e;
         border: 1px solid #2e2f31;
         border-radius: 4px;
@@ -758,54 +766,21 @@
         bottom: 50%;
         height: 1px;
         background: rgba(255, 255, 255, 0.4);
+        z-index: 1;
       }
 
-      // Select columns (FX type / curve).
-      &.select-col .pc-select {
-        appearance: none;
-        -webkit-appearance: none;
-        max-width: 100%;
-        padding: 0 16px 0 4px;
-        border: 0;
-        border-radius: 0;
-        background: transparent
-          url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="9" height="6"><path d="M0 0l4.5 6L9 0z" fill="%23aaa"/></svg>')
-          no-repeat right center;
-        color: #fff;
-        font-size: 14px;
-        text-align: center;
+      // Cancel / Fill: footer-row cells (empty control above) that act as buttons.
+      &.foot-btn {
+        flex: 0 0 84px;
         cursor: pointer;
-        box-shadow: none;
-      }
-      &.disabled {
-        opacity: 0.4;
-      }
-
-      // Action columns (Clear / Drop) — full-height clickable like Cancel / Fill.
-      &.action-col {
-        flex: 0 0 auto;
-        min-width: 88px;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        .pc-action {
+        .pc-foot .pc-label {
           font-weight: 600;
-          color: #fff;
         }
-        &:hover {
+        &:hover .pc-foot {
           background: rgba(255, 255, 255, 0.05);
         }
-      }
-      &.action-col.fill {
-        background: var(--pattern-step-active-color, #54cfc1);
-        &::after {
-          display: none;
-        }
-        .pc-action {
-          color: #06231f;
-        }
-        &:hover {
-          filter: brightness(1.08);
+        .pc-label.fill {
+          color: var(--pattern-step-active-color);
         }
       }
     }
