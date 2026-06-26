@@ -709,9 +709,7 @@
         border-top: 1px solid #1a1a1a;
       }
       .pc-label {
-        font-size: 10px;
-        letter-spacing: 0.05em;
-        text-transform: uppercase;
+        font-size: 11px;
         color: var(--pattern-step-label-color);
       }
       .pc-value {
@@ -774,13 +772,10 @@
         flex: 0 0 84px;
         cursor: pointer;
         .pc-foot .pc-label {
-          font-weight: 600;
+          color: #fff;
         }
         &:hover .pc-foot {
           background: rgba(255, 255, 255, 0.05);
-        }
-        .pc-label.fill {
-          color: var(--pattern-step-active-color);
         }
       }
     }
