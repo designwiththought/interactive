@@ -509,6 +509,84 @@
     copyText(location.href, 'share link copied to clipboard');
   });
   $('btnCopy').addEventListener('click', function () { copyText(encodeState(), 'patch code copied'); });
+  $('btnSheet').addEventListener('click', function () { showSheet(); });
+
+  // ---------- build sheet: what to key into the M8 by hand ----------
+  function pad(s, n) { s = String(s); while (s.length < n) s += ' '; return s; }
+  function fxCell(c) { return c ? c.code + notes.hex2(c.value) : '------'; }
+  function buildSheet() {
+    var L = [];
+    L.push('M8 BUILD SHEET — ' + new Date().toISOString().slice(0, 16).replace('T', ' '));
+    L.push('(transcribe these onto the device — the wizard does not write to the M8)');
+    L.push('');
+    L.push('PROJECT   tempo ' + engine.bpm + ' BPM (' + notes.hex2(engine.bpm) + ')   groove ' + notes.hex2(engine.grooveNum) +
+      '   osc ' + audio.wave + '   instrument ' + (engine.instrument === 'hyper' ? 'HYPERSYNTH' : 'mono'));
+    L.push('');
+
+    // phrase
+    L.push('PHRASE                NOTE  VEL  FX1     FX2     FX3');
+    var any = false;
+    engine.phrase.forEach(function (s, i) {
+      if (s.note == null && s.vel == null && !s.fx[0] && !s.fx[1] && !s.fx[2]) return;
+      any = true;
+      L.push('  ' + pad(notes.hex2(i), 20) + pad(s.note != null ? notes.formatNote(s.note) : '---', 6) +
+        pad(s.vel != null ? notes.hex2(s.vel) : '--', 5) +
+        pad(fxCell(s.fx[0]), 8) + pad(fxCell(s.fx[1]), 8) + fxCell(s.fx[2]));
+    });
+    if (!any) L.push('  (empty)');
+    L.push('');
+
+    // table
+    L.push('TABLE  (TIC ' + notes.hex2(engine.tableTic) + ')      N     V    FX1     FX2     FX3');
+    any = false;
+    engine.table.forEach(function (r, i) {
+      if (r.n == null && r.v == null && !r.fx[0] && !r.fx[1] && !r.fx[2]) return;
+      any = true;
+      L.push('  ' + pad(notes.hex2(i), 20) + pad(r.n != null ? notes.hex2(r.n) : '--', 6) +
+        pad(r.v != null ? notes.hex2(r.v) : '--', 5) +
+        pad(fxCell(r.fx[0]), 8) + pad(fxCell(r.fx[1]), 8) + fxCell(r.fx[2]));
+    });
+    if (!any) L.push('  (empty)');
+    L.push('');
+
+    // hypersynth
+    var ch = engine.chord;
+    L.push('HYPERSYNTH INSTRUMENT');
+    L.push('  params   SWARM ' + notes.hex2(ch.swarm) + '   SHIFT ' + notes.hex2(ch.shift) +
+      '   SUBOSC ' + notes.hex2(ch.subosc) + '   WIDTH ' + notes.hex2(ch.width) +
+      '   SCALE ' + (ch.diatonic ? (notes.NAMES[ch.key] + ' ' + ch.scale) : 'off'));
+    L.push('  chord banks (offsets in semitones; · = voice off):');
+    ch.shapes.forEach(function (sh, i) {
+      var offs = sh.voices.map(function (v) { return v.on ? (v.off >= 0 ? '+' : '') + v.off : '·'; }).join(' ');
+      L.push('   ' + pad(notes.hex2(i), 4) + pad(sh.name, 8) + offs);
+    });
+    L.push('  sequence (root → bank):');
+    L.push('   ' + engine.chordSeq.map(function (s) {
+      return notes.NAMES[s.pc] + s.oct + '→' + (ch.shapes[s.shape] || ch.shapes[0]).name;
+    }).join('   '));
+    return L.join('\n');
+  }
+  function showSheet() {
+    var text = buildSheet();
+    var ov = document.createElement('div'); ov.className = 'sheet-overlay';
+    var box = document.createElement('div'); box.className = 'sheet-box';
+    var pre = document.createElement('pre'); pre.className = 'sheet-pre'; pre.textContent = text;
+    var bar = document.createElement('div'); bar.className = 'sheet-bar';
+    var dl = document.createElement('button'); dl.textContent = 'download .txt';
+    dl.addEventListener('click', function () {
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([text], { type: 'text/plain' }));
+      a.download = 'm8-build-sheet.txt'; a.click();
+    });
+    var cp = document.createElement('button'); cp.textContent = 'copy';
+    cp.addEventListener('click', function () { copyText(text, 'build sheet copied'); });
+    var cl = document.createElement('button'); cl.className = 'primary'; cl.textContent = 'close';
+    cl.addEventListener('click', function () { document.body.removeChild(ov); });
+    bar.appendChild(dl); bar.appendChild(cp); bar.appendChild(cl);
+    box.appendChild(pre); box.appendChild(bar); ov.appendChild(box);
+    ov.addEventListener('click', function (e) { if (e.target === ov) document.body.removeChild(ov); });
+    document.body.appendChild(ov);
+  }
   $('btnReset').addEventListener('click', function () { runRecipe(wizard.byId('arp-major')); toast('loaded demo patch'); });
 
   function renderRecipeList(list) {

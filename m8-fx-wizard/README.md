@@ -39,6 +39,26 @@ python3 -m http.server 8000
 
 Click **▶ PLAY** (the first click also starts Web Audio).
 
+## Getting it onto the M8
+
+This is a **design + simulation** tool — it does **not** write to the M8. The
+patch you build here reaches the device by **transcription**: you read the values
+off the screen (they're already in M8 form — hex FX codes, Hypersynth voice
+offsets, bank numbers) and key them in.
+
+The **build sheet** button makes that fast: it opens a plain-text summary of the
+whole patch — project tempo/groove, every non-empty phrase step and table row
+with their FX, and the Hypersynth banks + root→bank sequence — ready to copy or
+download as `.txt` and work through on the device.
+
+Why no file export yet: the M8 stores songs/instruments as binary `.m8s`/`.m8i`
+files. The community library [`m8-js`](https://github.com/whitlockjc/m8-js) can
+write them, but the current release only covers firmware ≤ 2.7.8 and has **no
+Hypersynth instrument type** (Hypersynth is a 4.x feature) — so a reliable
+chord-bank `.m8i` can't be generated without a known-good reference file to
+validate against. Honest transcription beats an unverifiable binary. (Web MIDI
+play-through to a USB-connected M8 is a possible future live bridge.)
+
 ## What it models
 
 - **Timing:** 24 PPQN, 6 ticks per 16th-note step, `tick = 60 / (BPM × 24)` —
