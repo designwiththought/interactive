@@ -9,6 +9,15 @@ as the M8 manual describes. Or type *"machine-gun stutter"* / *"slide into the
 note"* / *"swing"* and the wizard writes the real FX commands into the grid and
 explains them.
 
+There's also a **Chord Lab** modelled on the M8's reality: on the M8 *only the
+Hypersynth plays chords*, and the chord is **defined as voice offsets in the
+instrument**. So the lab has a Hypersynth panel (6 voices = the chord shape) and
+a **root-note sequencer** that triggers it — generate a progression (pop, jazz
+ii–V–I, lo-fi, blues…), pick a play style (block / arp / strum), and hear it
+polyphonically. Diatonic-snap keeps roots in key; Swarm detunes the voices. And
+throughout, you can **drag any value to hear it change** live — voice offsets,
+chord roots, rates, gates, FX bytes, velocities.
+
 ## Run it
 
 It's plain HTML/CSS/JS with no build step. Either:
@@ -40,8 +49,20 @@ Click **▶ PLAY** (the first click also starts Web Audio).
   (major, minor, modes, pentatonics, blues, whole-tone) so random/arp material
   stays in key.
 - **Shareable patches** — your work autosaves to the browser; **share link**
-  encodes the whole patch (grid + tempo + groove + osc) into the URL, and
-  **copy patch** gives you a portable code.
+  encodes the whole patch (grid + tempo + groove + osc + chords) into the URL,
+  and **copy patch** gives you a portable code.
+- **Chord Lab (Hypersynth-accurate)** — on the M8 only the Hypersynth plays
+  chords, and the chord is defined as up to 6 **voice offsets in the
+  instrument**; you then sequence root notes that trigger it. The lab mirrors
+  that: a Hypersynth shape panel (toggle/scrub each voice, shape presets, Swarm
+  detune, optional diatonic snap) feeding an 8-voice polyphonic root sequencer.
+  Diatonic generators (pop, doo-wop, sad, jazz ii–V–I, lo-fi 7ths, epic minor,
+  andalusian, 12-bar blues, random) build root sequences in any key; play styles
+  cover block / arp (up/down/up-down/random) / strum, with rate, gate, and
+  reverb/delay space — all live-draggable.
+- **Drag-to-scrub** — vertical drag on any numeric value (FX bytes, velocity,
+  table N/V, chord roots, all the chord controls) nudges it live while it plays;
+  a plain click still types. Shift = coarse.
 
 ### FX coverage
 
@@ -72,18 +93,21 @@ index.html          — layout + script tags (no bundler)
 styles/app.css      — M8-flavoured theme
 js/notes.js         — note ↔ frequency ↔ "C-4", hex/signed helpers
 js/scales.js        — M8 scale tables + quantizer (SCA/SCG)
+js/chords.js        — chord theory: qualities, voicings, progression generators
 js/fx.js            — the FX command registry (semantics live here)
-js/audio.js         — Web Audio synth voice + delay/reverb/DJ-filter bus
-js/engine.js        — the tick sequencer: groove, phrase, table, FX state
+js/audio.js         — 8-voice Web Audio synth + delay/reverb/DJ-filter bus
+js/engine.js        — the tick sequencer: track mode (phrase+table) + chord mode
 js/wizard.js        — "describe an effect" → FX recipes
-js/app.js           — UI: grid editor, transport, scope, wizard, reference
+js/app.js           — UI: grid editor, Chord Lab, scrub, transport, scope, wizard
 reference/          — the manual PDF + distilled community tips
-test-smoke.mjs      — headless Chromium smoke test (needs playwright-core)
+test-smoke.mjs      — headless smoke test: FX, scales, share round-trip
+test-chords.mjs     — headless smoke test: Chord Lab, polyphony, scrub
 ```
 
 ## Status
 
-v2 — core sequencer FX plus an audible delay/reverb/DJ-filter bus, scale
-quantization, and shareable patches, with the description wizard. Not
+v3 — core sequencer FX, audible delay/reverb/DJ-filter bus, scale quantization,
+shareable patches, the description wizard, plus a polyphonic Chord Lab and
+drag-to-scrub editing. Not
 affiliated with Dirtywave. Manual content © Dirtywave; Macrosynth model text is
 CC BY-SA 3.0 (Mutable Instruments) where quoted.

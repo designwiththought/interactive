@@ -40,6 +40,19 @@
     this.running = false;
     this._raf = null;
     this.rng = mulberry32((Math.random() * 1e9) | 0);
+    // ---- chord mode (models the M8 Hypersynth: the chord shape is defined as
+    //      voice offsets in the instrument; the sequencer triggers root notes) ----
+    this.mode = 'track';        // 'track' (phrase+table) | 'chords'
+    this.chord = {
+      style: 'block', rate: 3, gateSteps: 14, slotSteps: 16, swarm: 0,
+      diatonic: true, key: 0, scale: 'major',
+      voices: [                 // up to 6 Hypersynth voices: semitone offset + active
+        { off: 0, on: true }, { off: 4, on: true }, { off: 7, on: true },
+        { off: 0, on: false }, { off: 0, on: false }, { off: 0, on: false }
+      ]
+    };
+    this.chordSeq = (M8.chords ? M8.chords.generateRoots('pop', 0, 3).roots : []);
+    this.cRootPc = 0;
     this._resetState();
   }
 
@@ -65,6 +78,10 @@
     this.tableFracRow = 0;
     this.pending = null;        // DEL: { step, delay }
     this.track = { transpose: 0, scale: null };
+    // chord runtime
+    this.cSlot = -1; this.cSlotTicksLeft = 0; this.cChordNotes = []; this.cActive = [];
+    this.cArpPos = 0; this.cArpDir = 1; this.cArpCnt = 0; this.cStrum = []; this.cStrumCnt = 0;
+    this.cGateOff = 0; this._arpNote = null;
     this.voice = {
       baseNote: 60, vel: 0.8,
       mod: { pit: 0, fin: 0, arp: 0, vib: 0, bend: 0 },
@@ -123,8 +140,14 @@
     this._emit();
   };
 
+  Engine.prototype.setMode = function (m) { this.mode = m; };
+
   // ---- the tick ----
   Engine.prototype._doTick = function () {
+    if (this.mode === 'chords') this._chordTick(); else this._trackTick();
+  };
+
+  Engine.prototype._trackTick = function () {
     var v = this.voice;
     if (this.stepTicksLeft <= 0) this._enterNextStep();
     if (!this.running) return;
@@ -153,6 +176,96 @@
     this.stepTicksLeft--;
     this.tickCount++;
     this._emit();
+  };
+
+  // ---- chord mode ----
+  var CSTEP = 6;   // chords run steady (groove doesn't apply), 6 ticks/16th
+  Engine.prototype._chordTick = function () {
+    if (this.cSlotTicksLeft <= 0) this._enterChordSlot();
+    this._releaseExpired();
+    var st = this.chord.style, notes = this.cChordNotes;
+    if (st === 'strum') {
+      if (this.cStrum.length && this.cStrumCnt-- <= 0) {
+        this._triggerChordNote(this.cStrum.shift(), this.cGateOff, 0.45);
+        this.cStrumCnt = this.chord.rate;
+      }
+    } else if (st === 'up' || st === 'down' || st === 'updown' || st === 'random') {
+      if (this.cArpCnt-- <= 0 && notes.length) {
+        var idx;
+        if (st === 'random') idx = Math.floor(this.rng() * notes.length);
+        else {
+          idx = this.cArpPos;
+          if (st === 'up') this.cArpPos = (this.cArpPos + 1) % notes.length;
+          else if (st === 'down') this.cArpPos = (this.cArpPos - 1 + notes.length) % notes.length;
+          else {
+            this.cArpPos += this.cArpDir;
+            if (this.cArpPos >= notes.length - 1) { this.cArpPos = notes.length - 1; this.cArpDir = -1; }
+            else if (this.cArpPos <= 0) { this.cArpPos = 0; this.cArpDir = 1; }
+          }
+        }
+        var note = notes[Math.max(0, Math.min(notes.length - 1, idx))];
+        this._triggerChordNote(note, this.tickCount + Math.max(2, Math.round(this.chord.rate * 1.6)), 0.5);
+        this._arpNote = note;
+        this.cArpCnt = this.chord.rate;
+      }
+    }
+    this._lastSemis = this._chordLowest();
+    this.cSlotTicksLeft--;
+    this.tickCount++;
+    this._emit();
+  };
+
+  Engine.prototype._enterChordSlot = function () {
+    var seq = this.chordSeq, ch = this.chord, self = this;
+    if (!seq.length) { this.cSlotTicksLeft = CSTEP; return; }
+    this.cSlot = (this.cSlot + 1) % seq.length;
+    var slot = seq[this.cSlot];
+    this.cRootPc = slot.pc;
+    var root = (slot.oct + 1) * 12 + slot.pc;
+    var scaleIdx = ch.scale === 'minor' ? 2 : 1;
+    var notes = ch.voices.filter(function (v) { return v.on; }).map(function (v) {
+      var n = root + (v.off | 0);
+      if (ch.diatonic && M8.scales) n = M8.scales.quantize(n, ch.key, scaleIdx);
+      return n;
+    });
+    notes = notes.filter(function (n, i) { return notes.indexOf(n) === i; }).sort(function (a, b) { return a - b; });
+    this.cChordNotes = notes;
+    // SWARM: spread per-voice detune in cents around the centre
+    this._detuneMap = {};
+    notes.forEach(function (n, i) { self._detuneMap[n] = (i - (notes.length - 1) / 2) * (ch.swarm / 255) * 22; });
+    this.cSlotTicksLeft = this.chord.slotSteps * CSTEP;
+    this.cGateOff = this.tickCount + Math.max(1, Math.min(this.chord.gateSteps, this.chord.slotSteps)) * CSTEP;
+    this.cArpPos = 0; this.cArpDir = 1; this.cArpCnt = 0; this.cStrumCnt = 0;
+    if (this.chord.style === 'block') {
+      var self = this;
+      this.cChordNotes.forEach(function (n) { self._triggerChordNote(n, self.cGateOff, 0.45); });
+    } else if (this.chord.style === 'strum') {
+      this.cStrum = this.cChordNotes.slice();
+    }
+  };
+
+  Engine.prototype._triggerChordNote = function (note, offTick, level) {
+    var voice = this._allocVoice();
+    var det = this._detuneMap ? (this._detuneMap[note] || 0) : 0;
+    this.audio.voiceOn(voice, M8.notes.midiToFreq(note), level, det);
+    this.cActive.push({ voice: voice, note: note, offTick: offTick });
+  };
+  Engine.prototype._allocVoice = function () {
+    var used = {}; this.cActive.forEach(function (a) { used[a.voice] = true; });
+    for (var i = 0; i < M8.NVOICES; i++) if (!used[i]) return i;
+    var oi = 0; this.cActive.forEach(function (a, idx) { if (a.offTick < this.cActive[oi].offTick) oi = idx; }, this);
+    this.audio.voiceKill(this.cActive[oi].voice);
+    var v = this.cActive[oi].voice; this.cActive.splice(oi, 1); return v;
+  };
+  Engine.prototype._releaseExpired = function () {
+    var keep = [], self = this;
+    this.cActive.forEach(function (a) { if (a.offTick <= self.tickCount) self.audio.voiceOff(a.voice, 0.12); else keep.push(a); });
+    this.cActive = keep;
+  };
+  Engine.prototype._chordLowest = function () {
+    var st = this.chord.style;
+    if ((st === 'block' || st === 'strum') && this.cChordNotes.length) return this.cChordNotes[0];
+    return this._arpNote || this.cChordNotes[0] || 60;
   };
 
   Engine.prototype._enterNextStep = function () {
@@ -317,14 +430,19 @@
     var active = Object.keys(v.persistent).filter(function (c) {
       var e = v.persistent[c]; return e.p.value !== 0;
     });
+    var isChord = this.mode === 'chords';
+    var chordLabel = isChord ? M8.chords.nameChord(this.cRootPc, this.cChordNotes) : null;
+    var sem = this._lastSemis || (isChord ? 60 : v.baseNote);
     this.onUpdate({
+      mode: this.mode,
       tick: this.tickCount, step: this.curStep, tableRow: this.tableEnabled ? this.tableRow : -1,
-      running: this.running, alive: v.alive,
-      semis: this._lastSemis, noteLabel: notes.formatNote(this._lastSemis || v.baseNote),
-      freq: notes.midiToFreq(this._lastSemis || v.baseNote),
-      level: v.alive ? this._level() : 0,
+      running: this.running, alive: isChord ? this.cActive.length > 0 : v.alive,
+      semis: sem, noteLabel: isChord ? (chordLabel || '---') : notes.formatNote(sem),
+      freq: notes.midiToFreq(sem),
+      level: isChord ? (this.cActive.length ? 0.7 : 0) : (v.alive ? this._level() : 0),
       bend: v.mod.bend, bpm: this.bpm, groove: this.grooveNum,
-      activeFX: active, slide: v.slideTicks, scale: this.track.scale
+      activeFX: active, slide: v.slideTicks, scale: this.track.scale,
+      chordLabel: chordLabel, cSlot: this.cSlot, poly: this.cActive.length
     });
   };
 

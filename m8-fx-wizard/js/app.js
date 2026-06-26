@@ -9,6 +9,33 @@
   var engine = new M8.Engine(audio);
   var curGrid = 'phrase';
   var rowEls = [];
+  var chordSpace = { reverb: 0x30, delay: 0x00 };
+
+  // ---------- drag-a-value-to-hear-it ----------
+  // Vertical drag on any numeric element nudges its value live; a plain click
+  // still focuses/types. Shift = coarse (±16).
+  function attachScrub(el, get, set, opts) {
+    opts = opts || {}; var min = opts.min == null ? 0 : opts.min, max = opts.max == null ? 255 : opts.max;
+    el.classList.add('scrub');
+    var dragging = false, startY = 0, startV = 0, moved = false;
+    el.addEventListener('pointerdown', function (e) {
+      if (e.button !== 0) return;
+      startY = e.clientY; startV = get() | 0; moved = false; dragging = true;
+      if (el.setPointerCapture) el.setPointerCapture(e.pointerId);
+    });
+    el.addEventListener('pointermove', function (e) {
+      if (!dragging) return;
+      var dy = startY - e.clientY;
+      if (!moved && Math.abs(dy) < 3) return;
+      if (!moved) { moved = true; if (el.blur) el.blur(); el.classList.add('scrubbing'); }
+      e.preventDefault();
+      var v = startV + Math.round(dy / 3) * (e.shiftKey ? 16 : 1);
+      set(Math.max(min, Math.min(max, v)));
+    });
+    function end() { if (!dragging) return; dragging = false; el.classList.remove('scrubbing'); if (moved) persist(); }
+    el.addEventListener('pointerup', end);
+    el.addEventListener('pointercancel', end);
+  }
 
   // ---------- grid rendering ----------
   var PHRASE_COLS = ['NOTE', 'VEL', 'FX1', 'FX2', 'FX3'];
@@ -42,6 +69,7 @@
   }
 
   function renderGrid() {
+    if (curGrid === 'chords') { renderChords(); return; }
     var host = $('gridHost'); host.innerHTML = ''; rowEls = [];
     var cols = curGrid === 'phrase' ? PHRASE_COLS : TABLE_COLS;
     var data = curGrid === 'phrase' ? engine.phrase : engine.table;
@@ -56,28 +84,38 @@
       var tr = document.createElement('tr'); tr.className = 'row';
       var rn = document.createElement('td'); rn.className = 'rownum'; rn.textContent = notes.hex2(i); tr.appendChild(rn);
 
+      // helper: build a cell, attach scrub, append
+      function add(klass, val, ph, commit, get, scrubSet, opts) {
+        var inp = makeCell(klass, val, ph, commit);
+        if (get) attachScrub(inp, get, function (v) { scrubSet(v, inp); }, opts);
+        tr.appendChild(td(inp));
+        return inp;
+      }
+
       if (curGrid === 'phrase') {
-        tr.appendChild(td(makeCell('note', row.note != null ? notes.formatNote(row.note) : '', '---', function (inp) {
-          var v = inp.value.trim(); row.note = v === '' ? null : notes.parseNote(v);
-          inp.value = row.note != null ? notes.formatNote(row.note) : '';
-        })));
-        tr.appendChild(td(makeCell('', row.vel != null ? notes.hex2(row.vel) : '', '--', function (inp) {
-          var v = notes.parseHex(inp.value); row.vel = v; inp.value = v != null ? notes.hex2(v) : '';
-        })));
+        add('note', row.note != null ? notes.formatNote(row.note) : '', '---',
+          function (inp) { var v = inp.value.trim(); row.note = v === '' ? null : notes.parseNote(v); inp.value = row.note != null ? notes.formatNote(row.note) : ''; },
+          function () { return row.note != null ? row.note : 60; },
+          function (v, inp) { row.note = v; inp.value = notes.formatNote(v); }, { min: 24, max: 108 });
+        add('', row.vel != null ? notes.hex2(row.vel) : '', '--',
+          function (inp) { var v = notes.parseHex(inp.value); row.vel = v; inp.value = v != null ? notes.hex2(v) : ''; },
+          function () { return row.vel != null ? row.vel : 0; },
+          function (v, inp) { row.vel = v; inp.value = notes.hex2(v); });
       } else {
-        tr.appendChild(td(makeCell('', row.n != null ? notes.hex2(row.n) : '', '--', function (inp) {
-          var v = notes.parseHex(inp.value); row.n = v; inp.value = v != null ? notes.hex2(v) : '';
-        })));
-        tr.appendChild(td(makeCell('', row.v != null ? notes.hex2(row.v) : '', '--', function (inp) {
-          var v = notes.parseHex(inp.value); row.v = v; inp.value = v != null ? notes.hex2(v) : '';
-        })));
+        add('', row.n != null ? notes.hex2(row.n) : '', '--',
+          function (inp) { var v = notes.parseHex(inp.value); row.n = v; inp.value = v != null ? notes.hex2(v) : ''; },
+          function () { return row.n != null ? row.n : 0; },
+          function (v, inp) { row.n = v; inp.value = notes.hex2(v); });
+        add('', row.v != null ? notes.hex2(row.v) : '', '--',
+          function (inp) { var v = notes.parseHex(inp.value); row.v = v; inp.value = v != null ? notes.hex2(v) : ''; },
+          function () { return row.v != null ? row.v : 0; },
+          function (v, inp) { row.v = v; inp.value = notes.hex2(v); });
       }
       for (var c = 0; c < 3; c++) (function (c) {
-        tr.appendChild(td(makeCell('fx', fxToText(row.fx[c]), '------', function (inp) {
-          var parsed = parseFxInput(inp.value);
-          if (parsed === undefined) { inp.value = fxToText(row.fx[c]); flash(inp); return; }
-          row.fx[c] = parsed; inp.value = fxToText(parsed);
-        })));
+        add('fx', fxToText(row.fx[c]), '------',
+          function (inp) { var p = parseFxInput(inp.value); if (p === undefined) { inp.value = fxToText(row.fx[c]); flash(inp); return; } row.fx[c] = p; inp.value = fxToText(p); },
+          function () { return row.fx[c] ? row.fx[c].value : 0; },
+          function (v, inp) { if (!row.fx[c]) return; row.fx[c].value = v & 0xff; inp.value = fxToText(row.fx[c]); });
       })(c);
 
       tbl.appendChild(tr); rowEls.push(tr);
@@ -85,6 +123,123 @@
 
     host.appendChild(tbl);
     $('gridHint').textContent = HINTS[curGrid];
+  }
+
+  // ---------- Chord Lab ----------
+  function selControl(label, options, current, onChange) {
+    var w = document.createElement('div'); w.className = 'ctl';
+    var l = document.createElement('label'); l.textContent = label; w.appendChild(l);
+    var s = document.createElement('select');
+    options.forEach(function (o) { var op = document.createElement('option'); op.value = o[0]; op.textContent = o[1]; if (String(o[0]) === String(current)) op.selected = true; s.appendChild(op); });
+    s.addEventListener('change', function () { onChange(s.value); });
+    w.appendChild(s); return w;
+  }
+  function rangeControl(label, min, max, val, onChange) {
+    var w = document.createElement('div'); w.className = 'ctl';
+    var l = document.createElement('label'); l.textContent = label; w.appendChild(l);
+    var r = document.createElement('input'); r.type = 'range'; r.min = min; r.max = max; r.value = val;
+    var b = document.createElement('b'); b.className = 'ctlval'; b.textContent = val;
+    r.addEventListener('input', function () { b.textContent = r.value; onChange(parseInt(r.value, 10)); });
+    w.appendChild(r); w.appendChild(b); return w;
+  }
+  function toggleControl(label, on, onChange) {
+    var w = document.createElement('div'); w.className = 'ctl';
+    var l = document.createElement('label'); l.textContent = label; w.appendChild(l);
+    var b = document.createElement('button'); b.className = 'toggle' + (on ? ' on' : ''); b.textContent = on ? 'on' : 'off';
+    b.addEventListener('click', function () { on = !on; b.classList.toggle('on', on); b.textContent = on ? 'on' : 'off'; onChange(on); });
+    w.appendChild(b); return w;
+  }
+  function setShapeOffsets(arr) {
+    engine.chord.voices = [0, 1, 2, 3, 4, 5].map(function (i) { return { off: arr[i] != null ? arr[i] : 0, on: i < arr.length }; });
+  }
+  function genProg(name) {
+    var g = M8.chords.generateRoots(name, engine.chord.key, 3);
+    engine.chordSeq = g.roots; engine.chord.diatonic = true; engine.chord.scale = g.mode;
+    setShapeOffsets(g.seventh ? [0, 4, 7, 10] : [0, 4, 7]);
+    renderChords(); persist();
+  }
+  function genRandom() {
+    var roots = [], k = engine.chord.key, mode = engine.chord.scale;
+    for (var i = 0; i < 4; i++) { var deg = i === 0 ? 1 : 1 + Math.floor(engine.rng() * 7); roots.push({ pc: M8.chords.diatonic(k, mode, deg, false).pc, oct: 3 }); }
+    engine.chordSeq = roots; engine.chord.diatonic = true; renderChords(); persist();
+  }
+
+  function voiceChip(v, i) {
+    var chip = document.createElement('div'); chip.className = 'hs-voice' + (v.on ? ' on' : '');
+    var lbl = document.createElement('span'); lbl.className = 'hsv-n'; lbl.textContent = 'V' + (i + 1);
+    var off = document.createElement('div'); off.className = 'hsv-off'; off.textContent = (v.off >= 0 ? '+' : '') + v.off;
+    attachScrub(off, function () { return v.off; }, function (n) { v.off = n; off.textContent = (n >= 0 ? '+' : '') + n; }, { min: -24, max: 24 });
+    chip.appendChild(lbl); chip.appendChild(off);
+    chip.addEventListener('click', function (e) { if (e.target === off) return; v.on = !v.on; chip.classList.toggle('on', v.on); persist(); });
+    return chip;
+  }
+  function rootCard(slot, i) {
+    var card = document.createElement('div'); card.className = 'chord-card';
+    var root = document.createElement('div'); root.className = 'c-root'; root.textContent = notes.NAMES[slot.pc] + slot.oct;
+    attachScrub(root, function () { return (slot.oct + 1) * 12 + slot.pc; }, function (v) {
+      slot.oct = Math.floor(v / 12) - 1; slot.pc = ((v % 12) + 12) % 12; root.textContent = notes.NAMES[slot.pc] + slot.oct;
+    }, { min: 24, max: 96 });
+    var tag = document.createElement('div'); tag.className = 'c-tag'; tag.textContent = 'root';
+    var del = document.createElement('button'); del.className = 'c-del'; del.textContent = '×';
+    del.addEventListener('click', function () { engine.chordSeq.splice(i, 1); renderChords(); persist(); });
+    card.appendChild(root); card.appendChild(tag); card.appendChild(del);
+    return card;
+  }
+
+  function renderChords() {
+    var host = $('gridHost'); host.innerHTML = ''; rowEls = [];
+    $('gridHint').textContent = 'Chord Lab — on the M8 only the Hypersynth plays chords, and the chord is defined as voice offsets in the instrument. Define the shape up top, sequence root notes below, and drag any value to hear it change live.';
+    var lab = document.createElement('div'); lab.className = 'chordlab';
+
+    // Hypersynth instrument: the chord definition
+    var hs = document.createElement('div'); hs.className = 'hs';
+    var head = document.createElement('div'); head.className = 'hs-head';
+    head.innerHTML = '<b>HYPERSYNTH</b> — chord shape, defined as voice offsets (semitones). Click a voice to toggle it; drag its number to change the offset.';
+    hs.appendChild(head);
+    var shaperow = document.createElement('div'); shaperow.className = 'chord-controls';
+    shaperow.appendChild(selControl('Shape preset', M8.chords.ORDER.map(function (q) { return [q, q]; }), '', function (v) { setShapeOffsets(M8.chords.QUALITIES[v]); renderChords(); persist(); }));
+    shaperow.appendChild(rangeControl('Swarm', 0, 255, engine.chord.swarm, function (v) { engine.chord.swarm = v; persist(); }));
+    shaperow.appendChild(toggleControl('Diatonic snap', engine.chord.diatonic, function (on) { engine.chord.diatonic = on; persist(); }));
+    shaperow.appendChild(selControl('Key', notes.NAMES.map(function (n, i) { return [i, n]; }), engine.chord.key, function (v) { engine.chord.key = +v; persist(); }));
+    shaperow.appendChild(selControl('Scale', [['major', 'major'], ['minor', 'minor']], engine.chord.scale, function (v) { engine.chord.scale = v; persist(); }));
+    hs.appendChild(shaperow);
+    var voices = document.createElement('div'); voices.className = 'hs-voices';
+    engine.chord.voices.forEach(function (v, i) { voices.appendChild(voiceChip(v, i)); });
+    hs.appendChild(voices);
+    lab.appendChild(hs);
+
+    // generators (build a root sequence in the chosen key)
+    var gen = document.createElement('div'); gen.className = 'gen-row';
+    Object.keys(M8.chords.PROGRESSIONS).forEach(function (k) {
+      var b = document.createElement('button'); b.className = 'gen'; b.textContent = M8.chords.PROGRESSIONS[k].name;
+      b.addEventListener('click', function () { genProg(k); }); gen.appendChild(b);
+    });
+    var rb = document.createElement('button'); rb.className = 'gen'; rb.textContent = 'Random diatonic';
+    rb.addEventListener('click', genRandom); gen.appendChild(rb);
+    lab.appendChild(gen);
+
+    // play controls
+    var ctr = document.createElement('div'); ctr.className = 'chord-controls';
+    ctr.appendChild(selControl('Style', [['block', 'block'], ['up', 'arp up'], ['down', 'arp down'], ['updown', 'arp up-down'], ['strum', 'strum'], ['random', 'random']], engine.chord.style, function (v) { engine.chord.style = v; persist(); }));
+    ctr.appendChild(rangeControl('Rate', 1, 12, engine.chord.rate, function (v) { engine.chord.rate = v; persist(); }));
+    ctr.appendChild(rangeControl('Gate', 1, 16, engine.chord.gateSteps, function (v) { engine.chord.gateSteps = v; persist(); }));
+    ctr.appendChild(rangeControl('Bar len', 4, 32, engine.chord.slotSteps, function (v) { engine.chord.slotSteps = v; persist(); }));
+    ctr.appendChild(rangeControl('Reverb', 0, 255, chordSpace.reverb, function (v) { chordSpace.reverb = v; audio.setReverbReturn(v); persist(); }));
+    ctr.appendChild(rangeControl('Delay', 0, 255, chordSpace.delay, function (v) { chordSpace.delay = v; audio.setDelayReturn(v); persist(); }));
+    lab.appendChild(ctr);
+
+    // root sequence
+    var srow = document.createElement('div'); srow.className = 'strip-label'; srow.textContent = 'ROOT SEQUENCE — each root triggers the Hypersynth chord above (loops as one bar each)';
+    lab.appendChild(srow);
+    var strip = document.createElement('div'); strip.className = 'chord-strip';
+    engine.chordSeq.forEach(function (slot, i) { strip.appendChild(rootCard(slot, i)); });
+    var addb = document.createElement('button'); addb.className = 'chord-add'; addb.textContent = '+';
+    addb.addEventListener('click', function () { engine.chordSeq.push({ pc: 0, oct: 3 }); renderChords(); persist(); });
+    strip.appendChild(addb);
+    lab.appendChild(strip);
+
+    host.appendChild(lab);
+    rowEls = Array.prototype.slice.call(strip.querySelectorAll('.chord-card'));
   }
   function td(child) { var d = document.createElement('td'); d.appendChild(child); return d; }
   function flash(inp) { inp.style.borderColor = 'var(--accent)'; setTimeout(function () { inp.style.borderColor = ''; }, 350); }
@@ -95,9 +250,16 @@
     b.classList.toggle('playing', on);
     b.textContent = on ? '■ STOP' : '▶ PLAY';
   }
+  function startPlay() {
+    audio.ensure();
+    engine.setMode(curGrid === 'chords' ? 'chords' : 'track');
+    engine.play();
+    if (curGrid === 'chords') { audio.setReverbReturn(chordSpace.reverb); audio.setDelayReturn(chordSpace.delay); }
+    setPlaying(true);
+  }
   $('btnPlay').addEventListener('click', function () {
     if (engine.running) { engine.stop(); setPlaying(false); }
-    else { audio.ensure(); engine.play(); setPlaying(true); }
+    else { startPlay(); }
   });
   $('bpm').addEventListener('input', function () {
     engine.setBPM(parseInt(this.value, 10)); $('bpmVal').textContent = this.value; persist();
@@ -108,8 +270,9 @@
 
   document.querySelectorAll('.tab').forEach(function (t) {
     t.addEventListener('click', function () {
+      if (engine.running) { engine.stop(); setPlaying(false); }   // mode follows the active tab
       document.querySelectorAll('.tab').forEach(function (x) { x.classList.remove('active'); });
-      t.classList.add('active'); curGrid = t.dataset.grid; renderGrid();
+      t.classList.add('active'); curGrid = t.dataset.grid; renderGrid(); persist();
     });
   });
 
@@ -136,7 +299,8 @@
       $('vLevel').style.width = Math.round((s.level || 0) * 100) + '%';
       $('vBend').textContent = (s.bend || 0).toFixed(2);
       $('vSlide').textContent = s.slide || 0;
-      renderChips(s.activeFX || []);
+      if (s.mode === 'chords') renderChips(s.poly ? [s.poly + ' voices'] : []);
+      else renderChips(s.activeFX || []);
       highlight(s);
     }
     drawScope();
@@ -151,7 +315,7 @@
   }
   var lastHi = -1, lastHiGrid = '';
   function highlight(s) {
-    var idx = curGrid === 'phrase' ? s.step : s.tableRow;
+    var idx = curGrid === 'chords' ? s.cSlot : (curGrid === 'phrase' ? s.step : s.tableRow);
     if (idx === lastHi && curGrid === lastHiGrid) return;
     if (rowEls[lastHi] && lastHiGrid === curGrid) rowEls[lastHi].classList.remove('playhead');
     if (rowEls[idx]) rowEls[idx].classList.add('playhead');
@@ -228,7 +392,8 @@
       v: 1, b: engine.bpm, g: engine.grooveNum, t: engine.tableTic, gr: curGrid,
       w: audio.wave, c: audio.cutoff,
       p: engine.phrase.map(function (s) { return [s.note, s.vel, s.fx.map(encFx)]; }),
-      T: engine.table.map(function (r) { return [r.n, r.v, r.fx.map(encFx)]; })
+      T: engine.table.map(function (r) { return [r.n, r.v, r.fx.map(encFx)]; }),
+      ch: engine.chord, cs: engine.chordSeq, sp: chordSpace
     };
     return b64encode(JSON.stringify(o));
   }
@@ -240,6 +405,9 @@
     audio.setCutoff(o.c || 5000); $('cutoff').value = o.c || 5000;
     o.p.forEach(function (s, i) { engine.phrase[i] = { note: s[0], vel: s[1], fx: s[2].map(decFx) }; });
     (o.T || []).forEach(function (r, i) { engine.table[i] = { n: r[0], v: r[1], fx: r[2].map(decFx) }; });
+    if (o.ch) engine.chord = o.ch;
+    if (o.cs) engine.chordSeq = o.cs;
+    if (o.sp) chordSpace = o.sp;
     if (o.gr) { curGrid = o.gr; document.querySelectorAll('.tab').forEach(function (x) { x.classList.toggle('active', x.dataset.grid === curGrid); }); }
     return true;
   }

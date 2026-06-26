@@ -26,9 +26,9 @@
     if (!sc || idx === 0) return semi;
     var rounded = Math.round(semi);
     var pc = (((rounded - key) % 12) + 12) % 12;
-    for (var d = 0; d <= 6; d++) {
-      if (sc.mask.indexOf(((pc + d) % 12)) >= 0) return rounded + d;
+    for (var d = 0; d <= 6; d++) {           // nearest scale tone; ties resolve downward
       if (sc.mask.indexOf((((pc - d) % 12) + 12) % 12) >= 0) return rounded - d;
+      if (sc.mask.indexOf(((pc + d) % 12)) >= 0) return rounded + d;
     }
     return rounded;
   }
