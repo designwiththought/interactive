@@ -9,16 +9,18 @@ as the M8 manual describes. Or type *"machine-gun stutter"* / *"slide into the
 note"* / *"swing"* and the wizard writes the real FX commands into the grid and
 explains them.
 
-There's also a **Chord Lab** modelled on the M8's reality: on the M8 *only the
-Hypersynth plays chords*, a chord is **voice offsets defined in the instrument**,
-and there's **no internal chord-change FX** (that's MIDI-only) — so you sequence
-chords by **shifting between shapes you've defined**. The lab mirrors that: a
-Hypersynth **shape bank** (define/name your chords as up to 6 voice offsets) and
-a sequencer where each step is a **root + which shape to shift to**. Generate a
-progression (pop, jazz ii–V–I, lo-fi, blues…), pick a play style
-(block / arp / strum), and hear it polyphonically. Swarm detunes the voices;
-optional diatonic-snap keeps everything in key. And throughout you can **drag any
-value to hear it change** live — voice offsets, roots, rates, gates, FX bytes.
+There's also a **Chord Lab** modelled on the M8 Hypersynth. Per the manual the
+Hypersynth holds **16 chord banks of up to 6 intervals**; you define the banks in
+the instrument and sequence chord changes by selecting which bank is active (the
+`CHORD` parameter / its instrument FX) — the M8-native way, *not* the MIDI-only
+`CHD` command (which belongs to the MIDI-Out instrument). The lab mirrors that: a
+**16-bank editor** (name each bank, toggle/scrub its voice offsets, `SWARM`
+detune, `SHIFT` cross-fade, `SUBOSC`) and a sequencer where each step is a
+**root + which bank to shift to**. Generate a progression (pop, jazz ii–V–I,
+lo-fi, blues…), pick a play style (block / arp / strum), and hear it
+polyphonically; optional diatonic-snap keeps everything in key. And throughout you
+can **drag any value to hear it change** live — voice offsets, roots, rates,
+gates, FX bytes.
 
 ## Run it
 
@@ -53,17 +55,17 @@ Click **▶ PLAY** (the first click also starts Web Audio).
 - **Shareable patches** — your work autosaves to the browser; **share link**
   encodes the whole patch (grid + tempo + groove + osc + chords) into the URL,
   and **copy patch** gives you a portable code.
-- **Chord Lab (Hypersynth-accurate)** — on the M8 only the Hypersynth plays
-  chords, a chord is up to 6 **voice offsets defined in the instrument**, and
-  there is **no internal chord-change FX** (chords are MIDI-only). So the lab is
-  built around a **shape bank**: define/name your chord shapes (toggle/scrub each
-  voice, add from presets), then a sequencer where each step is a **root + the
-  shape to shift to** — exactly how you'd change chords on the device. 8-voice
-  polyphony; Swarm detune; optional diatonic snap. Diatonic generators (pop,
-  doo-wop, sad, jazz ii–V–I, lo-fi 7ths, epic minor, andalusian, 12-bar blues,
-  random) populate the bank and shift the sequence between the right shapes; play
-  styles cover block / arp (up/down/up-down/random) / strum, with rate, gate, and
-  reverb/delay space — all live-draggable.
+- **Chord Lab (Hypersynth-accurate)** — the M8 Hypersynth holds **16 chord banks
+  of up to 6 intervals** (manual, p.60); you define the banks and sequence chord
+  changes by switching the active `CHORD` bank via its instrument FX — *not* the
+  MIDI-only `CHD` command. The lab is a 16-bank editor (name each bank,
+  toggle/scrub voices, `SWARM`/`SHIFT`/`SUBOSC`) feeding a sequencer where each
+  step is a **root + the bank to shift to**, with 8-voice polyphony and optional
+  diatonic snap. Diatonic generators (pop, doo-wop, sad, jazz ii–V–I, lo-fi 7ths,
+  epic minor, andalusian, 12-bar blues, random) populate banks and shift the
+  sequence between the right ones; play styles cover block / arp
+  (up/down/up-down/random) / strum, with rate, gate, and reverb/delay space — all
+  live-draggable.
 - **Drag-to-scrub** — vertical drag on any numeric value (FX bytes, velocity,
   table N/V, chord roots, all the chord controls) nudges it live while it plays;
   a plain click still types. Shift = coarse.

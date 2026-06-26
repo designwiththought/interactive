@@ -154,6 +154,7 @@
   function clampSel() { if (selShape >= bank().length) selShape = bank().length - 1; if (selShape < 0) selShape = 0; }
   function ensureShape(quality) {
     var s = bank(); for (var i = 0; i < s.length; i++) if (s[i].name === quality) return i;
+    if (s.length >= 16) return 0;                 // Hypersynth holds 16 banks max
     s.push({ name: quality, voices: M8.chords.shapeVoices(M8.chords.QUALITIES[quality] || [0, 4, 7]) });
     return s.length - 1;
   }
@@ -212,22 +213,24 @@
   function renderChords() {
     clampSel();
     var host = $('gridHost'); host.innerHTML = ''; rowEls = [];
-    $('gridHint').textContent = 'Chord Lab — on the M8 only the Hypersynth plays chords, and a chord is voice offsets defined in the instrument. There is no internal chord-change FX (that is MIDI-only), so you sequence chords by shifting between defined shapes. Drag any value to hear it live.';
+    $('gridHint').textContent = 'Chord Lab — the M8 Hypersynth holds 16 chord banks of up to 6 intervals. You define the banks here, then sequence chord changes by selecting which bank is active (the CHORD parameter / its instrument FX) — that is the M8-native way, not the MIDI-only CHD command. Drag any value to hear it live.';
     var lab = document.createElement('div'); lab.className = 'chordlab';
 
-    // Hypersynth: the bank of chord shapes the user has defined
+    // Hypersynth: the 16 chord banks
     var hs = document.createElement('div'); hs.className = 'hs';
     var head = document.createElement('div'); head.className = 'hs-head';
-    head.innerHTML = '<b>HYPERSYNTH</b> — your chord shapes (voice offsets in semitones). Pick a shape to edit; click a voice to toggle it; drag its number to change the offset. The sequencer below <i>shifts</i> between these shapes.';
+    head.innerHTML = '<b>HYPERSYNTH</b> — 16 chord banks of up to 6 intervals (' + bank().length + '/16 defined). Pick a bank to edit; click a voice to toggle it; drag its number to change the offset. The sequencer <i>shifts</i> the active bank per step.';
     hs.appendChild(head);
 
     // shape bank row
     var bankRow = document.createElement('div'); bankRow.className = 'shape-bank';
     bank().forEach(function (s, i) { bankRow.appendChild(shapeChip(s, i)); });
-    var preset = selControl('+ from preset', [['', '+ add…']].concat(M8.chords.ORDER.map(function (q) { return [q, q]; })), '', function (v) {
-      if (!v) return; var idx = ensureShape(v); selShape = idx; renderChords(); persist();
-    });
-    preset.classList.add('addshape'); bankRow.appendChild(preset);
+    if (bank().length < 16) {
+      var preset = selControl('+ from preset', [['', '+ add…']].concat(M8.chords.ORDER.map(function (q) { return [q, q]; })), '', function (v) {
+        if (!v) return; var idx = ensureShape(v); selShape = idx; renderChords(); persist();
+      });
+      preset.classList.add('addshape'); bankRow.appendChild(preset);
+    }
     hs.appendChild(bankRow);
 
     // selected shape: name + voices
@@ -245,6 +248,8 @@
 
     var shaperow = document.createElement('div'); shaperow.className = 'chord-controls';
     shaperow.appendChild(rangeControl('Swarm', 0, 255, engine.chord.swarm, function (v) { engine.chord.swarm = v; persist(); }));
+    shaperow.appendChild(rangeControl('Shift', 0, 255, engine.chord.shift, function (v) { engine.chord.shift = v; persist(); }));
+    shaperow.appendChild(rangeControl('Sub osc', 0, 255, engine.chord.subosc, function (v) { engine.chord.subosc = v; persist(); }));
     shaperow.appendChild(toggleControl('Diatonic snap', engine.chord.diatonic, function (on) { engine.chord.diatonic = on; persist(); }));
     shaperow.appendChild(selControl('Key', notes.NAMES.map(function (n, i) { return [i, n]; }), engine.chord.key, function (v) { engine.chord.key = +v; persist(); }));
     shaperow.appendChild(selControl('Scale', [['major', 'major'], ['minor', 'minor']], engine.chord.scale, function (v) { engine.chord.scale = v; persist(); }));
@@ -452,8 +457,10 @@
     if (o.cs) engine.chordSeq = o.cs;
     if (o.sp) chordSpace = o.sp;
     if (o.ss != null) selShape = o.ss;
-    // migrate older patches that predate the shape bank
+    // migrate older patches that predate the shape bank / Hypersynth params
     if (!engine.chord.shapes) engine.chord.shapes = M8.chords.defaultBank();
+    if (engine.chord.shift == null) engine.chord.shift = 0x80;
+    if (engine.chord.subosc == null) engine.chord.subosc = 0;
     engine.chordSeq.forEach(function (s) { if (s.shape == null) s.shape = 0; if (s.quality != null) delete s.quality; });
     if (o.gr) { curGrid = o.gr; document.querySelectorAll('.tab').forEach(function (x) { x.classList.toggle('active', x.dataset.grid === curGrid); }); }
     return true;

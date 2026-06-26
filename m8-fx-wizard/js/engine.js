@@ -44,9 +44,10 @@
     //      voice offsets in the instrument; the sequencer triggers root notes) ----
     this.mode = 'track';        // 'track' (phrase+table) | 'chords'
     this.chord = {
-      style: 'block', rate: 3, gateSteps: 14, slotSteps: 16, swarm: 0,
+      style: 'block', rate: 3, gateSteps: 14, slotSteps: 16,
+      swarm: 0, shift: 0x80, subosc: 0,        // Hypersynth params (SWARM/SHIFT/SUBOSC)
       diatonic: false, key: 0, scale: 'major',
-      shapes: (M8.chords ? M8.chords.defaultBank() : [])   // the user's defined chord shapes
+      shapes: (M8.chords ? M8.chords.defaultBank() : [])   // the 16 Hypersynth chord banks
     };
     // default sequence: a pop progression, each step pointing at the matching shape
     var prog = M8.chords ? M8.chords.generateProgression('pop', 0, 3) : [];
@@ -227,16 +228,28 @@
     var root = (slot.oct + 1) * 12 + slot.pc;
     var scaleIdx = ch.scale === 'minor' ? 2 : 1;
     var shape = (ch.shapes && ch.shapes[slot.shape]) || (ch.shapes && ch.shapes[0]) || { voices: [{ off: 0, on: true }] };
-    var notes = shape.voices.filter(function (v) { return v.on; }).map(function (v) {
+    // SHIFT cross-fades volume between the first 3 intervals and the second 3
+    var t = (ch.shift == null ? 128 : ch.shift) / 255;
+    var gA = Math.min(1, 2 * (1 - t)), gB = Math.min(1, 2 * t);
+    var info = {}, notes = [];
+    shape.voices.forEach(function (v, idx) {
+      if (!v.on) return;
       var n = root + (v.off | 0);
       if (ch.diatonic && M8.scales) n = M8.scales.quantize(n, ch.key, scaleIdx);
-      return n;
+      if (info[n]) return;                                    // dedupe
+      info[n] = { level: idx < 3 ? gA : gB };
+      notes.push(n);
     });
-    notes = notes.filter(function (n, i) { return notes.indexOf(n) === i; }).sort(function (a, b) { return a - b; });
+    // SUBOSC: sub an octave (>=80) or two (<80) below the root
+    if (ch.subosc) {
+      var sub = root - (ch.subosc < 0x80 ? 24 : 12);
+      if (!info[sub]) { info[sub] = { level: ch.subosc / 255 }; notes.push(sub); }
+    }
+    notes.sort(function (a, b) { return a - b; });
+    // SWARM: per-voice detune spread (cents) around the centre
+    notes.forEach(function (n, i) { info[n].detune = (i - (notes.length - 1) / 2) * (ch.swarm / 255) * 22; });
     this.cChordNotes = notes;
-    // SWARM: spread per-voice detune in cents around the centre
-    this._detuneMap = {};
-    notes.forEach(function (n, i) { self._detuneMap[n] = (i - (notes.length - 1) / 2) * (ch.swarm / 255) * 22; });
+    this._chordVoiceInfo = info;
     this.cSlotTicksLeft = this.chord.slotSteps * CSTEP;
     this.cGateOff = this.tickCount + Math.max(1, Math.min(this.chord.gateSteps, this.chord.slotSteps)) * CSTEP;
     this.cArpPos = 0; this.cArpDir = 1; this.cArpCnt = 0; this.cStrumCnt = 0;
@@ -250,8 +263,10 @@
 
   Engine.prototype._triggerChordNote = function (note, offTick, level) {
     var voice = this._allocVoice();
-    var det = this._detuneMap ? (this._detuneMap[note] || 0) : 0;
-    this.audio.voiceOn(voice, M8.notes.midiToFreq(note), level, det);
+    var vi = this._chordVoiceInfo ? this._chordVoiceInfo[note] : null;
+    var lvl = level * (vi ? vi.level : 1);
+    var det = vi ? (vi.detune || 0) : 0;
+    this.audio.voiceOn(voice, M8.notes.midiToFreq(note), lvl, det);
     this.cActive.push({ voice: voice, note: note, offTick: offTick });
   };
   Engine.prototype._allocVoice = function () {
