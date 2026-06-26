@@ -42,7 +42,7 @@
   // View geometry
   //----------------------------------
   const PAD = { l: 30, r: 10, t: 10, b: 20 };
-  const VIEW_H = 170; // matches the rendered graph height (px) to avoid vertical distortion
+  const VIEW_H = 220; // matches the rendered graph height (px) to avoid vertical distortion
   // Monochrome white graph, matching the sampler. Lane 2 is a dimmer white so
   // the two lanes stay distinguishable.
   const LANE_COLORS = ['#ffffff', 'rgba(255,255,255,0.5)'];
@@ -248,162 +248,156 @@
       <span class="hint">click two steps to set a range</span>
     </div>
 
-    <!-- Graph (left, fills the width) + effect panel (right) -->
-    <div class="fxg-main">
-      <div class="fxg-graph-col">
-        <div class="graph-wrap">
-          <!-- Y-axis value labels (HTML so they stay crisp over the stretched SVG) -->
-          <div class="y-axis">
-            <span v-for="lvl in gridLevels" :key="`y${lvl.value}`" :style="{ top: lvl.top + '%' }">{{
-              lvl.value
-            }}</span>
-          </div>
-          <svg class="graph" :viewBox="`0 0 ${viewW} ${VIEW_H}`" preserveAspectRatio="none">
-            <!-- range band -->
-            <rect
-              v-if="numSteps"
-              class="range-band"
-              :x="xOf(effectiveRange.from) - stepW / 2"
-              :y="PAD.t"
-              :width="xOf(effectiveRange.to) - xOf(effectiveRange.from) + stepW"
-              :height="VIEW_H - PAD.t - PAD.b"
-            />
-            <!-- beat gridlines -->
-            <line
-              v-for="(bx, i) in beatLines"
-              :key="`b${i}`"
-              class="beat"
-              :x1="bx"
-              :y1="PAD.t"
-              :x2="bx"
-              :y2="VIEW_H - PAD.b"
-            />
-            <!-- playhead -->
-            <line
-              v-if="playStep >= 0 && playStep < numSteps"
-              class="playhead"
-              :x1="xOf(playStep)"
-              :y1="PAD.t"
-              :x2="xOf(playStep)"
-              :y2="VIEW_H - PAD.b"
-            />
-            <!-- horizontal value gridlines -->
-            <line
-              v-for="lvl in gridLevels"
-              :key="`h${lvl.value}`"
-              class="hgrid"
-              :class="{ edge: lvl.value === 0 || lvl.value === 100 }"
-              :x1="PAD.l"
-              :y1="lvl.y"
-              :x2="viewW - PAD.r"
-              :y2="lvl.y"
-            />
-
-            <!-- lane 0 -->
-            <polyline
-              v-for="(run, i) in lane0Runs"
-              :key="`l0r${i}`"
-              :points="polyline(run)"
-              :stroke="LANE_COLORS[0]"
-              class="curve"
-            />
-            <template v-for="(run, i) in lane0Runs" :key="`l0p${i}`">
-              <circle v-for="p in run" :key="`l0-${p.step}`" :cx="p.x" :cy="p.y" r="2.5" :fill="LANE_COLORS[0]">
-                <title>step {{ p.step + 1 }} · {{ p.symbol }}{{ p.display }}</title>
-              </circle>
-            </template>
-
-            <!-- lane 1 -->
-            <polyline
-              v-for="(run, i) in lane1Runs"
-              :key="`l1r${i}`"
-              :points="polyline(run)"
-              :stroke="LANE_COLORS[1]"
-              class="curve"
-            />
-            <template v-for="(run, i) in lane1Runs" :key="`l1p${i}`">
-              <circle v-for="p in run" :key="`l1-${p.step}`" :cx="p.x" :cy="p.y" r="2.5" :fill="LANE_COLORS[1]">
-                <title>step {{ p.step + 1 }} · {{ p.symbol }}{{ p.display }}</title>
-              </circle>
-            </template>
-
-            <!-- clickable step columns -->
-            <rect
-              v-for="s in numSteps"
-              :key="`c${s}`"
-              class="hit"
-              :x="xOf(s - 1) - stepW / 2"
-              :y="PAD.t"
-              :width="stepW"
-              :height="VIEW_H - PAD.t - PAD.b"
-              @click="onStepClick(s - 1)"
-            />
-          </svg>
+    <!-- Graph on top -->
+    <div class="fxg-graph-col">
+      <div class="graph-wrap">
+        <!-- Y-axis value labels (HTML so they stay crisp over the stretched SVG) -->
+        <div class="y-axis">
+          <span v-for="lvl in gridLevels" :key="`y${lvl.value}`" :style="{ top: lvl.top + '%' }">{{ lvl.value }}</span>
         </div>
-        <div class="fxg-legend">
-          <span><i :style="{ background: LANE_COLORS[0] }" /> Lane 1 · {{ laneLegend(0) }}</span>
-          <span><i :style="{ background: LANE_COLORS[1] }" /> Lane 2 · {{ laneLegend(1) }}</span>
-        </div>
+        <svg class="graph" :viewBox="`0 0 ${viewW} ${VIEW_H}`" preserveAspectRatio="none">
+          <!-- range band -->
+          <rect
+            v-if="numSteps"
+            class="range-band"
+            :x="xOf(effectiveRange.from) - stepW / 2"
+            :y="PAD.t"
+            :width="xOf(effectiveRange.to) - xOf(effectiveRange.from) + stepW"
+            :height="VIEW_H - PAD.t - PAD.b"
+          />
+          <!-- beat gridlines -->
+          <line
+            v-for="(bx, i) in beatLines"
+            :key="`b${i}`"
+            class="beat"
+            :x1="bx"
+            :y1="PAD.t"
+            :x2="bx"
+            :y2="VIEW_H - PAD.b"
+          />
+          <!-- playhead -->
+          <line
+            v-if="playStep >= 0 && playStep < numSteps"
+            class="playhead"
+            :x1="xOf(playStep)"
+            :y1="PAD.t"
+            :x2="xOf(playStep)"
+            :y2="VIEW_H - PAD.b"
+          />
+          <!-- horizontal value gridlines -->
+          <line
+            v-for="lvl in gridLevels"
+            :key="`h${lvl.value}`"
+            class="hgrid"
+            :class="{ edge: lvl.value === 0 || lvl.value === 100 }"
+            :x1="PAD.l"
+            :y1="lvl.y"
+            :x2="viewW - PAD.r"
+            :y2="lvl.y"
+          />
+
+          <!-- lane 0 -->
+          <polyline
+            v-for="(run, i) in lane0Runs"
+            :key="`l0r${i}`"
+            :points="polyline(run)"
+            :stroke="LANE_COLORS[0]"
+            class="curve"
+          />
+          <template v-for="(run, i) in lane0Runs" :key="`l0p${i}`">
+            <circle v-for="p in run" :key="`l0-${p.step}`" :cx="p.x" :cy="p.y" r="2.5" :fill="LANE_COLORS[0]">
+              <title>step {{ p.step + 1 }} · {{ p.symbol }}{{ p.display }}</title>
+            </circle>
+          </template>
+
+          <!-- lane 1 -->
+          <polyline
+            v-for="(run, i) in lane1Runs"
+            :key="`l1r${i}`"
+            :points="polyline(run)"
+            :stroke="LANE_COLORS[1]"
+            class="curve"
+          />
+          <template v-for="(run, i) in lane1Runs" :key="`l1p${i}`">
+            <circle v-for="p in run" :key="`l1-${p.step}`" :cx="p.x" :cy="p.y" r="2.5" :fill="LANE_COLORS[1]">
+              <title>step {{ p.step + 1 }} · {{ p.symbol }}{{ p.display }}</title>
+            </circle>
+          </template>
+
+          <!-- clickable step columns -->
+          <rect
+            v-for="s in numSteps"
+            :key="`c${s}`"
+            class="hit"
+            :x="xOf(s - 1) - stepW / 2"
+            :y="PAD.t"
+            :width="stepW"
+            :height="VIEW_H - PAD.t - PAD.b"
+            @click="onStepClick(s - 1)"
+          />
+        </svg>
       </div>
+      <div class="fxg-legend">
+        <span><i :style="{ background: LANE_COLORS[0] }" /> Lane 1 · {{ laneLegend(0) }}</span>
+        <span><i :style="{ background: LANE_COLORS[1] }" /> Lane 2 · {{ laneLegend(1) }}</span>
+      </div>
+    </div>
 
-      <!-- Effect panel: title selector, parameters, action row -->
-      <div class="fx-panel">
+    <!-- Effect editing: the bottom area below the graph -->
+    <div class="fx-panel">
+      <div class="fp-bar">
         <select class="fp-title" v-model="effectId">
           <option v-for="o in effectOptions" :key="o.id" :value="o.id">{{ o.name }}</option>
         </select>
-        <div class="fp-meta">
-          <span class="budget">{{ laneBudget }}</span>
-          <p class="desc">{{ effectDesc }}</p>
-        </div>
+        <span class="budget">{{ laneBudget }}</span>
+        <span class="desc">{{ effectDesc }}</span>
+        <span class="fp-spacer" />
+        <span class="fp-range">{{ rangeLabel }}</span>
+        <Button small @click="clearFx">Clear</Button>
+        <Button small blue @click="handleDrop">Drop</Button>
+      </div>
 
-        <div class="fp-body">
-          <!-- Preset: parameter sliders -->
-          <template v-if="!isCustom && selectedEffect">
-            <Slider
-              v-for="param in selectedEffect.params"
-              :key="param.id"
-              v-model="effectParams[param.id]"
-              :label="param.label"
-              :min="param.min"
-              :max="param.max"
-              :step="param.step ?? 1"
-              :unit="param.unit ?? ''"
-              :bipolar="param.min < 0"
-            />
-          </template>
+      <div class="fp-body">
+        <!-- Preset: parameter sliders, side by side -->
+        <template v-if="!isCustom && selectedEffect">
+          <Slider
+            v-for="param in selectedEffect.params"
+            :key="param.id"
+            v-model="effectParams[param.id]"
+            :label="param.label"
+            :min="param.min"
+            :max="param.max"
+            :step="param.step ?? 1"
+            :unit="param.unit ?? ''"
+            :bipolar="param.min < 0"
+          />
+        </template>
 
-          <!-- Custom: an FX + curve per lane -->
-          <template v-else>
-            <div class="fp-lane">
-              <span class="fp-lane-label">Lane 1</span>
-              <select v-model="lane1Fx">
-                <option v-for="f in AUTOMATABLE_FX" :key="f.symbol" :value="f.symbol">
-                  {{ f.symbol }} · {{ f.name }}
-                </option>
-              </select>
-              <select v-model="lane1Curve">
-                <option v-for="c in CURVES" :key="c.id" :value="c.id">{{ c.name }}</option>
-              </select>
-            </div>
-            <div class="fp-lane">
-              <span class="fp-lane-label">Lane 2</span>
-              <select v-model="lane2Fx">
-                <option v-for="f in lane2Options" :key="f.symbol" :value="f.symbol">
-                  {{ f.symbol === 'none' ? 'None' : `${f.symbol} · ${f.name}` }}
-                </option>
-              </select>
-              <select v-model="lane2Curve" :disabled="lane2Fx === 'none'">
-                <option v-for="c in CURVES" :key="c.id" :value="c.id">{{ c.name }}</option>
-              </select>
-            </div>
-          </template>
-        </div>
-
-        <div class="fp-actions">
-          <span class="fp-range">{{ rangeLabel }}</span>
-          <Button small @click="clearFx">Clear</Button>
-          <Button small blue @click="handleDrop">Drop</Button>
-        </div>
+        <!-- Custom: an FX + curve per lane -->
+        <template v-else>
+          <div class="fp-lane">
+            <span class="fp-lane-label">Lane 1</span>
+            <select v-model="lane1Fx">
+              <option v-for="f in AUTOMATABLE_FX" :key="f.symbol" :value="f.symbol">
+                {{ f.symbol }} · {{ f.name }}
+              </option>
+            </select>
+            <select v-model="lane1Curve">
+              <option v-for="c in CURVES" :key="c.id" :value="c.id">{{ c.name }}</option>
+            </select>
+          </div>
+          <div class="fp-lane">
+            <span class="fp-lane-label">Lane 2</span>
+            <select v-model="lane2Fx">
+              <option v-for="f in lane2Options" :key="f.symbol" :value="f.symbol">
+                {{ f.symbol === 'none' ? 'None' : `${f.symbol} · ${f.name}` }}
+              </option>
+            </select>
+            <select v-model="lane2Curve" :disabled="lane2Fx === 'none'">
+              <option v-for="c in CURVES" :key="c.id" :value="c.id">{{ c.name }}</option>
+            </select>
+          </div>
+        </template>
       </div>
     </div>
   </div>
@@ -439,8 +433,7 @@
     // Graph area: the SVG fills it; Y-axis value labels overlay the left edge.
     .graph-wrap {
       position: relative;
-      flex: 1;
-      min-height: 200px;
+      height: 220px;
     }
     .y-axis {
       position: absolute;
@@ -516,40 +509,38 @@
       }
     }
 
-    // Graph (left, fills) beside the effect panel (right), stretched to one height.
-    .fxg-main {
-      display: flex;
-      align-items: stretch;
-      gap: 16px;
-    }
+    // Graph fills the width on top; its area is a fixed height.
     .fxg-graph-col {
-      flex: 1;
-      min-width: 0;
       display: flex;
       flex-direction: column;
     }
 
-    // Effect panel — title selector, parameter sliders, action row.
+    // Effect editing — the bottom area: a header bar, then the params row.
     .fx-panel {
-      flex: 0 0 360px;
-      display: flex;
-      flex-direction: column;
+      margin-top: 12px;
       background: #0e0e0e;
       border: 2px solid #000;
       border-radius: 6px;
       overflow: hidden;
 
-      // Dark title bar with the effect selector.
+      // Header bar: effect selector, budget/description, then range + actions.
+      .fp-bar {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 0 10px 0 0;
+        background: #1b1c1e;
+        border-bottom: 1px solid #000;
+      }
       .fp-title {
         appearance: none;
         -webkit-appearance: none;
-        width: 100%;
         height: 40px;
+        min-width: 170px;
         padding: 0 32px 0 14px;
         border: 0;
-        border-bottom: 1px solid #000;
         border-radius: 0;
-        background: #1b1c1e
+        background: transparent
           url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="11" height="7"><path d="M0 0l5.5 7L11 0z" fill="%23999"/></svg>')
           no-repeat right 14px center;
         color: #fff;
@@ -558,35 +549,44 @@
         cursor: pointer;
         box-shadow: none;
       }
-      .fp-meta {
-        padding: 10px 14px 0;
-        .budget {
-          font-family: monospace;
-          font-size: 11px;
-          color: var(--pattern-step-label-color);
-        }
-        .desc {
-          margin: 4px 0 0;
-          font-size: 11px;
-          opacity: 0.5;
-          line-height: 1.35;
-          min-height: 2.2em;
-        }
+      .budget {
+        font-family: monospace;
+        font-size: 11px;
+        color: var(--pattern-step-label-color);
       }
-      .fp-body {
+      .desc {
+        font-size: 11px;
+        opacity: 0.5;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .fp-spacer {
         flex: 1;
+      }
+      .fp-range {
+        font-size: 11px;
+        color: var(--pattern-step-label-color);
+      }
+
+      // Params row: sliders sit side by side and fill the width.
+      .fp-body {
         display: flex;
-        flex-direction: column;
-        justify-content: center;
-        gap: 18px;
-        padding: 14px;
+        align-items: flex-start;
+        gap: 28px;
+        padding: 16px;
+        & > .hslider {
+          flex: 1;
+          min-width: 0;
+        }
       }
       .fp-lane {
         display: flex;
         align-items: center;
         gap: 8px;
+        flex: 1;
+        min-width: 0;
         .fp-lane-label {
-          min-width: 50px;
           color: #fff;
         }
         select {
@@ -594,26 +594,14 @@
           min-width: 0;
         }
       }
-      .fp-actions {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 10px 12px;
-        border-top: 1px solid #000;
-        .fp-range {
-          flex: 1;
-          font-size: 11px;
-          color: var(--pattern-step-label-color);
-        }
-      }
     }
 
     @media (max-width: 720px) {
-      .fxg-main {
+      .fp-body {
         flex-direction: column;
-      }
-      .fx-panel {
-        flex-basis: auto;
+        & > .hslider {
+          width: 100%;
+        }
       }
     }
   }
