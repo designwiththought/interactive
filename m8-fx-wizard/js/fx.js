@@ -271,14 +271,14 @@
       code: 'SCA', name: 'Track Scale', cat: 'scale',
       xy: 'X = key, Y = scale number',
       manual: 'Set the key signature (X) and scale (Y) for the track.',
-      confidence: 'high', sim: 'partial', scope: ['phrase', 'table'],
+      confidence: 'high', sim: 'full', scope: ['phrase', 'table'],
       onTrigger: function (v, p, ctx) { ctx.setScale(p.x, p.y); }
     },
     {
       code: 'SCG', name: 'Global Scale', cat: 'scale',
       xy: 'X = key, Y = scale number',
       manual: 'Set the key signature (X) and scale (Y) for the song.',
-      confidence: 'high', sim: 'partial', scope: ['phrase', 'table'],
+      confidence: 'high', sim: 'full', scope: ['phrase', 'table'],
       onTrigger: function (v, p, ctx) { ctx.setScale(p.x, p.y); }
     },
 
@@ -303,17 +303,19 @@
       onTrigger: function (v, p, ctx) { ctx.setTableTic(p.value); }
     },
 
-    // ===================== MIXER & SEND FX (reference only) =====================
-    ref('VMV', 'Main Volume', 'Set the main song volume.'),
+    // ===================== MIXER & SEND FX =====================
+    mix('VMV', 'Main Volume', 'Set the main song volume.', 'full', function (a, p) { a.setMaster(p.value); }),
+    mix('VDE', 'Delay Volume', 'Set the delay bus return volume.', 'full', function (a, p) { a.setDelayReturn(p.value); }),
+    mix('VRE', 'Reverb Volume', 'Set the reverb bus return volume.', 'full', function (a, p) { a.setReverbReturn(p.value); }),
+    mix('XDT', 'Delay Time', 'Send FX: delay time (L/R on hardware; mono here).', 'partial', function (a, p) { a.setDelayTime(p.value); }),
+    mix('XDF', 'Delay Feedback', 'Send FX: delay feedback amount.', 'full', function (a, p) { a.setDelayFeedback(p.value); }),
+    mix('XRS', 'Reverb Room Size', 'Send FX: reverb room size.', 'partial', function (a, p) { a.setReverbSize(p.value); }),
+    mix('XRD', 'Reverb Decay', 'Send FX: reverb decay.', 'partial', function (a, p) { a.setReverbDecay(p.value); }),
+    mix('XRZ', 'Reverb Freeze', 'Send FX: freeze the reverb (>00 on).', 'partial', function (a, p) { a.setReverbFreeze(p.value > 0); }),
+    mix('DJC', 'DJ Filter Cutoff', 'Set the DJ filter cutoff.', 'full', function (a, p) { a.setDJCut(p.value); }),
+    mix('DJR', 'DJ Filter Resonance', 'Set the DJ filter resonance.', 'full', function (a, p) { a.setDJRes(p.value); }),
+    mix('DJT', 'DJ Filter Type', 'Set the DJ filter type (00 LP, 01 HP, 02 BP).', 'full', function (a, p) { a.setDJType(p.value); }),
     ref('VMX', 'ModFX Volume', 'Set the ModFX bus volume.'),
-    ref('VDE', 'Delay Volume', 'Set the delay bus volume.'),
-    ref('VRE', 'Reverb Volume', 'Set the reverb bus volume.'),
-    ref('XDT', 'Delay Time', 'Send FX: left/right delay times.'),
-    ref('XDF', 'Delay Feedback', 'Send FX: delay feedback amount.'),
-    ref('XRS', 'Reverb Room Size', 'Send FX: reverb room size.'),
-    ref('XRD', 'Reverb Decay', 'Send FX: reverb decay.'),
-    ref('XRZ', 'Reverb Freeze', 'Send FX: freeze the reverb (>00 on).'),
-    ref('DJC', 'DJ Filter Cutoff', 'Set the DJ filter cutoff.'),
     ref('INS', 'Trigger Instrument', 'Set/trigger an instrument as an FX.'),
     ref('SNG', 'Song Hop', 'Jump to a relative song row.'),
     ref('RMX', 'Remix', 'Set the play-head of tracks to the left.'),
@@ -323,6 +325,14 @@
   function ref(code, name, manual) {
     return { code: code, name: name, cat: 'mixer', xy: 'XX', manual: manual,
              confidence: 'high', sim: 'ref', scope: ['phrase'] };
+  }
+  // mixer/send FX that drive the audio chain via ctx.audio
+  function mix(code, name, manual, sim, fn) {
+    return {
+      code: code, name: name, cat: 'mixer', xy: 'XX', manual: manual,
+      confidence: 'high', sim: sim, scope: ['phrase', 'table'],
+      onTrigger: function (v, p, ctx) { if (ctx.audio) fn(ctx.audio, p); }
+    };
   }
 
   // Build a lookup by code and expose ordered list.

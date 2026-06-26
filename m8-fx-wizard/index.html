@@ -42,6 +42,7 @@
     <span>FREQ <b id="rFreq">--- Hz</b></span>
     <span>GROOVE <b id="rGroove">00</b></span>
     <span>TBL&nbsp;TIC <b id="rTic">06</b></span>
+    <span>SCALE <b id="rScale">Chromatic</b></span>
   </div>
 
   <div class="wrap">
@@ -50,8 +51,14 @@
       <div class="tabs">
         <button class="tab active" data-grid="phrase">PHRASE</button>
         <button class="tab" data-grid="table">TABLE</button>
-        <span style="margin-left:auto"><button id="btnClear" class="ghost">clear</button></span>
+        <span style="margin-left:auto; display:flex; gap:6px">
+          <button id="btnShare" class="ghost">share link</button>
+          <button id="btnCopy" class="ghost">copy patch</button>
+          <button id="btnReset" class="ghost">demo</button>
+          <button id="btnClear" class="ghost">clear</button>
+        </span>
       </div>
+      <div id="toast" style="display:none; margin:0 0 8px; color:var(--accent-2); font-size:11px"></div>
       <p class="gridhint" id="gridHint"></p>
       <div id="gridHost"></div>
     </section>
@@ -106,6 +113,7 @@
   </p>
 
   <script src="js/notes.js"></script>
+  <script src="js/scales.js"></script>
   <script src="js/fx.js"></script>
   <script src="js/audio.js"></script>
   <script src="js/engine.js"></script>

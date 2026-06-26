@@ -225,6 +225,64 @@
         a.note(6, 'C-2'); a.pfx(3, 0, 'KIL', 0x03); a.pfx(5, 0, 'KIL', 0x03);
         return 'The mikey303 recipe (community doc): KIL03 on the step before any non-slide note for that 303 envelope snap, and PSL06 to slide into the accented note. Add an accent via velocity for the full acid line.';
       }
+    },
+
+    // ---------------- mix & space ----------------
+    {
+      id: 'delay-throw', group: 'Mix & space', label: 'Dub delay throw',
+      tags: ['delay', 'dub', 'echo', 'throw', 'vde', 'xdf'], grid: 'phrase',
+      apply: function (a) {
+        a.reset(); a.note(0, 'D#3');
+        a.pfx(0, 0, 'VDE', 0xf0); a.pfx(0, 1, 'XDF', 0xc0); a.pfx(0, 2, 'XDT', 0x40);
+        a.note(8, 'D#3'); a.pfx(8, 0, 'VDE', 0x10);
+        return 'VDEF0 opens the delay return wide, XDFC0 sets long feedback, XDT40 the time — a dub echo throw. The VDE10 on step 8 pulls the return back down so it doesn\'t wash out.';
+      }
+    },
+    {
+      id: 'reverb-wash', group: 'Mix & space', label: 'Reverb wash pad',
+      tags: ['reverb', 'wash', 'space', 'ambient', 'vre', 'xrd'], grid: 'phrase',
+      apply: function (a) {
+        a.reset(); a.note(0, 'C-4'); a.pfx(0, 0, 'OFF', 0x30);
+        a.pfx(0, 1, 'VRE', 0xc0); a.pfx(0, 2, 'XRD', 0xe0);
+        return 'VREC0 brings up the reverb return and XRDE0 stretches the decay for a long tail. OFF30 lets the note ring then release into the verb.';
+      }
+    },
+    {
+      id: 'reverb-freeze', group: 'Mix & space', label: 'Reverb freeze drone',
+      tags: ['reverb', 'freeze', 'drone', 'xrz', 'infinite'], grid: 'phrase',
+      apply: function (a) {
+        a.reset(); a.note(0, 'G-3');
+        a.pfx(0, 0, 'VRE', 0xff); a.pfx(0, 1, 'XRZ', 0x01); a.pfx(0, 2, 'KIL', 0x08);
+        return 'XRZ01 freezes the reverb into an endless cloud; VREFF makes it loud and KIL08 cuts the dry note so only the frozen tail remains.';
+      }
+    },
+    {
+      id: 'filter-sweep', group: 'Mix & space', label: 'DJ filter sweep down',
+      tags: ['filter', 'sweep', 'dj', 'djc', 'lowpass', 'build'], grid: 'table',
+      apply: function (a) {
+        a.reset(); a.note(0, 'C-2');
+        a.tableTic(0x04);
+        a.tfx(0, 0, 'DJT', 0x00); a.tfx(0, 1, 'DJR', 0x90); a.tfx(0, 2, 'DJC', 0xff);
+        a.tfx(1, 0, 'DJC', 0xc0); a.tfx(2, 0, 'DJC', 0x90); a.tfx(3, 0, 'DJC', 0x60);
+        a.tfx(4, 0, 'DJC', 0x40); a.tfx(5, 0, 'DJC', 0x28); a.tfx(6, 0, 'DJC', 0x12);
+        a.tfx(7, 0, 'HOP', 0x07);
+        return 'A filter sweep built in a table: DJT00 picks the lowpass, DJR90 adds resonance, then DJC steps the cutoff down each table tick until HOP07 holds it shut. Try OSC = saw for the classic build-down.';
+      }
+    },
+
+    // ---------------- in key ----------------
+    {
+      id: 'in-key-melody', group: 'Chance & random', label: 'Random melody, locked to a scale',
+      tags: ['scale', 'sca', 'scg', 'random', 'melody', 'in key', 'quantize', 'pentatonic'], grid: 'phrase',
+      apply: function (a) {
+        a.reset();
+        for (var i = 0; i < 16; i += 2) {
+          a.note(i, 'C-4');
+          a.pfx(i, 0, 'PIT', 0x00); a.pfx(i, 1, 'RND', hx(1, 2));
+        }
+        a.pfx(0, 2, 'SCG', hx(0, 11));
+        return 'SCG0B sets the song scale to C minor pentatonic. Each note gets PIT00 + RND12, so the pitch jumps by a random 0–18 semitones — but the scale snaps every result into the pentatonic, so the random melody always sounds musical.';
+      }
     }
   ];
 

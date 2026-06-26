@@ -31,16 +31,24 @@ Click **▶ PLAY** (the first click also starts Web Audio).
 - **Phrases vs tables:** the phrase grid runs at the groove's step rate; the
   table grid runs **per-tick** at its `TIC` rate alongside the held note — the
   M8's real distinction, and why arps/envelopes live in tables.
-- **A monophonic synth voice** (osc → lowpass → amp envelope) so retrigs, arps,
-  slides, vibrato, kills, and bends are audible — an *illustration* of an M8
-  voice, not a clone of its synth engines.
+- **A monophonic synth voice + FX bus** — osc → instrument lowpass → amp
+  envelope → (dry + delay send + reverb send) → master DJ filter → out. So
+  retrigs, arps, slides, vibrato, kills, bends, **delay throws, reverb washes,
+  and filter sweeps** are all audible. An *illustration* of an M8 signal path,
+  not a clone of its synth engines.
+- **Scale quantization** — `SCA`/`SCG` snap pitches into one of 14 scales
+  (major, minor, modes, pentatonics, blues, whole-tone) so random/arp material
+  stays in key.
+- **Shareable patches** — your work autosaves to the browser; **share link**
+  encodes the whole patch (grid + tempo + groove + osc) into the URL, and
+  **copy patch** gives you a portable code.
 
-### FX coverage (v1: core sequencer FX)
+### FX coverage
 
 Fully simulated: `ARP ARC PSL PBN PVB PVX PIT FIN TSP VOL RET KIL OFF DEL CHA
-RND TPO GRV GGR HOP TIC SED`. Partially modeled: `NTH RNL THO REP RTO SCA SCG
-MTT`. Shown for reference (not synthesized by this toy voice): mixer/send FX
-(`VMV VMX VDE VRE XDT XDF XRS XRD XRZ DJC …`) and `TBL TBX INS SNG RMX NXT`.
+RND TPO GRV GGR HOP TIC SED SCA SCG VMV VDE VRE XDF DJC DJR DJT`. Partially
+modeled: `NTH RNL THO REP RTO MTT XDT XRS XRD XRZ`. Shown for reference (not
+synthesized by this toy voice): `VMX TBL TBX INS SNG RMX NXT`.
 
 Every command in the on-page **FX reference** is tagged `full` / `partial` /
 `ref` and `high` / `med` confidence so you always know what to trust.
@@ -63,8 +71,9 @@ range or slew curve.
 index.html          — layout + script tags (no bundler)
 styles/app.css      — M8-flavoured theme
 js/notes.js         — note ↔ frequency ↔ "C-4", hex/signed helpers
+js/scales.js        — M8 scale tables + quantizer (SCA/SCG)
 js/fx.js            — the FX command registry (semantics live here)
-js/audio.js         — one Web Audio synth voice
+js/audio.js         — Web Audio synth voice + delay/reverb/DJ-filter bus
 js/engine.js        — the tick sequencer: groove, phrase, table, FX state
 js/wizard.js        — "describe an effect" → FX recipes
 js/app.js           — UI: grid editor, transport, scope, wizard, reference
@@ -74,6 +83,7 @@ test-smoke.mjs      — headless Chromium smoke test (needs playwright-core)
 
 ## Status
 
-v1 — core sequencer FX, audible + visual, with the description wizard. Not
+v2 — core sequencer FX plus an audible delay/reverb/DJ-filter bus, scale
+quantization, and shareable patches, with the description wizard. Not
 affiliated with Dirtywave. Manual content © Dirtywave; Macrosynth model text is
 CC BY-SA 3.0 (Mutable Instruments) where quoted.

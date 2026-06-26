@@ -101,6 +101,7 @@
   Engine.prototype.play = function () {
     if (this.running) return;
     this.audio.ensure();
+    this.audio.resetFx();
     this._resetState();
     this.running = true;
     this._next = this.audio.now();
@@ -281,11 +282,13 @@
   };
   Engine.prototype._updateOutput = function () {
     var v = this.voice;
-    var base = v.baseNote + this.track.transpose + (v.tableTranspose || 0)
-      + v.mod.pit + v.mod.fin + v.mod.bend;
+    // slow integer base (note + transposes + pitch offset) is what scales quantize
+    var slow = v.baseNote + this.track.transpose + (v.tableTranspose || 0) + v.mod.pit;
+    if (this.track.scale && M8.scales) slow = M8.scales.quantize(slow, this.track.scale.key, this.track.scale.scale);
+    var base = slow + v.mod.fin + v.mod.bend;            // fine tune + bend ride on top
     if (v.slideTicks > 0) v.playedBase += (base - v.playedBase) / Math.max(1, v.slideTicks);
     else v.playedBase = base;
-    var semis = v.playedBase + v.mod.arp + v.mod.vib;
+    var semis = v.playedBase + v.mod.arp + v.mod.vib;    // arp/vibrato stay snappy
     this._lastSemis = semis;
     if (v.alive) { this.audio.setFreq(notes.midiToFreq(semis)); this.audio.setLevel(this._level()); }
   };
@@ -295,6 +298,7 @@
     return {
       tickDur: this.tickDur(),
       track: this.track,
+      audio: this.audio,
       rand: function () { return self.rng(); },
       retrig: function () { self.audio.noteOn(self._level()); },
       scheduleKill: function (t) { v.killIn = t; },
@@ -320,7 +324,7 @@
       freq: notes.midiToFreq(this._lastSemis || v.baseNote),
       level: v.alive ? this._level() : 0,
       bend: v.mod.bend, bpm: this.bpm, groove: this.grooveNum,
-      activeFX: active, slide: v.slideTicks
+      activeFX: active, slide: v.slideTicks, scale: this.track.scale
     });
   };
 

@@ -35,8 +35,8 @@
     inp.className = 'cell ' + klass;
     inp.value = value; inp.placeholder = placeholder;
     inp.spellcheck = false; inp.autocomplete = 'off';
-    inp.addEventListener('change', function () { onCommit(inp); });
-    inp.addEventListener('blur', function () { onCommit(inp); });
+    inp.addEventListener('change', function () { onCommit(inp); persist(); });
+    inp.addEventListener('blur', function () { onCommit(inp); persist(); });
     inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') inp.blur(); });
     return inp;
   }
@@ -100,11 +100,11 @@
     else { audio.ensure(); engine.play(); setPlaying(true); }
   });
   $('bpm').addEventListener('input', function () {
-    engine.setBPM(parseInt(this.value, 10)); $('bpmVal').textContent = this.value;
+    engine.setBPM(parseInt(this.value, 10)); $('bpmVal').textContent = this.value; persist();
   });
-  $('wave').addEventListener('change', function () { audio.setWave(this.value); });
-  $('cutoff').addEventListener('input', function () { audio.setCutoff(parseInt(this.value, 10)); });
-  $('btnClear').addEventListener('click', function () { api.reset(); renderGrid(); });
+  $('wave').addEventListener('change', function () { audio.setWave(this.value); persist(); });
+  $('cutoff').addEventListener('input', function () { audio.setCutoff(parseInt(this.value, 10)); persist(); });
+  $('btnClear').addEventListener('click', function () { api.reset(); renderGrid(); persist(); });
 
   document.querySelectorAll('.tab').forEach(function (t) {
     t.addEventListener('click', function () {
@@ -129,6 +129,8 @@
       $('rFreq').textContent = (s.freq ? s.freq.toFixed(1) : '---') + ' Hz';
       $('rGroove').textContent = notes.hex2(s.groove);
       $('rTic').textContent = notes.hex2(engine.tableTic);
+      $('rScale').textContent = s.scale && M8.scales.list[s.scale.scale]
+        ? notes.NAMES[s.scale.key] + ' ' + M8.scales.list[s.scale.scale].name : 'Chromatic';
       $('vNote').textContent = s.alive ? s.noteLabel : '---';
       $('vFreq').textContent = (s.freq ? s.freq.toFixed(1) : '---') + ' Hz';
       $('vLevel').style.width = Math.round((s.level || 0) * 100) + '%';
@@ -212,7 +214,60 @@
     document.querySelectorAll('.tab').forEach(function (x) { x.classList.toggle('active', x.dataset.grid === curGrid); });
     renderGrid();
     $('explain').innerHTML = '<b>' + r.label + '</b> — ' + explanation;
+    persist();
   }
+
+  // ---------- patch save / load / share ----------
+  function b64encode(s) { return btoa(unescape(encodeURIComponent(s))); }
+  function b64decode(s) { return decodeURIComponent(escape(atob(s))); }
+  function encFx(c) { return c ? [c.code, c.value] : 0; }
+  function decFx(a) { return (a && a[0]) ? { code: a[0], value: a[1] | 0 } : null; }
+
+  function encodeState() {
+    var o = {
+      v: 1, b: engine.bpm, g: engine.grooveNum, t: engine.tableTic, gr: curGrid,
+      w: audio.wave, c: audio.cutoff,
+      p: engine.phrase.map(function (s) { return [s.note, s.vel, s.fx.map(encFx)]; }),
+      T: engine.table.map(function (r) { return [r.n, r.v, r.fx.map(encFx)]; })
+    };
+    return b64encode(JSON.stringify(o));
+  }
+  function applyState(o) {
+    if (!o || !o.p) return false;
+    engine.setBPM(o.b); $('bpm').value = o.b; $('bpmVal').textContent = o.b;
+    engine.setGroove(o.g); engine.setTableTic(o.t || 6);
+    audio.setWave(o.w || 'sawtooth'); $('wave').value = o.w || 'sawtooth';
+    audio.setCutoff(o.c || 5000); $('cutoff').value = o.c || 5000;
+    o.p.forEach(function (s, i) { engine.phrase[i] = { note: s[0], vel: s[1], fx: s[2].map(decFx) }; });
+    (o.T || []).forEach(function (r, i) { engine.table[i] = { n: r[0], v: r[1], fx: r[2].map(decFx) }; });
+    if (o.gr) { curGrid = o.gr; document.querySelectorAll('.tab').forEach(function (x) { x.classList.toggle('active', x.dataset.grid === curGrid); }); }
+    return true;
+  }
+  function decodeState(str) { try { return JSON.parse(b64decode(str)); } catch (e) { return null; } }
+
+  var saveTimer = null;
+  function persist() {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(function () {
+      try { localStorage.setItem('m8fx_patch', encodeState()); } catch (e) { }
+    }, 250);
+  }
+  function toast(msg) {
+    var t = $('toast'); t.textContent = msg; t.style.display = 'block';
+    clearTimeout(toast._t); toast._t = setTimeout(function () { t.style.display = 'none'; }, 2200);
+  }
+  function copyText(txt, ok) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(txt).then(function () { toast(ok); }, function () { toast('copy failed — here it is in the console'); console.log(txt); });
+    } else { console.log(txt); toast('copied to console'); }
+  }
+  $('btnShare').addEventListener('click', function () {
+    var hash = '#patch=' + encodeState();
+    try { history.replaceState(null, '', hash); } catch (e) { location.hash = hash; }
+    copyText(location.href, 'share link copied to clipboard');
+  });
+  $('btnCopy').addEventListener('click', function () { copyText(encodeState(), 'patch code copied'); });
+  $('btnReset').addEventListener('click', function () { runRecipe(wizard.byId('arp-major')); toast('loaded demo patch'); });
 
   function renderRecipeList(list) {
     var host = $('recipeList'); host.innerHTML = '';
@@ -260,7 +315,15 @@
   // ---------- boot ----------
   renderFxRef();
   renderRecipeList(wizard.recipes);
-  runRecipe(wizard.byId('arp-major'));   // something fun on first load
+  var loaded = false;
+  var m = /[#&]patch=([^&]+)/.exec(location.hash);   // shared link wins
+  if (m) loaded = applyState(decodeState(m[1]));
+  if (!loaded) {                                      // then last local session
+    var saved = null; try { saved = localStorage.getItem('m8fx_patch'); } catch (e) { }
+    if (saved) loaded = applyState(decodeState(saved));
+  }
+  if (loaded) { renderGrid(); $('explain').textContent = 'Loaded your patch. Hit play, or describe a new effect above.'; }
+  else { runRecipe(wizard.byId('arp-major')); }       // first-timer demo
   renderGrid();
   requestAnimationFrame(paintVoice);
 })(window.M8 = window.M8 || {});
