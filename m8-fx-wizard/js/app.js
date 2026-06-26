@@ -518,6 +518,7 @@
     var L = [];
     L.push('M8 BUILD SHEET — ' + new Date().toISOString().slice(0, 16).replace('T', ' '));
     L.push('(transcribe these onto the device — the wizard does not write to the M8)');
+    L.push('step-by-step: reference/recreate-on-m8.md');
     L.push('');
     L.push('PROJECT   tempo ' + engine.bpm + ' BPM (' + notes.hex2(engine.bpm) + ')   groove ' + notes.hex2(engine.grooveNum) +
       '   osc ' + audio.wave + '   instrument ' + (engine.instrument === 'hyper' ? 'HYPERSYNTH' : 'mono'));

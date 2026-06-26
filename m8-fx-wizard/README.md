@@ -49,7 +49,9 @@ offsets, bank numbers) and key them in.
 The **build sheet** button makes that fast: it opens a plain-text summary of the
 whole patch — project tempo/groove, every non-empty phrase step and table row
 with their FX, and the Hypersynth banks + root→bank sequence — ready to copy or
-download as `.txt` and work through on the device.
+download as `.txt` and work through on the device. For the exact button-by-button
+steps, see **[`reference/recreate-on-m8.md`](reference/recreate-on-m8.md)**
+(formulaic: add a Hypersynth instrument, set its banks, enter the phrase FX, …).
 
 Why no file export yet: the M8 stores songs/instruments as binary `.m8s`/`.m8i`
 files. The community library [`m8-js`](https://github.com/whitlockjc/m8-js) can
