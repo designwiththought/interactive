@@ -7,16 +7,28 @@
   //  select. Mirrors the list columns on the hardware Fill screen.
   //
   //---------------------------------------------------
+  import { nextTick, onMounted, ref, watch } from 'vue';
+
   interface Opt {
     value: string;
     label: string;
   }
   defineProps<{ options: Opt[]; disabled?: boolean }>();
   const model = defineModel<string>({ default: '' });
+
+  // Keep the selected item in view — long lists (FX/curves) often hold the
+  // current value below the fold, where it would otherwise look unselected.
+  const root = ref<HTMLElement | null>(null);
+  async function scrollToSelected() {
+    await nextTick();
+    root.value?.querySelector<HTMLElement>('.lb-item.sel')?.scrollIntoView({ block: 'nearest' });
+  }
+  onMounted(scrollToSelected);
+  watch(model, scrollToSelected);
 </script>
 
 <template>
-  <div class="listbox" :class="{ disabled }">
+  <div ref="root" class="listbox" :class="{ disabled }">
     <div
       v-for="o in options"
       :key="o.value"
