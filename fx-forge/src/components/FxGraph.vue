@@ -24,7 +24,6 @@
     defaultParams,
   } from '@/forge/index.ts';
   import Button from '@/components/ui/Button.vue';
-  import Slider from '@/components/ui/Slider.vue';
 
   const props = defineProps({
     pattern: {
@@ -101,19 +100,6 @@
   ]);
   // Lane-2 FX dropdown gains a leading "None" entry (replaces the enable checkbox).
   const lane2Options = computed(() => [{ symbol: NONE, name: 'None' }, ...AUTOMATABLE_FX]);
-
-  const customLaneCount = computed(() => (lane2Fx.value === NONE ? 1 : 2));
-  const laneBudget = computed(() => {
-    if (isCustom.value) {
-      const fx = lane2Fx.value === NONE ? lane1Fx.value : `${lane1Fx.value} + ${lane2Fx.value}`;
-      return `${fx} · ${customLaneCount.value}/${MAX_FX_LANES} FX`;
-    }
-    const ls = selectedEffect.value!.lanes(effectParams.value);
-    return `${ls.map((l) => l.fx).join(' + ')} · ${ls.length}/${MAX_FX_LANES} FX`;
-  });
-  const effectDesc = computed(() =>
-    isCustom.value ? 'Build your own from an FX and a curve per lane.' : (selectedEffect.value?.description ?? ''),
-  );
 
   //----------------------------------
   // SVG mapping
@@ -233,6 +219,50 @@
     clearRange(props.pattern, trackIndex.value, effectiveRange.value);
     emit('changed');
   }
+
+  //----------------------------------
+  // Parameter cells (encoder-style: drag up/down or scroll to edit)
+  //----------------------------------
+  interface Param {
+    id: string;
+    label: string;
+    min: number;
+    max: number;
+    step?: number;
+    unit?: string;
+  }
+  const dragId = ref<string | null>(null);
+  let dragLastY = 0;
+
+  function paramDisplay(p: Param) {
+    const v = Math.round(effectParams.value[p.id] ?? 0);
+    const s = p.min < 0 && v > 0 ? `+${v}` : `${v}`;
+    return p.unit ? `${s} ${p.unit}` : s;
+  }
+  function adjustParam(p: Param, delta: number) {
+    const step = p.step ?? 1;
+    let v = (effectParams.value[p.id] ?? 0) + delta;
+    v = Math.round(v / step) * step;
+    effectParams.value = { ...effectParams.value, [p.id]: Math.max(p.min, Math.min(p.max, v)) };
+  }
+  function cellDown(e: PointerEvent, p: Param) {
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    dragId.value = p.id;
+    dragLastY = e.clientY;
+  }
+  function cellMove(e: PointerEvent, p: Param) {
+    if (e.buttons !== 1 || dragId.value !== p.id) return;
+    const dy = dragLastY - e.clientY; // drag up = increase
+    dragLastY = e.clientY;
+    adjustParam(p, (dy * (p.max - p.min)) / 180);
+  }
+  function cellUp() {
+    dragId.value = null;
+  }
+  function cellWheel(e: WheelEvent, p: Param) {
+    e.preventDefault();
+    adjustParam(p, (e.deltaY < 0 ? 1 : -1) * (p.step ?? 1));
+  }
 </script>
 
 <template>
@@ -343,62 +373,72 @@
       </div>
     </div>
 
-    <!-- Effect editing: the bottom area below the graph -->
-    <div class="fx-panel">
-      <div class="fp-bar">
-        <select class="fp-title" v-model="effectId">
+    <!-- Effect editing: a Polyend-style parameter bar below the graph -->
+    <div class="param-bar">
+      <!-- Effect selector -->
+      <div class="pcell select-cell">
+        <span class="pc-label">Effect</span>
+        <select class="pc-select" v-model="effectId">
           <option v-for="o in effectOptions" :key="o.id" :value="o.id">{{ o.name }}</option>
         </select>
-        <span class="budget">{{ laneBudget }}</span>
-        <span class="desc">{{ effectDesc }}</span>
-        <span class="fp-spacer" />
-        <span class="fp-range">{{ rangeLabel }}</span>
-        <Button small @click="clearFx">Clear</Button>
-        <Button small blue @click="handleDrop">Drop</Button>
       </div>
 
-      <div class="fp-body">
-        <!-- Preset: parameter sliders, side by side -->
-        <template v-if="!isCustom && selectedEffect">
-          <Slider
-            v-for="param in selectedEffect.params"
-            :key="param.id"
-            v-model="effectParams[param.id]"
-            :label="param.label"
-            :min="param.min"
-            :max="param.max"
-            :step="param.step ?? 1"
-            :unit="param.unit ?? ''"
-            :bipolar="param.min < 0"
-          />
-        </template>
+      <!-- Preset: a draggable value cell per parameter -->
+      <template v-if="!isCustom && selectedEffect">
+        <div
+          v-for="param in selectedEffect.params"
+          :key="param.id"
+          class="pcell param"
+          :class="{ active: dragId === param.id }"
+          @pointerdown="(e) => cellDown(e, param)"
+          @pointermove="(e) => cellMove(e, param)"
+          @pointerup="cellUp"
+          @wheel="(e) => cellWheel(e, param)"
+        >
+          <span class="pc-label">{{ param.label }}</span>
+          <span class="pc-value">{{ paramDisplay(param) }}</span>
+        </div>
+      </template>
 
-        <!-- Custom: an FX + curve per lane -->
-        <template v-else>
-          <div class="fp-lane">
-            <span class="fp-lane-label">Lane 1</span>
-            <select v-model="lane1Fx">
-              <option v-for="f in AUTOMATABLE_FX" :key="f.symbol" :value="f.symbol">
-                {{ f.symbol }} · {{ f.name }}
-              </option>
-            </select>
-            <select v-model="lane1Curve">
-              <option v-for="c in CURVES" :key="c.id" :value="c.id">{{ c.name }}</option>
-            </select>
-          </div>
-          <div class="fp-lane">
-            <span class="fp-lane-label">Lane 2</span>
-            <select v-model="lane2Fx">
-              <option v-for="f in lane2Options" :key="f.symbol" :value="f.symbol">
-                {{ f.symbol === 'none' ? 'None' : `${f.symbol} · ${f.name}` }}
-              </option>
-            </select>
-            <select v-model="lane2Curve" :disabled="lane2Fx === 'none'">
-              <option v-for="c in CURVES" :key="c.id" :value="c.id">{{ c.name }}</option>
-            </select>
-          </div>
-        </template>
+      <!-- Custom: FX + curve selector cells per lane -->
+      <template v-else>
+        <div class="pcell select-cell">
+          <span class="pc-label">Lane 1 FX</span>
+          <select class="pc-select" v-model="lane1Fx">
+            <option v-for="f in AUTOMATABLE_FX" :key="f.symbol" :value="f.symbol">{{ f.symbol }} · {{ f.name }}</option>
+          </select>
+        </div>
+        <div class="pcell select-cell">
+          <span class="pc-label">Curve</span>
+          <select class="pc-select" v-model="lane1Curve">
+            <option v-for="c in CURVES" :key="c.id" :value="c.id">{{ c.name }}</option>
+          </select>
+        </div>
+        <div class="pcell select-cell">
+          <span class="pc-label">Lane 2 FX</span>
+          <select class="pc-select" v-model="lane2Fx">
+            <option v-for="f in lane2Options" :key="f.symbol" :value="f.symbol">
+              {{ f.symbol === 'none' ? 'None' : `${f.symbol} · ${f.name}` }}
+            </option>
+          </select>
+        </div>
+        <div class="pcell select-cell" :class="{ disabled: lane2Fx === 'none' }">
+          <span class="pc-label">Curve</span>
+          <select class="pc-select" v-model="lane2Curve" :disabled="lane2Fx === 'none'">
+            <option v-for="c in CURVES" :key="c.id" :value="c.id">{{ c.name }}</option>
+          </select>
+        </div>
+      </template>
+
+      <!-- Range -->
+      <div class="pcell">
+        <span class="pc-label">Range</span>
+        <span class="pc-value">{{ rangeLabel }}</span>
       </div>
+
+      <!-- Actions -->
+      <div class="pcell action" @click="clearFx"><span class="pc-action">Clear</span></div>
+      <div class="pcell action drop" @click="handleDrop"><span class="pc-action">Drop</span></div>
     </div>
   </div>
 </template>
@@ -515,92 +555,107 @@
       flex-direction: column;
     }
 
-    // Effect editing — the bottom area: a header bar, then the params row.
-    .fx-panel {
+    // Effect editing — a Polyend-style parameter bar of label/value cells.
+    .param-bar {
+      display: flex;
       margin-top: 12px;
-      background: #0e0e0e;
+      min-height: 56px;
+      background: var(--pattern-step-bg-color);
       border: 2px solid #000;
       border-radius: 6px;
       overflow: hidden;
+      user-select: none;
+    }
+    .pcell {
+      position: relative;
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      padding: 8px 10px;
+      text-align: center;
 
-      // Header bar: effect selector, budget/description, then range + actions.
-      .fp-bar {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 0 10px 0 0;
-        background: #1b1c1e;
-        border-bottom: 1px solid #000;
+      // Thin divider between cells, like the hardware parameter bar.
+      &:not(:last-child)::after {
+        content: '';
+        position: absolute;
+        right: 0;
+        top: 18%;
+        height: 64%;
+        width: 1px;
+        background: #2a2b2d;
       }
-      .fp-title {
+
+      .pc-label {
+        font-size: 10px;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: var(--pattern-step-label-color);
+      }
+      .pc-value {
+        font-size: 14px;
+        color: #fff;
+        white-space: nowrap;
+      }
+
+      // Encoder-style value cells: drag up/down to change.
+      &.param {
+        cursor: ns-resize;
+        &:hover {
+          background: rgba(255, 255, 255, 0.03);
+        }
+        &.active {
+          background: rgba(255, 255, 255, 0.06);
+        }
+      }
+
+      // Dropdown cells (effect / custom FX + curve).
+      &.select-cell .pc-select {
         appearance: none;
         -webkit-appearance: none;
-        height: 40px;
-        min-width: 170px;
-        padding: 0 32px 0 14px;
+        max-width: 100%;
+        padding: 0 16px 0 4px;
         border: 0;
         border-radius: 0;
         background: transparent
-          url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="11" height="7"><path d="M0 0l5.5 7L11 0z" fill="%23999"/></svg>')
-          no-repeat right 14px center;
+          url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="9" height="6"><path d="M0 0l4.5 6L9 0z" fill="%23aaa"/></svg>')
+          no-repeat right center;
         color: #fff;
-        font-weight: 600;
-        font-size: 15px;
+        font-size: 14px;
+        text-align: center;
         cursor: pointer;
         box-shadow: none;
       }
-      .budget {
-        font-family: monospace;
-        font-size: 11px;
-        color: var(--pattern-step-label-color);
-      }
-      .desc {
-        font-size: 11px;
-        opacity: 0.5;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-      .fp-spacer {
-        flex: 1;
-      }
-      .fp-range {
-        font-size: 11px;
-        color: var(--pattern-step-label-color);
+      &.disabled {
+        opacity: 0.4;
       }
 
-      // Params row: sliders sit side by side and fill the width.
-      .fp-body {
-        display: flex;
-        align-items: flex-start;
-        gap: 28px;
-        padding: 16px;
-        & > .hslider {
-          flex: 1;
-          min-width: 0;
-        }
-      }
-      .fp-lane {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        flex: 1;
-        min-width: 0;
-        .fp-lane-label {
+      // Action cells (Clear / Drop) sit at the right like Cancel / Fill.
+      &.action {
+        flex: 0 0 auto;
+        min-width: 84px;
+        cursor: pointer;
+        .pc-action {
+          font-weight: 600;
           color: #fff;
         }
-        select {
-          flex: 1;
-          min-width: 0;
+        &:hover {
+          background: rgba(255, 255, 255, 0.05);
         }
       }
-    }
-
-    @media (max-width: 720px) {
-      .fp-body {
-        flex-direction: column;
-        & > .hslider {
-          width: 100%;
+      &.action.drop {
+        background: var(--pattern-step-active-color, #54cfc1);
+        &::after {
+          display: none;
+        }
+        .pc-action {
+          color: #06231f;
+        }
+        &:hover {
+          filter: brightness(1.08);
         }
       }
     }
