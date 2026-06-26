@@ -149,19 +149,24 @@
     b.addEventListener('click', function () { on = !on; b.classList.toggle('on', on); b.textContent = on ? 'on' : 'off'; onChange(on); });
     w.appendChild(b); return w;
   }
-  function setShapeOffsets(arr) {
-    engine.chord.voices = [0, 1, 2, 3, 4, 5].map(function (i) { return { off: arr[i] != null ? arr[i] : 0, on: i < arr.length }; });
+  var selShape = 0;   // which bank shape is being edited
+  function bank() { return engine.chord.shapes; }
+  function clampSel() { if (selShape >= bank().length) selShape = bank().length - 1; if (selShape < 0) selShape = 0; }
+  function ensureShape(quality) {
+    var s = bank(); for (var i = 0; i < s.length; i++) if (s[i].name === quality) return i;
+    s.push({ name: quality, voices: M8.chords.shapeVoices(M8.chords.QUALITIES[quality] || [0, 4, 7]) });
+    return s.length - 1;
   }
   function genProg(name) {
-    var g = M8.chords.generateRoots(name, engine.chord.key, 3);
-    engine.chordSeq = g.roots; engine.chord.diatonic = true; engine.chord.scale = g.mode;
-    setShapeOffsets(g.seventh ? [0, 4, 7, 10] : [0, 4, 7]);
+    var prog = M8.chords.generateProgression(name, engine.chord.key, 3);
+    engine.chord.scale = M8.chords.PROGRESSIONS[name].mode;
+    engine.chordSeq = prog.map(function (c) { return { pc: c.pc, oct: c.oct, shape: ensureShape(c.quality) }; });
     renderChords(); persist();
   }
   function genRandom() {
-    var roots = [], k = engine.chord.key, mode = engine.chord.scale;
-    for (var i = 0; i < 4; i++) { var deg = i === 0 ? 1 : 1 + Math.floor(engine.rng() * 7); roots.push({ pc: M8.chords.diatonic(k, mode, deg, false).pc, oct: 3 }); }
-    engine.chordSeq = roots; engine.chord.diatonic = true; renderChords(); persist();
+    var k = engine.chord.key, mode = engine.chord.scale, seq = [];
+    for (var i = 0; i < 4; i++) { var deg = i === 0 ? 1 : 1 + Math.floor(engine.rng() * 7); var c = M8.chords.diatonic(k, mode, deg, false); seq.push({ pc: c.pc, oct: 3, shape: ensureShape(c.quality) }); }
+    engine.chordSeq = seq; renderChords(); persist();
   }
 
   function voiceChip(v, i) {
@@ -173,42 +178,80 @@
     chip.addEventListener('click', function (e) { if (e.target === off) return; v.on = !v.on; chip.classList.toggle('on', v.on); persist(); });
     return chip;
   }
+  function shapeChip(shape, i) {
+    var chip = document.createElement('div'); chip.className = 'shape-chip' + (i === selShape ? ' sel' : '');
+    var nm = document.createElement('span'); nm.className = 'sc-name'; nm.textContent = shape.name; chip.appendChild(nm);
+    chip.addEventListener('click', function () { selShape = i; renderChords(); });
+    if (bank().length > 1) {
+      var x = document.createElement('button'); x.className = 'sc-del'; x.textContent = '×';
+      x.addEventListener('click', function (e) {
+        e.stopPropagation(); bank().splice(i, 1);
+        engine.chordSeq.forEach(function (s) { if (s.shape >= i && s.shape > 0) s.shape--; });
+        clampSel(); renderChords(); persist();
+      });
+      chip.appendChild(x);
+    }
+    return chip;
+  }
   function rootCard(slot, i) {
     var card = document.createElement('div'); card.className = 'chord-card';
     var root = document.createElement('div'); root.className = 'c-root'; root.textContent = notes.NAMES[slot.pc] + slot.oct;
     attachScrub(root, function () { return (slot.oct + 1) * 12 + slot.pc; }, function (v) {
       slot.oct = Math.floor(v / 12) - 1; slot.pc = ((v % 12) + 12) % 12; root.textContent = notes.NAMES[slot.pc] + slot.oct;
     }, { min: 24, max: 96 });
-    var tag = document.createElement('div'); tag.className = 'c-tag'; tag.textContent = 'root';
+    var shp = document.createElement('button'); shp.className = 'c-shape';
+    shp.textContent = (bank()[slot.shape] || bank()[0]).name;
+    shp.title = 'click to shift shape';
+    shp.addEventListener('click', function () { slot.shape = (slot.shape + 1) % bank().length; shp.textContent = bank()[slot.shape].name; persist(); });
     var del = document.createElement('button'); del.className = 'c-del'; del.textContent = '×';
     del.addEventListener('click', function () { engine.chordSeq.splice(i, 1); renderChords(); persist(); });
-    card.appendChild(root); card.appendChild(tag); card.appendChild(del);
+    card.appendChild(root); card.appendChild(shp); card.appendChild(del);
     return card;
   }
 
   function renderChords() {
+    clampSel();
     var host = $('gridHost'); host.innerHTML = ''; rowEls = [];
-    $('gridHint').textContent = 'Chord Lab — on the M8 only the Hypersynth plays chords, and the chord is defined as voice offsets in the instrument. Define the shape up top, sequence root notes below, and drag any value to hear it change live.';
+    $('gridHint').textContent = 'Chord Lab — on the M8 only the Hypersynth plays chords, and a chord is voice offsets defined in the instrument. There is no internal chord-change FX (that is MIDI-only), so you sequence chords by shifting between defined shapes. Drag any value to hear it live.';
     var lab = document.createElement('div'); lab.className = 'chordlab';
 
-    // Hypersynth instrument: the chord definition
+    // Hypersynth: the bank of chord shapes the user has defined
     var hs = document.createElement('div'); hs.className = 'hs';
     var head = document.createElement('div'); head.className = 'hs-head';
-    head.innerHTML = '<b>HYPERSYNTH</b> — chord shape, defined as voice offsets (semitones). Click a voice to toggle it; drag its number to change the offset.';
+    head.innerHTML = '<b>HYPERSYNTH</b> — your chord shapes (voice offsets in semitones). Pick a shape to edit; click a voice to toggle it; drag its number to change the offset. The sequencer below <i>shifts</i> between these shapes.';
     hs.appendChild(head);
+
+    // shape bank row
+    var bankRow = document.createElement('div'); bankRow.className = 'shape-bank';
+    bank().forEach(function (s, i) { bankRow.appendChild(shapeChip(s, i)); });
+    var preset = selControl('+ from preset', [['', '+ add…']].concat(M8.chords.ORDER.map(function (q) { return [q, q]; })), '', function (v) {
+      if (!v) return; var idx = ensureShape(v); selShape = idx; renderChords(); persist();
+    });
+    preset.classList.add('addshape'); bankRow.appendChild(preset);
+    hs.appendChild(bankRow);
+
+    // selected shape: name + voices
+    var sel = bank()[selShape];
+    var nameRow = document.createElement('div'); nameRow.className = 'hs-namerow';
+    var nlab = document.createElement('label'); nlab.textContent = 'Editing shape'; nameRow.appendChild(nlab);
+    var nin = document.createElement('input'); nin.className = 'shape-name'; nin.value = sel.name; nin.spellcheck = false;
+    nin.addEventListener('change', function () { sel.name = nin.value.trim() || sel.name; renderChords(); persist(); });
+    nameRow.appendChild(nin);
+    hs.appendChild(nameRow);
+
+    var voices = document.createElement('div'); voices.className = 'hs-voices';
+    sel.voices.forEach(function (v, i) { voices.appendChild(voiceChip(v, i)); });
+    hs.appendChild(voices);
+
     var shaperow = document.createElement('div'); shaperow.className = 'chord-controls';
-    shaperow.appendChild(selControl('Shape preset', M8.chords.ORDER.map(function (q) { return [q, q]; }), '', function (v) { setShapeOffsets(M8.chords.QUALITIES[v]); renderChords(); persist(); }));
     shaperow.appendChild(rangeControl('Swarm', 0, 255, engine.chord.swarm, function (v) { engine.chord.swarm = v; persist(); }));
     shaperow.appendChild(toggleControl('Diatonic snap', engine.chord.diatonic, function (on) { engine.chord.diatonic = on; persist(); }));
     shaperow.appendChild(selControl('Key', notes.NAMES.map(function (n, i) { return [i, n]; }), engine.chord.key, function (v) { engine.chord.key = +v; persist(); }));
     shaperow.appendChild(selControl('Scale', [['major', 'major'], ['minor', 'minor']], engine.chord.scale, function (v) { engine.chord.scale = v; persist(); }));
     hs.appendChild(shaperow);
-    var voices = document.createElement('div'); voices.className = 'hs-voices';
-    engine.chord.voices.forEach(function (v, i) { voices.appendChild(voiceChip(v, i)); });
-    hs.appendChild(voices);
     lab.appendChild(hs);
 
-    // generators (build a root sequence in the chosen key)
+    // generators
     var gen = document.createElement('div'); gen.className = 'gen-row';
     Object.keys(M8.chords.PROGRESSIONS).forEach(function (k) {
       var b = document.createElement('button'); b.className = 'gen'; b.textContent = M8.chords.PROGRESSIONS[k].name;
@@ -228,13 +271,13 @@
     ctr.appendChild(rangeControl('Delay', 0, 255, chordSpace.delay, function (v) { chordSpace.delay = v; audio.setDelayReturn(v); persist(); }));
     lab.appendChild(ctr);
 
-    // root sequence
-    var srow = document.createElement('div'); srow.className = 'strip-label'; srow.textContent = 'ROOT SEQUENCE — each root triggers the Hypersynth chord above (loops as one bar each)';
+    // root + shape sequence
+    var srow = document.createElement('div'); srow.className = 'strip-label'; srow.textContent = 'SEQUENCE — each step is a root note + which shape to shift to (loops one bar each)';
     lab.appendChild(srow);
     var strip = document.createElement('div'); strip.className = 'chord-strip';
     engine.chordSeq.forEach(function (slot, i) { strip.appendChild(rootCard(slot, i)); });
     var addb = document.createElement('button'); addb.className = 'chord-add'; addb.textContent = '+';
-    addb.addEventListener('click', function () { engine.chordSeq.push({ pc: 0, oct: 3 }); renderChords(); persist(); });
+    addb.addEventListener('click', function () { engine.chordSeq.push({ pc: 0, oct: 3, shape: selShape }); renderChords(); persist(); });
     strip.appendChild(addb);
     lab.appendChild(strip);
 
@@ -393,7 +436,7 @@
       w: audio.wave, c: audio.cutoff,
       p: engine.phrase.map(function (s) { return [s.note, s.vel, s.fx.map(encFx)]; }),
       T: engine.table.map(function (r) { return [r.n, r.v, r.fx.map(encFx)]; }),
-      ch: engine.chord, cs: engine.chordSeq, sp: chordSpace
+      ch: engine.chord, cs: engine.chordSeq, sp: chordSpace, ss: selShape
     };
     return b64encode(JSON.stringify(o));
   }
@@ -408,6 +451,10 @@
     if (o.ch) engine.chord = o.ch;
     if (o.cs) engine.chordSeq = o.cs;
     if (o.sp) chordSpace = o.sp;
+    if (o.ss != null) selShape = o.ss;
+    // migrate older patches that predate the shape bank
+    if (!engine.chord.shapes) engine.chord.shapes = M8.chords.defaultBank();
+    engine.chordSeq.forEach(function (s) { if (s.shape == null) s.shape = 0; if (s.quality != null) delete s.quality; });
     if (o.gr) { curGrid = o.gr; document.querySelectorAll('.tab').forEach(function (x) { x.classList.toggle('active', x.dataset.grid === curGrid); }); }
     return true;
   }

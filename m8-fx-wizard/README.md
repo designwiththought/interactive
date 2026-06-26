@@ -10,13 +10,15 @@ note"* / *"swing"* and the wizard writes the real FX commands into the grid and
 explains them.
 
 There's also a **Chord Lab** modelled on the M8's reality: on the M8 *only the
-Hypersynth plays chords*, and the chord is **defined as voice offsets in the
-instrument**. So the lab has a Hypersynth panel (6 voices = the chord shape) and
-a **root-note sequencer** that triggers it — generate a progression (pop, jazz
-ii–V–I, lo-fi, blues…), pick a play style (block / arp / strum), and hear it
-polyphonically. Diatonic-snap keeps roots in key; Swarm detunes the voices. And
-throughout, you can **drag any value to hear it change** live — voice offsets,
-chord roots, rates, gates, FX bytes, velocities.
+Hypersynth plays chords*, a chord is **voice offsets defined in the instrument**,
+and there's **no internal chord-change FX** (that's MIDI-only) — so you sequence
+chords by **shifting between shapes you've defined**. The lab mirrors that: a
+Hypersynth **shape bank** (define/name your chords as up to 6 voice offsets) and
+a sequencer where each step is a **root + which shape to shift to**. Generate a
+progression (pop, jazz ii–V–I, lo-fi, blues…), pick a play style
+(block / arp / strum), and hear it polyphonically. Swarm detunes the voices;
+optional diatonic-snap keeps everything in key. And throughout you can **drag any
+value to hear it change** live — voice offsets, roots, rates, gates, FX bytes.
 
 ## Run it
 
@@ -52,13 +54,15 @@ Click **▶ PLAY** (the first click also starts Web Audio).
   encodes the whole patch (grid + tempo + groove + osc + chords) into the URL,
   and **copy patch** gives you a portable code.
 - **Chord Lab (Hypersynth-accurate)** — on the M8 only the Hypersynth plays
-  chords, and the chord is defined as up to 6 **voice offsets in the
-  instrument**; you then sequence root notes that trigger it. The lab mirrors
-  that: a Hypersynth shape panel (toggle/scrub each voice, shape presets, Swarm
-  detune, optional diatonic snap) feeding an 8-voice polyphonic root sequencer.
-  Diatonic generators (pop, doo-wop, sad, jazz ii–V–I, lo-fi 7ths, epic minor,
-  andalusian, 12-bar blues, random) build root sequences in any key; play styles
-  cover block / arp (up/down/up-down/random) / strum, with rate, gate, and
+  chords, a chord is up to 6 **voice offsets defined in the instrument**, and
+  there is **no internal chord-change FX** (chords are MIDI-only). So the lab is
+  built around a **shape bank**: define/name your chord shapes (toggle/scrub each
+  voice, add from presets), then a sequencer where each step is a **root + the
+  shape to shift to** — exactly how you'd change chords on the device. 8-voice
+  polyphony; Swarm detune; optional diatonic snap. Diatonic generators (pop,
+  doo-wop, sad, jazz ii–V–I, lo-fi 7ths, epic minor, andalusian, 12-bar blues,
+  random) populate the bank and shift the sequence between the right shapes; play
+  styles cover block / arp (up/down/up-down/random) / strum, with rate, gate, and
   reverb/delay space — all live-draggable.
 - **Drag-to-scrub** — vertical drag on any numeric value (FX bytes, velocity,
   table N/V, chord roots, all the chord controls) nudges it live while it plays;

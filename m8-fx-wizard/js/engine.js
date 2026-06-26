@@ -45,13 +45,13 @@
     this.mode = 'track';        // 'track' (phrase+table) | 'chords'
     this.chord = {
       style: 'block', rate: 3, gateSteps: 14, slotSteps: 16, swarm: 0,
-      diatonic: true, key: 0, scale: 'major',
-      voices: [                 // up to 6 Hypersynth voices: semitone offset + active
-        { off: 0, on: true }, { off: 4, on: true }, { off: 7, on: true },
-        { off: 0, on: false }, { off: 0, on: false }, { off: 0, on: false }
-      ]
+      diatonic: false, key: 0, scale: 'major',
+      shapes: (M8.chords ? M8.chords.defaultBank() : [])   // the user's defined chord shapes
     };
-    this.chordSeq = (M8.chords ? M8.chords.generateRoots('pop', 0, 3).roots : []);
+    // default sequence: a pop progression, each step pointing at the matching shape
+    var prog = M8.chords ? M8.chords.generateProgression('pop', 0, 3) : [];
+    var self = this;
+    this.chordSeq = prog.map(function (c) { return { pc: c.pc, oct: c.oct, shape: self._shapeIndexByName(c.quality) }; });
     this.cRootPc = 0;
     this._resetState();
   }
@@ -141,6 +141,9 @@
   };
 
   Engine.prototype.setMode = function (m) { this.mode = m; };
+  Engine.prototype._shapeIndexByName = function (name) {
+    var s = this.chord.shapes || []; for (var i = 0; i < s.length; i++) if (s[i].name === name) return i; return 0;
+  };
 
   // ---- the tick ----
   Engine.prototype._doTick = function () {
@@ -223,7 +226,8 @@
     this.cRootPc = slot.pc;
     var root = (slot.oct + 1) * 12 + slot.pc;
     var scaleIdx = ch.scale === 'minor' ? 2 : 1;
-    var notes = ch.voices.filter(function (v) { return v.on; }).map(function (v) {
+    var shape = (ch.shapes && ch.shapes[slot.shape]) || (ch.shapes && ch.shapes[0]) || { voices: [{ off: 0, on: true }] };
+    var notes = shape.voices.filter(function (v) { return v.on; }).map(function (v) {
       var n = root + (v.off | 0);
       if (ch.diatonic && M8.scales) n = M8.scales.quantize(n, ch.key, scaleIdx);
       return n;

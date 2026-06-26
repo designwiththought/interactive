@@ -155,6 +155,22 @@ input[type=range] { accent-color: var(--accent); }
 .hs { border: 1px solid var(--line); border-radius: 10px; padding: 12px; background: #11151a; display: flex; flex-direction: column; gap: 10px; }
 .hs-head { color: var(--dim); font-size: 11px; }
 .hs-head b { color: var(--cat-pitch); letter-spacing: .08em; }
+.shape-bank { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.shape-chip {
+  display: flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 16px;
+  border: 1px solid var(--line); background: var(--panel); color: var(--dim); cursor: pointer; font-size: 12px;
+}
+.shape-chip:hover { border-color: var(--dim); }
+.shape-chip.sel { border-color: var(--cat-pitch); color: var(--ink); background: #131c26; }
+.sc-del { background: transparent; border: none; color: var(--dimmer); font-size: 12px; padding: 0 2px; }
+.sc-del:hover { color: var(--accent); }
+.addshape { min-width: 96px; }
+.addshape select { padding: 4px 6px; font-size: 11px; }
+.hs-namerow { display: flex; align-items: center; gap: 8px; }
+.hs-namerow label { color: var(--dimmer); font-size: 10px; text-transform: uppercase; letter-spacing: .1em; }
+.shape-name { background: #0c0f13; color: var(--accent-2); border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px; font-family: var(--mono); font-size: 13px; width: 130px; }
+.c-shape { font-size: 11px; color: var(--ink); background: var(--panel); border: 1px solid var(--line); border-radius: 5px; padding: 3px 8px; cursor: pointer; }
+.c-shape:hover { border-color: var(--cat-pitch); color: var(--accent-2); }
 .hs-voices { display: flex; flex-wrap: wrap; gap: 8px; }
 .hs-voice {
   display: flex; flex-direction: column; align-items: center; gap: 3px; width: 60px; padding: 7px 4px;

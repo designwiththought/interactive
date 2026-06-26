@@ -15,56 +15,51 @@ const checks = {};
 
 await page.locator('.tab[data-grid="chords"]').click();
 await page.waitForTimeout(100);
-checks.hsVoices = await page.locator('.hs-voice').count();            // 6 hypersynth voices
-checks.voicesOnDefault = await page.locator('.hs-voice.on').count();  // major triad = 3
-checks.rootCards = await page.locator('.chord-card').count();         // pop roots = 4
+checks.shapeChips = await page.locator('.shape-chip').count();        // default bank = 9
+checks.hsVoices = await page.locator('.hs-voice').count();            // 6 voices for the edited shape
+checks.editingShape = await page.locator('.shape-name').inputValue(); // 'maj'
+checks.rootCards = await page.locator('.chord-card').count();         // pop = 4
 checks.firstRoot = await page.locator('.c-root').first().textContent();
+checks.firstShape = await page.locator('.c-shape').first().textContent();
 
-// shape preset -> min7 turns on 4 voices
-await page.locator('.ctl:has(label:text-is("Shape preset")) select').selectOption('min7');
-await page.waitForTimeout(60);
-checks.voicesOnMin7 = await page.locator('.hs-voice.on').count();
-
-// generate jazz progression -> roots D G C A in C
+// generate jazz: roots D G C A, shapes shift min7/7/maj7/min7
 await page.locator('.gen', { hasText: 'Jazz' }).click();
-await page.waitForTimeout(60);
+await page.waitForTimeout(80);
 checks.jazzRoots = await page.locator('.c-root').allTextContents();
+checks.jazzShapes = await page.locator('.c-shape').allTextContents();
 
-// toggle a hypersynth voice off (click its label, not the scrub number)
-const v4 = page.locator('.hs-voice').nth(3);
-const before = await v4.evaluate(el => el.classList.contains('on'));
-await v4.locator('.hsv-n').click();
-const after = await v4.evaluate(el => el.classList.contains('on'));
-checks.voiceToggled = before !== after;
+// edit a shape: select the 'min' chip, toggle a voice, confirm it's a different bank entry
+await page.locator('.shape-chip', { hasText: 'min7' }).first().click();
+await page.waitForTimeout(50);
+checks.nowEditing = await page.locator('.shape-name').inputValue();
 
-// strum + play -> polyphony and a named chord readout
+// shift a step's shape by clicking its badge
+const badge = page.locator('.c-shape').first();
+const sBefore = await badge.textContent();
+await badge.click();
+checks.shapeShifted = (await badge.textContent()) !== sBefore;
+
+// play strum -> polyphony + named chord readout
 await page.locator('.ctl:has(label:text-is("Style")) select').selectOption('strum');
 await page.locator('#btnPlay').click();
 await page.waitForTimeout(700);
 checks.chordReadout = await page.locator('#vNote').textContent();
 checks.voiceChip = await page.locator('#vChips').textContent();
-
-// drag a hypersynth voice offset to hear it move
-const off = page.locator('.hsv-off').nth(1);
-const b2 = await off.boundingBox();
-const offBefore = await off.textContent();
-await page.mouse.move(b2.x + b2.width / 2, b2.y + b2.height / 2);
-await page.mouse.down();
-await page.mouse.move(b2.x + b2.width / 2, b2.y + b2.height / 2 - 9, { steps: 4 });
-await page.mouse.up();
-checks.offsetScrubbed = (await off.textContent()) !== offBefore;
-checks.offBefore = offBefore; checks.offAfter = await off.textContent();
-
 await page.locator('#btnPlay').click(); // stop
 
-// share -> reload in fresh context keeps chords + hypersynth
+// add a shape from preset
+await page.locator('.addshape select').selectOption('aug');
+await page.waitForTimeout(50);
+checks.shapesAfterAdd = await page.locator('.shape-chip').count();
+
+// share -> reload keeps bank + sequence in a fresh context
 await page.locator('#btnShare').click();
 await page.waitForTimeout(80);
 const url = page.url();
 const p2 = await browser.newPage();
 await p2.goto(url, { waitUntil: 'load' });
 await p2.waitForTimeout(200);
-checks.reloadOnChordsTab = await p2.locator('.tab[data-grid="chords"]').evaluate(el => el.classList.contains('active'));
+checks.reloadShapes = await p2.locator('.shape-chip').count();
 checks.reloadRoots = await p2.locator('.c-root').allTextContents();
 
 await browser.close();

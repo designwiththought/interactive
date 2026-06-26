@@ -102,9 +102,35 @@
     return names[rootPc] + (ivs.length > 2 ? '?' : ivs.length === 2 ? '5' : '');
   }
 
+  // ---- Hypersynth shape bank: the chords the user has "defined in the
+  // instrument". Each shape is up to 6 voices (offset + active). ----
+  var DEFAULT_SHAPES = [
+    ['maj', [0, 4, 7]], ['min', [0, 3, 7]], ['7', [0, 4, 7, 10]], ['maj7', [0, 4, 7, 11]],
+    ['min7', [0, 3, 7, 10]], ['dim', [0, 3, 6]], ['m7b5', [0, 3, 6, 10]],
+    ['sus4', [0, 5, 7]], ['power', [0, 7, 12]]
+  ];
+  function shapeVoices(offs) {
+    var out = []; for (var i = 0; i < 6; i++) out.push({ off: offs[i] != null ? offs[i] : 0, on: i < offs.length });
+    return out;
+  }
+  function defaultBank() { return DEFAULT_SHAPES.map(function (s) { return { name: s[0], voices: shapeVoices(s[1]) }; }); }
+
+  // progression → [{pc, oct, quality}] so the sequencer can shift between shapes
+  function generateProgression(name, key, oct) {
+    var p = PROGRESSIONS[name]; if (!p) return [];
+    oct = oct == null ? 3 : oct;
+    return p.degrees.map(function (deg) {
+      var c = diatonic(key, p.mode, deg, p.seventh);
+      if (p.dom) c.quality = '7';
+      return { pc: c.pc, oct: oct, quality: c.quality };
+    });
+  }
+
   M8.chords = {
     QUALITIES: QUALITIES, ORDER: ORDER, PROGRESSIONS: PROGRESSIONS,
     notesFor: notesFor, diatonic: diatonic, generate: generate, randomDiatonic: randomDiatonic,
-    generateRoots: generateRoots, nameChord: nameChord
+    generateRoots: generateRoots, nameChord: nameChord,
+    DEFAULT_SHAPES: DEFAULT_SHAPES, shapeVoices: shapeVoices, defaultBank: defaultBank,
+    generateProgression: generateProgression
   };
 })(window.M8 = window.M8 || {});
