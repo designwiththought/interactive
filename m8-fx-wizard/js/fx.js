@@ -284,6 +284,13 @@
 
     // ===================== TABLE =====================
     {
+      code: 'HSC', name: 'Hypersynth Bank', cat: 'pitch',
+      xy: 'XX = chord bank (00–0F)',
+      manual: 'Select the active Hypersynth chord bank — drives chord changes from a phrase (app extension).',
+      confidence: 'med', sim: 'full', scope: ['phrase', 'table']
+      // handled directly by the engine in Hypersynth instrument mode
+    },
+    {
       code: 'TBL', name: 'Table', cat: 'table',
       xy: 'XX = table number',
       manual: 'Set the table number for the current instrument.',

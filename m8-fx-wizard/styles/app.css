@@ -65,6 +65,9 @@ button.ghost { background: transparent; }
 .tab { padding: 6px 12px; border-radius: 6px 6px 0 0; background: transparent; border: 1px solid transparent; color: var(--dim); cursor: pointer; font-size: 12px; }
 .tab.active { color: var(--ink); background: var(--panel-2); border-color: var(--line); }
 .gridhint { color: var(--dimmer); font-size: 11px; margin: 0 0 10px; }
+.inst-bar { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin: 0 0 12px; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+.inst-note { color: var(--dim); font-size: 11px; }
+.inst-note b { color: var(--cat-pitch); }
 
 /* sequencer grid */
 .grid { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }

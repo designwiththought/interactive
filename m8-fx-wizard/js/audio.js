@@ -37,9 +37,10 @@
     this.voices = [];
     for (var i = 0; i < NV; i++) {
       var amp = c.createGain(); amp.gain.value = 0.0001;
+      var pan = c.createStereoPanner(); pan.pan.value = 0;
       var osc = c.createOscillator(); osc.type = this.wave; osc.frequency.value = 440;
-      osc.connect(amp); amp.connect(voiceMix); osc.start();
-      this.voices.push({ osc: osc, amp: amp, on: false });
+      osc.connect(amp); amp.connect(pan); pan.connect(voiceMix); osc.start();
+      this.voices.push({ osc: osc, amp: amp, pan: pan, on: false });
     }
 
     var delaySend = c.createGain(); delaySend.gain.value = 0.32;
@@ -77,10 +78,11 @@
     var v = this.voices[i]; if (!v || !isFinite(f) || f <= 0) return;
     v.osc.frequency.setTargetAtTime(f, this.now(), 0.004);
   };
-  Audio.prototype.voiceOn = function (i, freq, peak, detune) {
+  Audio.prototype.voiceOn = function (i, freq, peak, detune, pan) {
     this.ensure(); var v = this.voices[i]; if (!v) return;
     if (freq) v.osc.frequency.setTargetAtTime(freq, this.now(), 0.002);
     v.osc.detune.setValueAtTime(detune || 0, this.now());
+    v.pan.pan.setValueAtTime(pan || 0, this.now());
     var t = this.now(), g = v.amp.gain;
     g.cancelScheduledValues(t); g.setValueAtTime(Math.max(0.0001, g.value), t);
     g.linearRampToValueAtTime(Math.max(0.0001, peak), t + 0.004); v.on = true;

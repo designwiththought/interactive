@@ -15,12 +15,14 @@ the instrument and sequence chord changes by selecting which bank is active (the
 `CHORD` parameter / its instrument FX) — the M8-native way, *not* the MIDI-only
 `CHD` command (which belongs to the MIDI-Out instrument). The lab mirrors that: a
 **16-bank editor** (name each bank, toggle/scrub its voice offsets, `SWARM`
-detune, `SHIFT` cross-fade, `SUBOSC`) and a sequencer where each step is a
-**root + which bank to shift to**. Generate a progression (pop, jazz ii–V–I,
-lo-fi, blues…), pick a play style (block / arp / strum), and hear it
-polyphonically; optional diatonic-snap keeps everything in key. And throughout you
-can **drag any value to hear it change** live — voice offsets, roots, rates,
-gates, FX bytes.
+detune, `SHIFT` cross-fade, `SUBOSC` sub, `WIDTH` stereo spread) and a sequencer
+where each step is a **root + which bank to shift to**. Generate a progression
+(pop, jazz ii–V–I, lo-fi, blues…), pick a play style (block / arp / strum), and
+hear it polyphonically; optional diatonic-snap keeps everything in key. You can
+also **drive the Hypersynth from a phrase** — set the phrase Instrument to
+*Hypersynth chords* and each NOTE plays a chord, with the `HSC` FX
+selecting/shifting the bank. And throughout you can **drag any value to hear it
+change** live — voice offsets, roots, rates, gates, FX bytes.
 
 ## Run it
 
@@ -108,6 +110,7 @@ js/app.js           — UI: grid editor, Chord Lab, scrub, transport, scope, wiz
 reference/          — the manual PDF + distilled community tips
 test-smoke.mjs      — headless smoke test: FX, scales, share round-trip
 test-chords.mjs     — headless smoke test: Chord Lab, polyphony, scrub
+test-driving.mjs    — headless smoke test: phrase-driven Hypersynth + width
 ```
 
 ## Status

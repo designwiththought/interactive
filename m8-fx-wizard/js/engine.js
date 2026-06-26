@@ -45,10 +45,12 @@
     this.mode = 'track';        // 'track' (phrase+table) | 'chords'
     this.chord = {
       style: 'block', rate: 3, gateSteps: 14, slotSteps: 16,
-      swarm: 0, shift: 0x80, subosc: 0,        // Hypersynth params (SWARM/SHIFT/SUBOSC)
+      swarm: 0, shift: 0x80, subosc: 0, width: 0,   // Hypersynth params (SWARM/SHIFT/SUBOSC/WIDTH)
       diatonic: false, key: 0, scale: 'major',
       shapes: (M8.chords ? M8.chords.defaultBank() : [])   // the 16 Hypersynth chord banks
     };
+    this.instrument = 'mono';   // phrase voice: 'mono' synth | 'hyper' (Hypersynth chords)
+    this.curBank = 0;           // active Hypersynth chord bank (driven by the HSC FX)
     // default sequence: a pop progression, each step pointing at the matching shape
     var prog = M8.chords ? M8.chords.generateProgression('pop', 0, 3) : [];
     var self = this;
@@ -226,30 +228,10 @@
     var slot = seq[this.cSlot];
     this.cRootPc = slot.pc;
     var root = (slot.oct + 1) * 12 + slot.pc;
-    var scaleIdx = ch.scale === 'minor' ? 2 : 1;
     var shape = (ch.shapes && ch.shapes[slot.shape]) || (ch.shapes && ch.shapes[0]) || { voices: [{ off: 0, on: true }] };
-    // SHIFT cross-fades volume between the first 3 intervals and the second 3
-    var t = (ch.shift == null ? 128 : ch.shift) / 255;
-    var gA = Math.min(1, 2 * (1 - t)), gB = Math.min(1, 2 * t);
-    var info = {}, notes = [];
-    shape.voices.forEach(function (v, idx) {
-      if (!v.on) return;
-      var n = root + (v.off | 0);
-      if (ch.diatonic && M8.scales) n = M8.scales.quantize(n, ch.key, scaleIdx);
-      if (info[n]) return;                                    // dedupe
-      info[n] = { level: idx < 3 ? gA : gB };
-      notes.push(n);
-    });
-    // SUBOSC: sub an octave (>=80) or two (<80) below the root
-    if (ch.subosc) {
-      var sub = root - (ch.subosc < 0x80 ? 24 : 12);
-      if (!info[sub]) { info[sub] = { level: ch.subosc / 255 }; notes.push(sub); }
-    }
-    notes.sort(function (a, b) { return a - b; });
-    // SWARM: per-voice detune spread (cents) around the centre
-    notes.forEach(function (n, i) { info[n].detune = (i - (notes.length - 1) / 2) * (ch.swarm / 255) * 22; });
-    this.cChordNotes = notes;
-    this._chordVoiceInfo = info;
+    var built = this._buildChordNotes(root, shape);
+    this.cChordNotes = built.notes;
+    this._chordVoiceInfo = built.info;
     this.cSlotTicksLeft = this.chord.slotSteps * CSTEP;
     this.cGateOff = this.tickCount + Math.max(1, Math.min(this.chord.gateSteps, this.chord.slotSteps)) * CSTEP;
     this.cArpPos = 0; this.cArpDir = 1; this.cArpCnt = 0; this.cStrumCnt = 0;
@@ -261,13 +243,42 @@
     }
   };
 
+  // Build the notes for a chord from a root + a Hypersynth shape, applying
+  // SHIFT (voice-group cross-fade), SUBOSC, SWARM (detune) and WIDTH (pan).
+  Engine.prototype._buildChordNotes = function (root, shape) {
+    var ch = this.chord, scaleIdx = ch.scale === 'minor' ? 2 : 1;
+    var t = (ch.shift == null ? 128 : ch.shift) / 255;
+    var gA = Math.min(1, 2 * (1 - t)), gB = Math.min(1, 2 * t);
+    var info = {}, notes = [];
+    shape.voices.forEach(function (v, idx) {
+      if (!v.on) return;
+      var n = root + (v.off | 0);
+      if (ch.diatonic && M8.scales) n = M8.scales.quantize(n, ch.key, scaleIdx);
+      if (info[n]) return;
+      info[n] = { level: idx < 3 ? gA : gB }; notes.push(n);
+    });
+    if (ch.subosc) {
+      var sub = root - (ch.subosc < 0x80 ? 24 : 12);
+      if (!info[sub]) { info[sub] = { level: ch.subosc / 255 }; notes.push(sub); }
+    }
+    notes.sort(function (a, b) { return a - b; });
+    var w = (ch.width || 0) / 255;
+    notes.forEach(function (n, i) {
+      info[n].detune = (i - (notes.length - 1) / 2) * (ch.swarm / 255) * 22;
+      info[n].pan = notes.length > 1 ? ((i / (notes.length - 1)) * 2 - 1) * w : 0;
+    });
+    return { notes: notes, info: info };
+  };
+
   Engine.prototype._triggerChordNote = function (note, offTick, level) {
     var voice = this._allocVoice();
     var vi = this._chordVoiceInfo ? this._chordVoiceInfo[note] : null;
     var lvl = level * (vi ? vi.level : 1);
-    var det = vi ? (vi.detune || 0) : 0;
-    this.audio.voiceOn(voice, M8.notes.midiToFreq(note), lvl, det);
+    this.audio.voiceOn(voice, M8.notes.midiToFreq(note), lvl, vi ? vi.detune : 0, vi ? vi.pan : 0);
     this.cActive.push({ voice: voice, note: note, offTick: offTick });
+  };
+  Engine.prototype._releaseAllChord = function () {
+    var self = this; this.cActive.forEach(function (a) { self.audio.voiceOff(a.voice, 0.1); }); this.cActive = [];
   };
   Engine.prototype._allocVoice = function () {
     var used = {}; this.cActive.forEach(function (a) { used[a.voice] = true; });
@@ -339,17 +350,33 @@
 
   Engine.prototype._fireRow = function (stepIdx, fxList, gate) {
     var step = this.phrase[stepIdx], v = this.voice;
+    // HSC selects the Hypersynth chord bank; apply first so it affects this step
+    for (var k = 0; k < fxList.length; k++) {
+      if (fxList[k].code === 'HSC') this.curBank = Math.max(0, Math.min(this.chord.shapes.length - 1, fxList[k].value));
+    }
+    if (this.instrument === 'hyper') {
+      if (step.note != null && gate) {
+        this._releaseAllChord();
+        var shape = this.chord.shapes[this.curBank] || this.chord.shapes[0];
+        var built = this._buildChordNotes(step.note, shape);
+        this.cChordNotes = built.notes; this._chordVoiceInfo = built.info;
+        this.cRootPc = ((step.note % 12) + 12) % 12;
+        var lvl = (step.vel != null ? step.vel / 255 : 0.8) * 0.9, self = this;
+        built.notes.forEach(function (n) { self._triggerChordNote(n, Infinity, lvl); });
+      }
+      v.alive = false;                 // mono voice unused in Hypersynth mode
+      return;                          // per-voice FX are not applied in v1 hyper mode
+    }
     if (step.note != null && gate) {
       v.baseNote = step.note;
       v.vel = (step.vel != null ? step.vel / 255 : 0.8);
       v.killIn = null; v.offIn = null; v.retScale = 1; v.alive = true;
-      // instrument (re)trigger restarts the table
-      this._restartTable();
+      this._restartTable();           // instrument (re)trigger restarts the table
       this.audio.noteOn(this._level());
     }
     // apply FX right-to-left (manual precedence)
     var ctx = this._ctx();
-    for (var i = fxList.length - 1; i >= 0; i--) this._applyFx(v, fxList[i], ctx);
+    for (var i = fxList.length - 1; i >= 0; i--) { if (fxList[i].code === 'HSC') continue; this._applyFx(v, fxList[i], ctx); }
   };
 
   Engine.prototype._applyFx = function (v, c, ctx) {
@@ -414,6 +441,7 @@
   };
   Engine.prototype._updateOutput = function () {
     var v = this.voice;
+    if (this.instrument === 'hyper') { this._lastSemis = this.cChordNotes[0] || 60; return; }
     // slow integer base (note + transposes + pitch offset) is what scales quantize
     var slow = v.baseNote + this.track.transpose + (v.tableTranspose || 0) + v.mod.pit;
     if (this.track.scale && M8.scales) slow = M8.scales.quantize(slow, this.track.scale.key, this.track.scale.scale);
@@ -449,11 +477,12 @@
     var active = Object.keys(v.persistent).filter(function (c) {
       var e = v.persistent[c]; return e.p.value !== 0;
     });
-    var isChord = this.mode === 'chords';
+    var hyper = this.mode === 'track' && this.instrument === 'hyper';
+    var isChord = this.mode === 'chords' || hyper;
     var chordLabel = isChord ? M8.chords.nameChord(this.cRootPc, this.cChordNotes) : null;
     var sem = this._lastSemis || (isChord ? 60 : v.baseNote);
     this.onUpdate({
-      mode: this.mode,
+      mode: this.mode, instrument: this.instrument, bank: this.curBank,
       tick: this.tickCount, step: this.curStep, tableRow: this.tableEnabled ? this.tableRow : -1,
       running: this.running, alive: isChord ? this.cActive.length > 0 : v.alive,
       semis: sem, noteLabel: isChord ? (chordLabel || '---') : notes.formatNote(sem),

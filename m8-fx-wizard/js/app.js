@@ -71,6 +71,21 @@
   function renderGrid() {
     if (curGrid === 'chords') { renderChords(); return; }
     var host = $('gridHost'); host.innerHTML = ''; rowEls = [];
+
+    // instrument selector: mono synth vs Hypersynth (phrase drives chords)
+    var bar = document.createElement('div'); bar.className = 'inst-bar';
+    bar.appendChild(selControl('Instrument', [['mono', 'Mono synth'], ['hyper', 'Hypersynth chords']], engine.instrument, function (v) {
+      if (engine.running) { engine.stop(); setPlaying(false); }
+      engine.instrument = v; if (engine._releaseAllChord) engine._releaseAllChord();
+      renderGrid(); persist();
+    }));
+    if (engine.instrument === 'hyper') {
+      var note = document.createElement('div'); note.className = 'inst-note';
+      note.innerHTML = 'NOTE = chord root · <b>HSC</b> = bank (00–' + notes.hex2(engine.chord.shapes.length - 1) + ') · define banks in the CHORDS tab. Per-voice FX are skipped in this mode.';
+      bar.appendChild(note);
+    }
+    host.appendChild(bar);
+
     var cols = curGrid === 'phrase' ? PHRASE_COLS : TABLE_COLS;
     var data = curGrid === 'phrase' ? engine.phrase : engine.table;
     var tbl = document.createElement('table'); tbl.className = 'grid';
@@ -250,6 +265,7 @@
     shaperow.appendChild(rangeControl('Swarm', 0, 255, engine.chord.swarm, function (v) { engine.chord.swarm = v; persist(); }));
     shaperow.appendChild(rangeControl('Shift', 0, 255, engine.chord.shift, function (v) { engine.chord.shift = v; persist(); }));
     shaperow.appendChild(rangeControl('Sub osc', 0, 255, engine.chord.subosc, function (v) { engine.chord.subosc = v; persist(); }));
+    shaperow.appendChild(rangeControl('Width', 0, 255, engine.chord.width, function (v) { engine.chord.width = v; persist(); }));
     shaperow.appendChild(toggleControl('Diatonic snap', engine.chord.diatonic, function (on) { engine.chord.diatonic = on; persist(); }));
     shaperow.appendChild(selControl('Key', notes.NAMES.map(function (n, i) { return [i, n]; }), engine.chord.key, function (v) { engine.chord.key = +v; persist(); }));
     shaperow.appendChild(selControl('Scale', [['major', 'major'], ['minor', 'minor']], engine.chord.scale, function (v) { engine.chord.scale = v; persist(); }));
@@ -347,7 +363,7 @@
       $('vLevel').style.width = Math.round((s.level || 0) * 100) + '%';
       $('vBend').textContent = (s.bend || 0).toFixed(2);
       $('vSlide').textContent = s.slide || 0;
-      if (s.mode === 'chords') renderChips(s.poly ? [s.poly + ' voices'] : []);
+      if (s.mode === 'chords' || s.instrument === 'hyper') renderChips(s.poly ? [s.poly + ' voices'] : []);
       else renderChips(s.activeFX || []);
       highlight(s);
     }
@@ -441,7 +457,8 @@
       w: audio.wave, c: audio.cutoff,
       p: engine.phrase.map(function (s) { return [s.note, s.vel, s.fx.map(encFx)]; }),
       T: engine.table.map(function (r) { return [r.n, r.v, r.fx.map(encFx)]; }),
-      ch: engine.chord, cs: engine.chordSeq, sp: chordSpace, ss: selShape
+      ch: engine.chord, cs: engine.chordSeq, sp: chordSpace, ss: selShape,
+      in: engine.instrument, cb: engine.curBank
     };
     return b64encode(JSON.stringify(o));
   }
@@ -461,6 +478,9 @@
     if (!engine.chord.shapes) engine.chord.shapes = M8.chords.defaultBank();
     if (engine.chord.shift == null) engine.chord.shift = 0x80;
     if (engine.chord.subosc == null) engine.chord.subosc = 0;
+    if (engine.chord.width == null) engine.chord.width = 0;
+    if (o.in) engine.instrument = o.in;
+    if (o.cb != null) engine.curBank = o.cb;
     engine.chordSeq.forEach(function (s) { if (s.shape == null) s.shape = 0; if (s.quality != null) delete s.quality; });
     if (o.gr) { curGrid = o.gr; document.querySelectorAll('.tab').forEach(function (x) { x.classList.toggle('active', x.dataset.grid === curGrid); }); }
     return true;
