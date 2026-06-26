@@ -727,7 +727,7 @@
   </div>
 
   <div v-if="showGraph && patternData" class="graph-view">
-    <FxGraph :pattern="patternData" :play-step="playStep" @changed="onGraphChanged" />
+    <FxGraph :pattern="patternData" :play-step="playStep" @changed="onGraphChanged" @exit="toggleGraph" />
   </div>
 
   <div class="actions">
@@ -754,12 +754,8 @@
       </template>
     </template>
 
-    <!-- Effects mode: only the FX-relevant controls + back to pattern -->
+    <!-- Effects mode: only the FX-relevant controls (Cancel/Fill in the bar return to the pattern) -->
     <template v-else>
-      <div class="group">
-        <Button @click="toggleGraph"> <sup>Back to</sup> Pattern </Button>
-      </div>
-      <div class="group separator" />
       <div class="group transport">
         <Button :blue="isPlaying" @click="togglePlay">
           <sup>Preview</sup> {{ isPlaying ? '■ Stop' : '▶ Play' }}

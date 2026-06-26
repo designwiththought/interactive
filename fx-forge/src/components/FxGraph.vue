@@ -35,7 +35,7 @@
       default: -1,
     },
   });
-  const emit = defineEmits<{ changed: [] }>();
+  const emit = defineEmits<{ changed: []; exit: [] }>();
 
   //----------------------------------
   // View geometry
@@ -176,7 +176,7 @@
   //----------------------------------
   // Apply
   //----------------------------------
-  // The single Drop action — applies the preset effect or the custom build.
+  // Apply the preset effect or the custom build to the range.
   function handleDrop() {
     if (!props.pattern) return;
     if (isCustom.value) applyCustom();
@@ -189,6 +189,15 @@
         params: { ...effectParams.value },
       });
     emit('changed');
+  }
+
+  // Fill — commit the FX, then leave the effects view. Cancel — just leave.
+  function handleFill() {
+    handleDrop();
+    emit('exit');
+  }
+  function handleCancel() {
+    emit('exit');
   }
 
   function applyCustom() {
@@ -213,12 +222,6 @@
         seed: seed.value,
       });
     }
-  }
-
-  function clearFx() {
-    if (!props.pattern) return;
-    clearRange(props.pattern, trackIndex.value, effectiveRange.value);
-    emit('changed');
   }
 
   //----------------------------------
@@ -540,9 +543,9 @@
         </div>
       </div>
 
-      <!-- Actions -->
-      <div class="pcol action-col" @click="clearFx"><span class="pc-action">Clear</span></div>
-      <div class="pcol action-col drop" @click="handleDrop"><span class="pc-action">Drop</span></div>
+      <!-- Actions: Cancel exits to the pattern, Fill commits the FX -->
+      <div class="pcol action-col" @click="handleCancel"><span class="pc-action">Cancel</span></div>
+      <div class="pcol action-col fill" @click="handleFill"><span class="pc-action">Fill</span></div>
     </div>
   </div>
 </template>
@@ -793,7 +796,7 @@
           background: rgba(255, 255, 255, 0.05);
         }
       }
-      &.action-col.drop {
+      &.action-col.fill {
         background: var(--pattern-step-active-color, #54cfc1);
         &::after {
           display: none;
