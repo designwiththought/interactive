@@ -389,7 +389,7 @@
       var x = (i / (TRAIL - 1)) * W; var y = H - p.level * (H - 2);
       if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
     });
-    ctx.strokeStyle = 'rgba(255,79,154,.55)'; ctx.lineWidth = 1; ctx.stroke();
+    ctx.strokeStyle = 'rgba(150,160,172,.45)'; ctx.lineWidth = 1; ctx.stroke();
     // pitch (teal)
     ctx.beginPath();
     trail.forEach(function (p, i) {
@@ -398,7 +398,7 @@
       var y = pad + (1 - norm) * (H - pad * 2);
       if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
     });
-    ctx.strokeStyle = p_alive() ? '#43e0c8' : '#2c5e57'; ctx.lineWidth = 1.6; ctx.stroke();
+    ctx.strokeStyle = p_alive() ? '#8fb0a6' : '#4a5a55'; ctx.lineWidth = 1.6; ctx.stroke();
   }
   function p_alive() { return lastSnap && lastSnap.alive; }
 
