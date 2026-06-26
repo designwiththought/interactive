@@ -97,16 +97,14 @@ enter it depends on how you built the patch:
 2. In the phrase, place the **root NOTE** on each step with the Hypersynth in the
    `I` column. Each note sounds the whole chord.
 
-**B. Shifting banks per chord** (different shape per step):
-1. In the **Instrument** view, highlight the **CHORD** parameter, then
-   `SHIFT`+`RIGHT` into the phrase — the FX column's default command is now the
-   **CHORD bank-select** for that instrument.
-2. On each step, place the **root NOTE** and add that CHORD-bank FX with the
-   **bank number** from the sheet.
+**B. Shifting chords per step** (different chord per step):
+1. On each step, place the **root NOTE** and add the **`CRD`** FX with the chord
+   number (`00`–`0F`) from the sheet.
 
-> In the wizard this bank-select is written as **`HSCxx`** (an app stand-in). On
-> the device it's the Hypersynth **CHORD** parameter's own FX command, set as in
-> step B.1 — the `xx` value is the bank number.
+> **`CRD`** is the Hypersynth's real chord-select command: it picks one of the
+> instrument's 16 chords, and the chosen chord is transposed by the note you
+> play. So `C-3` + `CRD04` plays chord 04 rooted on C; `G-3` + `CRD02` plays
+> chord 02 rooted on G — a whole progression on one track.
 
 ---
 

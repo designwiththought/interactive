@@ -126,8 +126,22 @@
     });
   }
 
+  // name a single interval offset (in semitones) for the shape editor
+  var IVN = ['root', 'min 2nd', 'maj 2nd', 'min 3rd', 'maj 3rd', '4th', 'tritone', '5th', 'min 6th', 'maj 6th', 'min 7th', 'maj 7th'];
+  function intervalName(semis) {
+    var base = IVN[((semis % 12) + 12) % 12];
+    var oct = Math.floor(semis / 12);
+    return base + (oct > 0 ? ' +' + oct + 'oct' : oct < 0 ? ' ' + oct + 'oct' : '');
+  }
+  // chord quality of a set of offsets (relative to a root at 0), or null
+  function qualityOf(offsets) {
+    var notes = offsets.slice().sort(function (a, b) { return a - b; });
+    var label = nameChord(0, notes);            // e.g. "Cmin7"
+    return label ? label.slice(1) : null;       // strip the root letter -> "min7"
+  }
+
   M8.chords = {
-    QUALITIES: QUALITIES, ORDER: ORDER, PROGRESSIONS: PROGRESSIONS,
+    QUALITIES: QUALITIES, ORDER: ORDER, PROGRESSIONS: PROGRESSIONS, intervalName: intervalName, qualityOf: qualityOf,
     notesFor: notesFor, diatonic: diatonic, generate: generate, randomDiatonic: randomDiatonic,
     generateRoots: generateRoots, nameChord: nameChord,
     DEFAULT_SHAPES: DEFAULT_SHAPES, shapeVoices: shapeVoices, defaultBank: defaultBank,

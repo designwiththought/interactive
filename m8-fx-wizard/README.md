@@ -20,8 +20,9 @@ where each step is a **root + which bank to shift to**. Generate a progression
 (pop, jazz ii–V–I, lo-fi, blues…), pick a play style (block / arp / strum), and
 hear it polyphonically; optional diatonic-snap keeps everything in key. You can
 also **drive the Hypersynth from a phrase** — set the phrase Instrument to
-*Hypersynth chords* and each NOTE plays a chord, with the `HSC` FX
-selecting/shifting the bank. And throughout you can **drag any value to hear it
+*Hypersynth chords* and each NOTE plays a chord, with the `CRD` FX
+selecting/shifting which of the 16 chords plays (the M8's real chord command —
+the chord transposes with the played note). And throughout you can **drag any value to hear it
 change** live — voice offsets, roots, rates, gates, FX bytes.
 
 ## Run it

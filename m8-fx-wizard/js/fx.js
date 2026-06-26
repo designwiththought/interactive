@@ -284,10 +284,10 @@
 
     // ===================== TABLE =====================
     {
-      code: 'HSC', name: 'Hypersynth Bank', cat: 'pitch',
-      xy: 'XX = chord bank (00–0F)',
-      manual: 'Select the active Hypersynth chord bank — drives chord changes from a phrase (app extension).',
-      confidence: 'med', sim: 'full', scope: ['phrase', 'table']
+      code: 'CRD', name: 'Hypersynth Chord', cat: 'pitch',
+      xy: 'XX = chord number (00–0F)',
+      manual: 'Select one of the Hypersynth instrument\'s 16 chords; the chord is transposed by the played note.',
+      confidence: 'high', sim: 'full', scope: ['phrase', 'table']
       // handled directly by the engine in Hypersynth instrument mode
     },
     {

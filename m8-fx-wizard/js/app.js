@@ -81,7 +81,7 @@
     }));
     if (engine.instrument === 'hyper') {
       var note = document.createElement('div'); note.className = 'inst-note';
-      note.innerHTML = 'NOTE = chord root · <b>HSC</b> = bank (00–' + notes.hex2(engine.chord.shapes.length - 1) + ') · define banks in the CHORDS tab. Per-voice FX are skipped in this mode.';
+      note.innerHTML = 'NOTE = chord root · <b>CRD</b> = chord number (00–' + notes.hex2(engine.chord.shapes.length - 1) + ') · define chords in the CHORDS tab. Per-voice FX are skipped in this mode.';
       bar.appendChild(note);
     }
     host.appendChild(bar);
@@ -228,7 +228,7 @@
   function renderChords() {
     clampSel();
     var host = $('gridHost'); host.innerHTML = ''; rowEls = [];
-    $('gridHint').textContent = 'Chord Lab — the M8 Hypersynth holds 16 chord banks of up to 6 intervals. You define the banks here, then sequence chord changes by selecting which bank is active (the CHORD parameter / its instrument FX) — that is the M8-native way, not the MIDI-only CHD command. Drag any value to hear it live.';
+    $('gridHint').textContent = 'Chord Lab — the M8 Hypersynth holds 16 chords of up to 6 intervals. You define the chords here, then sequence them with the CRD command, which picks a chord and transposes it by the played note (the M8-native way — not the MIDI-only CHD command). Drag any value to hear it live.';
     var lab = document.createElement('div'); lab.className = 'chordlab';
 
     // Hypersynth: the 16 chord banks
@@ -260,6 +260,21 @@
     var voices = document.createElement('div'); voices.className = 'hs-voices';
     sel.voices.forEach(function (v, i) { voices.appendChild(voiceChip(v, i)); });
     hs.appendChild(voices);
+
+    // explanation of the chord being built
+    var offs = sel.voices.filter(function (v) { return v.on; }).map(function (v) { return v.off; });
+    var expl = document.createElement('div'); expl.className = 'hs-expl';
+    if (offs.length) {
+      var qual = M8.chords.qualityOf(offs);
+      var parts = offs.slice().sort(function (a, b) { return a - b; }).map(function (o) {
+        return '<span class="iv">' + (o >= 0 ? '+' : '') + o + '</span> ' + M8.chords.intervalName(o);
+      });
+      expl.innerHTML = '<b>' + sel.name + '</b> — ' + (qual && qual !== '?' ? 'a ' + qual + ' chord: ' : '') + parts.join(' · ') +
+        '. Played note = root; the whole shape transposes with it.';
+    } else {
+      expl.textContent = 'No active voices — toggle a voice on to build the chord.';
+    }
+    hs.appendChild(expl);
 
     var shaperow = document.createElement('div'); shaperow.className = 'chord-controls';
     shaperow.appendChild(rangeControl('Swarm', 0, 255, engine.chord.swarm, function (v) { engine.chord.swarm = v; persist(); }));

@@ -10,12 +10,12 @@ await page.goto('file://' + path.resolve('index.html'), { waitUntil: 'load' });
 await page.waitForTimeout(200);
 const checks = {};
 
-// PHRASE drives Hypersynth: switch instrument, put a root + HSC bank-select
+// PHRASE drives Hypersynth: switch instrument, put a root + CRD chord-select
 await page.locator('.inst-bar select').selectOption('hyper');
 await page.waitForTimeout(50);
 checks.instNoteShown = await page.locator('.inst-note').count();
 
-// program phrase step 0: note C-3, FX1 = HSC04 (bank 4 = min7 in default bank)
+// program phrase step 0: note C-3, FX1 = CRD04 (chord 4 = min7 in default bank)
 await page.evaluate(() => {
   const M8 = window.M8;
   // reach into the engine via a known global? app keeps it private; drive via UI instead
@@ -24,7 +24,7 @@ await page.evaluate(() => {
 const noteCell = page.locator('.cell.note').first();
 await noteCell.fill('C-3'); await noteCell.blur();
 const fxCell = page.locator('.cell.fx').first();
-await fxCell.fill('HSC04'); await fxCell.blur();
+await fxCell.fill('CRD04'); await fxCell.blur();
 
 await page.locator('#btnPlay').click();
 await page.waitForTimeout(500);

@@ -50,7 +50,7 @@
       shapes: (M8.chords ? M8.chords.defaultBank() : [])   // the 16 Hypersynth chord banks
     };
     this.instrument = 'mono';   // phrase voice: 'mono' synth | 'hyper' (Hypersynth chords)
-    this.curBank = 0;           // active Hypersynth chord bank (driven by the HSC FX)
+    this.curBank = 0;           // active Hypersynth chord bank (driven by the CRD FX)
     // default sequence: a pop progression, each step pointing at the matching shape
     var prog = M8.chords ? M8.chords.generateProgression('pop', 0, 3) : [];
     var self = this;
@@ -350,9 +350,9 @@
 
   Engine.prototype._fireRow = function (stepIdx, fxList, gate) {
     var step = this.phrase[stepIdx], v = this.voice;
-    // HSC selects the Hypersynth chord bank; apply first so it affects this step
+    // CRD selects the Hypersynth chord bank; apply first so it affects this step
     for (var k = 0; k < fxList.length; k++) {
-      if (fxList[k].code === 'HSC') this.curBank = Math.max(0, Math.min(this.chord.shapes.length - 1, fxList[k].value));
+      if (fxList[k].code === 'CRD') this.curBank = Math.max(0, Math.min(this.chord.shapes.length - 1, fxList[k].value));
     }
     if (this.instrument === 'hyper') {
       if (step.note != null && gate) {
@@ -376,7 +376,7 @@
     }
     // apply FX right-to-left (manual precedence)
     var ctx = this._ctx();
-    for (var i = fxList.length - 1; i >= 0; i--) { if (fxList[i].code === 'HSC') continue; this._applyFx(v, fxList[i], ctx); }
+    for (var i = fxList.length - 1; i >= 0; i--) { if (fxList[i].code === 'CRD') continue; this._applyFx(v, fxList[i], ctx); }
   };
 
   Engine.prototype._applyFx = function (v, c, ctx) {
