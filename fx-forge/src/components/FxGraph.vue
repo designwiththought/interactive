@@ -149,6 +149,17 @@
     return lines;
   });
 
+  // Horizontal value gridlines: normalized 0..100% of each lane's FX range.
+  // `y` is in viewBox units; `top` is the % down the box (for the HTML labels,
+  // which sit outside the stretched SVG so they stay crisp).
+  const gridLevels = computed(() =>
+    [0, 25, 50, 75, 100].map((pctVal) => {
+      const v = pctVal / 100;
+      const y = yOf(v);
+      return { value: pctVal, y, top: (y / VIEW_H) * 100 };
+    }),
+  );
+
   const laneLegend = (laneIdx: number) => {
     const syms = [...new Set(series.value[laneIdx].filter((p) => p.symbol !== '-').map((p) => p.symbol))];
     return syms.length ? syms.join(' ') : '—';
@@ -240,80 +251,95 @@
     <!-- Graph (left, fills the width) + effect panel (right) -->
     <div class="fxg-main">
       <div class="fxg-graph-col">
-        <svg class="graph" :viewBox="`0 0 ${viewW} ${VIEW_H}`" preserveAspectRatio="none">
-          <!-- range band -->
-          <rect
-            v-if="numSteps"
-            class="range-band"
-            :x="xOf(effectiveRange.from) - stepW / 2"
-            :y="PAD.t"
-            :width="xOf(effectiveRange.to) - xOf(effectiveRange.from) + stepW"
-            :height="VIEW_H - PAD.t - PAD.b"
-          />
-          <!-- beat gridlines -->
-          <line
-            v-for="(bx, i) in beatLines"
-            :key="`b${i}`"
-            class="beat"
-            :x1="bx"
-            :y1="PAD.t"
-            :x2="bx"
-            :y2="VIEW_H - PAD.b"
-          />
-          <!-- playhead -->
-          <line
-            v-if="playStep >= 0 && playStep < numSteps"
-            class="playhead"
-            :x1="xOf(playStep)"
-            :y1="PAD.t"
-            :x2="xOf(playStep)"
-            :y2="VIEW_H - PAD.b"
-          />
-          <!-- axis baseline -->
-          <line class="axis" :x1="PAD.l" :y1="VIEW_H - PAD.b" :x2="viewW - PAD.r" :y2="VIEW_H - PAD.b" />
-          <text class="axis-label" :x="2" :y="PAD.t + 8">max</text>
-          <text class="axis-label" :x="2" :y="VIEW_H - PAD.b">min</text>
+        <div class="graph-wrap">
+          <!-- Y-axis value labels (HTML so they stay crisp over the stretched SVG) -->
+          <div class="y-axis">
+            <span v-for="lvl in gridLevels" :key="`y${lvl.value}`" :style="{ top: lvl.top + '%' }">{{
+              lvl.value
+            }}</span>
+          </div>
+          <svg class="graph" :viewBox="`0 0 ${viewW} ${VIEW_H}`" preserveAspectRatio="none">
+            <!-- range band -->
+            <rect
+              v-if="numSteps"
+              class="range-band"
+              :x="xOf(effectiveRange.from) - stepW / 2"
+              :y="PAD.t"
+              :width="xOf(effectiveRange.to) - xOf(effectiveRange.from) + stepW"
+              :height="VIEW_H - PAD.t - PAD.b"
+            />
+            <!-- beat gridlines -->
+            <line
+              v-for="(bx, i) in beatLines"
+              :key="`b${i}`"
+              class="beat"
+              :x1="bx"
+              :y1="PAD.t"
+              :x2="bx"
+              :y2="VIEW_H - PAD.b"
+            />
+            <!-- playhead -->
+            <line
+              v-if="playStep >= 0 && playStep < numSteps"
+              class="playhead"
+              :x1="xOf(playStep)"
+              :y1="PAD.t"
+              :x2="xOf(playStep)"
+              :y2="VIEW_H - PAD.b"
+            />
+            <!-- horizontal value gridlines -->
+            <line
+              v-for="lvl in gridLevels"
+              :key="`h${lvl.value}`"
+              class="hgrid"
+              :class="{ edge: lvl.value === 0 || lvl.value === 100 }"
+              :x1="PAD.l"
+              :y1="lvl.y"
+              :x2="viewW - PAD.r"
+              :y2="lvl.y"
+            />
 
-          <!-- lane 0 -->
-          <polyline
-            v-for="(run, i) in lane0Runs"
-            :key="`l0r${i}`"
-            :points="polyline(run)"
-            :stroke="LANE_COLORS[0]"
-            class="curve"
-          />
-          <template v-for="(run, i) in lane0Runs" :key="`l0p${i}`">
-            <circle v-for="p in run" :key="`l0-${p.step}`" :cx="p.x" :cy="p.y" r="2.5" :fill="LANE_COLORS[0]">
-              <title>step {{ p.step + 1 }} · {{ p.symbol }}{{ p.display }}</title>
-            </circle>
-          </template>
+            <!-- lane 0 -->
+            <polyline
+              v-for="(run, i) in lane0Runs"
+              :key="`l0r${i}`"
+              :points="polyline(run)"
+              :stroke="LANE_COLORS[0]"
+              class="curve"
+            />
+            <template v-for="(run, i) in lane0Runs" :key="`l0p${i}`">
+              <circle v-for="p in run" :key="`l0-${p.step}`" :cx="p.x" :cy="p.y" r="2.5" :fill="LANE_COLORS[0]">
+                <title>step {{ p.step + 1 }} · {{ p.symbol }}{{ p.display }}</title>
+              </circle>
+            </template>
 
-          <!-- lane 1 -->
-          <polyline
-            v-for="(run, i) in lane1Runs"
-            :key="`l1r${i}`"
-            :points="polyline(run)"
-            :stroke="LANE_COLORS[1]"
-            class="curve"
-          />
-          <template v-for="(run, i) in lane1Runs" :key="`l1p${i}`">
-            <circle v-for="p in run" :key="`l1-${p.step}`" :cx="p.x" :cy="p.y" r="2.5" :fill="LANE_COLORS[1]">
-              <title>step {{ p.step + 1 }} · {{ p.symbol }}{{ p.display }}</title>
-            </circle>
-          </template>
+            <!-- lane 1 -->
+            <polyline
+              v-for="(run, i) in lane1Runs"
+              :key="`l1r${i}`"
+              :points="polyline(run)"
+              :stroke="LANE_COLORS[1]"
+              class="curve"
+            />
+            <template v-for="(run, i) in lane1Runs" :key="`l1p${i}`">
+              <circle v-for="p in run" :key="`l1-${p.step}`" :cx="p.x" :cy="p.y" r="2.5" :fill="LANE_COLORS[1]">
+                <title>step {{ p.step + 1 }} · {{ p.symbol }}{{ p.display }}</title>
+              </circle>
+            </template>
 
-          <!-- clickable step columns -->
-          <rect
-            v-for="s in numSteps"
-            :key="`c${s}`"
-            class="hit"
-            :x="xOf(s - 1) - stepW / 2"
-            :y="PAD.t"
-            :width="stepW"
-            :height="VIEW_H - PAD.t - PAD.b"
-            @click="onStepClick(s - 1)"
-          />
-        </svg>
+            <!-- clickable step columns -->
+            <rect
+              v-for="s in numSteps"
+              :key="`c${s}`"
+              class="hit"
+              :x="xOf(s - 1) - stepW / 2"
+              :y="PAD.t"
+              :width="stepW"
+              :height="VIEW_H - PAD.t - PAD.b"
+              @click="onStepClick(s - 1)"
+            />
+          </svg>
+        </div>
         <div class="fxg-legend">
           <span><i :style="{ background: LANE_COLORS[0] }" /> Lane 1 · {{ laneLegend(0) }}</span>
           <span><i :style="{ background: LANE_COLORS[1] }" /> Lane 2 · {{ laneLegend(1) }}</span>
@@ -410,11 +436,33 @@
       font-weight: normal;
     }
 
+    // Graph area: the SVG fills it; Y-axis value labels overlay the left edge.
+    .graph-wrap {
+      position: relative;
+      flex: 1;
+      min-height: 200px;
+    }
+    .y-axis {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 26px;
+      pointer-events: none;
+      z-index: 1;
+      span {
+        position: absolute;
+        right: 4px;
+        transform: translateY(-50%);
+        font-size: 9px;
+        color: var(--pattern-step-label-color);
+      }
+    }
+
     svg.graph {
       display: block;
       width: 100%;
-      height: 100%; // fills the column, matching the effect panel's height
-      min-height: 200px;
+      height: 100%; // fills the wrap, matching the effect panel's height
       background: var(--pattern-step-bg-color);
       border: 2px solid #000;
       border-radius: 6px;
@@ -427,14 +475,13 @@
         stroke-width: 1;
         vector-effect: non-scaling-stroke;
       }
-      .axis {
-        stroke: rgba(255, 255, 255, 0.18);
+      .hgrid {
+        stroke: rgba(255, 255, 255, 0.07);
         stroke-width: 1;
         vector-effect: non-scaling-stroke;
-      }
-      .axis-label {
-        fill: var(--pattern-step-label-color);
-        font-size: 9px;
+        &.edge {
+          stroke: rgba(255, 255, 255, 0.16);
+        }
       }
       .curve {
         fill: none;
